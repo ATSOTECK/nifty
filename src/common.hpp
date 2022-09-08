@@ -40,7 +40,7 @@
 #   define VMAC
 #endif
 
-#define var auto
+#define let auto
 #define keep [[nodiscard]]
 #define until(x) while(!(x))
 #define forever for (;;)

@@ -38,8 +38,8 @@ namespace {
 }
 #endif //VWIN
 
-size_t strsize(const char *str) {
-    size_t size = 1;
+int64 strsize(const char *str) {
+    int64 size = 1;
     while (*str++ != '\0') {
         ++size;
     }
@@ -47,12 +47,12 @@ size_t strsize(const char *str) {
     return size;
 }
 
-size_t utf8_strlen(const char *str) {
+int64 utf8_strlen(const char *str) {
     if (!str) {
         return 0;
     }
 
-    size_t c, i, l;
+    int64 c, i, l;
 
     for (l = 0, i = 0; i < strsize(str) - 1; ++i, ++l) {
         c = (unsigned char)str[i];
@@ -103,7 +103,7 @@ size_t strcmpcnt(const char *lhs, size_t count, const char *rhs) {
     return diff;
 }
 
-char *cptocstr(uchar32 cp, int &size) {
+char *cptocstr(char32 cp, int &size) {
     char *str = nullptr;
 
     if (cp <= 0x7F) {
@@ -140,7 +140,7 @@ char *cptocstr(uchar32 cp, int &size) {
     return str;
 }
 
-std::string cptostd(uchar32 cp) {
+std::string cptostd(char32 cp) {
     int size;
     std::string ret = cptocstr(cp, size);
 
@@ -270,11 +270,11 @@ void String::reset() {
     reserve(1);
 }
 
-size_t String::length() const {
+int64 String::length() const {
     return _len;
 }
 
-size_t String::size() const {
+int64 String::size() const {
     return _allocated;
 }
 
@@ -286,12 +286,12 @@ bool String::empty() const {
     return (_str == nullptr || _len == 0);
 }
 
-int64 String::indexOf(uchar32 cp) const {
+int64 String::indexOf(char32 cp) const {
     return indexOfNext(cp, 0);
 }
 
-int64 String::indexOfNext(uchar32 cp, size_t startFrom) const {
-    for (size_t i = startFrom; i <= _len; ++i) {
+int64 String::indexOfNext(char32 cp, int64 startFrom) const {
+    for (int64 i = startFrom; i <= _len; ++i) {
         if (cp == codepoint(i)) {
             return i;
         }
@@ -300,7 +300,7 @@ int64 String::indexOfNext(uchar32 cp, size_t startFrom) const {
     return -1;
 }
 
-int64 String::indexOfLast(uchar32 cp) const {
+int64 String::indexOfLast(char32 cp) const {
     for (int64 i = _len - 1; i >= 0; --i) {
         if (cp == codepoint(i)) {
             return i;
@@ -310,43 +310,43 @@ int64 String::indexOfLast(uchar32 cp) const {
     return -1;
 }
 
-bool String::contains(uchar32 cp) const {
+bool String::contains(char32 cp) const {
     return (indexOfNext(cp, 0) != -1);
 }
 
-bool String::isNumber(uchar32 cp) {
+bool String::isNumber(char32 cp) {
     return (cp >= '0' && cp <= '9');
 }
 
-bool String::isHexNumber(uchar32 cp) {
+bool String::isHexNumber(char32 cp) {
     return ((cp >= '0' && cp <= '9') || (cp >= 'a' && cp <= 'f') || (cp >= 'A' && cp <= 'F'));
 }
 
-bool String::isHexLetter(uchar32 cp) {
+bool String::isHexLetter(char32 cp) {
     return ((cp >= 'a' && cp <= 'f') || (cp >= 'A' && cp <= 'F'));
 }
 
-bool String::isAlpha(uchar32 cp) {
+bool String::isAlpha(char32 cp) {
     return ((cp >= 'a' && cp <= 'z') || (cp >= 'A' && cp <= 'Z'));
 }
 
-bool String::isLower(uchar32 cp) {
+bool String::isLower(char32 cp) {
     return (cp >= 'a' && cp <= 'z');
 }
 
-bool String::isUpper(uchar32 cp) {
+bool String::isUpper(char32 cp) {
     return (cp >= 'A' && cp <= 'Z');
 }
 
-bool String::isAlphanumeric(uchar32 cp) {
+bool String::isAlphanumeric(char32 cp) {
     return (isAlpha(cp) || isNumber(cp));
 }
 
-bool String::isWhitespace(uchar32 cp) {
+bool String::isWhitespace(char32 cp) {
     return (cp == ' ' || cp == '\t' || cp == '\n' || cp == '\r');
 }
 
-bool String::isNewline(uchar32 cp) {
+bool String::isNewline(char32 cp) {
     return (cp == '\n');
 }
 
@@ -373,7 +373,7 @@ bool String::endsWith(const String &str, bool ignoreWhitespace) const {
     return (strcmpcnt(_str + (_bsize - str._bsize), str._bsize - 1, str._str) == 0);
 }
 
-String String::stringAfter(size_t index) const {
+String String::stringAfter(int64 index) const {
     String ret;
 
     if (index >= _len) {
@@ -386,14 +386,14 @@ String String::stringAfter(size_t index) const {
     return ret;
 }
 
-String String::stringBefore(size_t index) const {
+String String::stringBefore(int64 index) const {
     String ret;
 
     if (index <= 0) {
         return ret;
     }
 
-    size_t size = offsetForCharIndex(index);
+    int64 size = offsetForCharIndex(index);
     ret.resize(size + 1);
     memcpy(ret._str, _str, size * sizeof(char));
     ret._str[size] = '\0';
@@ -403,14 +403,14 @@ String String::stringBefore(size_t index) const {
     return ret;
 }
 
-String String::stringAfterLast(uchar32 cp) const {
+String String::stringAfterLast(char32 cp) const {
     return stringAfter(indexOfLast(cp));
 }
 
-String String::stringAfterLast(uchar32 cp0, uchar32 cp1) const {
+String String::stringAfterLast(char32 cp0, char32 cp1) const {
     String ret;
     size_t offset;
-    uchar32 cp;
+    char32 cp;
 
     for (int64 i = _len; i >= 0; --i) {
         cp = codepoint(i);
@@ -429,16 +429,16 @@ String String::stringAfterLast(uchar32 cp0, uchar32 cp1) const {
     return ret;
 }
 
-String String::stringAfterFirst(uchar32 cp) const {
+String String::stringAfterFirst(char32 cp) const {
     return stringAfter(indexOf(cp));
 }
 
-String String::stringAfterFirst(uchar32 cp0, uchar32 cp1) const {
+String String::stringAfterFirst(char32 cp0, char32 cp1) const {
     String ret;
     size_t offset;
-    uchar32 cp;
+    char32 cp;
 
-    for (size_t i = 0; i <= _len; ++i) {
+    for (int64 i = 0; i <= _len; ++i) {
         cp = codepoint(i);
         if (cp == cp0 || cp == cp1) {
             if (i == _len) {
@@ -455,15 +455,15 @@ String String::stringAfterFirst(uchar32 cp0, uchar32 cp1) const {
     return ret;
 }
 
-String String::stringBeforeFirst(uchar32 cp) const {
+String String::stringBeforeFirst(char32 cp) const {
     return stringBefore(indexOf(cp));
 }
 
-String String::stringBeforeFirst(uchar32 cp0, uchar32 cp1) const {
+String String::stringBeforeFirst(char32 cp0, char32 cp1) const {
     String ret;
-    uchar32 cp;
+    char32 cp;
 
-    for (size_t i = 0; i <= _len; ++i) {
+    for (int64 i = 0; i <= _len; ++i) {
         cp = codepoint(i);
         if (cp == cp0 || cp == cp1) {
             if (i == 0) {
@@ -477,13 +477,13 @@ String String::stringBeforeFirst(uchar32 cp0, uchar32 cp1) const {
     return ret;
 }
 
-String String::stringBeforeLast(uchar32 cp) const {
+String String::stringBeforeLast(char32 cp) const {
     return stringBefore(indexOfLast(cp));
 }
 
-String String::stringBeforeLast(uchar32 cp0, uchar32 cp1) const {
+String String::stringBeforeLast(char32 cp0, char32 cp1) const {
     String ret;
-    uchar32 cp;
+    char32 cp;
 
     for (int64 i = _len; i >= 0; --i) {
         cp = codepoint(i);
@@ -499,12 +499,12 @@ String String::stringBeforeLast(uchar32 cp0, uchar32 cp1) const {
     return ret;
 }
 
-void String::erase(size_t index, size_t count) {
+void String::erase(int64 index, int64 count) {
     if (_len == 0 || count == 0 || index + count > _len) {
         return;
     }
 
-    size_t end = offsetForCharIndex(index + count);
+    int64 end = offsetForCharIndex(index + count);
     index = offsetForCharIndex(index);
 
     memcpy(_str + index, _str + end, _allocated - end);
@@ -514,7 +514,7 @@ void String::erase(size_t index, size_t count) {
 }
 
 void String::trimLeadingWhitespace() {
-    size_t i = 0;
+    int64 i = 0;
     while (isWhitespace(codepoint(i)) && i <= _len) {
         ++i;
     }
@@ -540,7 +540,7 @@ void String::trimWhitespace() {
     trimTrailingWhitespace();
 }
 
-void String::append(uchar32 cp, size_t buffSize) {
+void String::append(char32 cp, int64 buffSize) {
     int cps;
     char *c = cptocstr(cp, cps);
 
@@ -561,7 +561,7 @@ void String::append(uchar32 cp, size_t buffSize) {
     ++_len;
 }
 
-void String::append(const String &string, size_t buffSize) {
+void String::append(const String &string, int64 buffSize) {
     if (buffSize > 0 && buffSize > string._bsize) {
         resize(_allocated + buffSize);
     } else if (_bsize + string._bsize > _allocated) {
@@ -579,7 +579,7 @@ void String::append(const String &string, size_t buffSize) {
     _len += string._len;
 }
 
-String String::substring(size_t index, size_t len) const {
+String String::substring(int64 index, int64 len) const {
     if (len == 0) {
         return substr(index, offsetForCharIndex(_len));
     }
@@ -587,13 +587,13 @@ String String::substring(size_t index, size_t len) const {
     return substr(index, index + len);
 }
 
-String String::substr(size_t begin, size_t end) const {
+String String::substr(int64 begin, int64 end) const {
     begin = offsetForCharIndex(begin);
     end = offsetForCharIndex(end);
 
     String ret;
 
-    size_t size = end - begin + 1;
+    int64 size = end - begin + 1;
     ret.resize(size + 1);
     strcpy_s(ret._str, size, _str + begin);
     ret._str[size] = '\0';
@@ -606,7 +606,7 @@ String String::substr(size_t begin, size_t end) const {
 String String::toUpper() const {
     String ret = *this;
 
-    for (size_t i = 0; i < _len; ++i) {
+    for (int64 i = 0; i < _len; ++i) {
         if (isLower(ret[i])) {
             ret._str[ret.offsetForCharIndex(i)] -= 32;
         }
@@ -618,7 +618,7 @@ String String::toUpper() const {
 String String::toLower() const {
     String ret = *this;
 
-    for (size_t i = 0; i < _len; ++i) {
+    for (int64 i = 0; i < _len; ++i) {
         if (isUpper(ret[i])) {
             ret._str[ret.offsetForCharIndex(i)] += 32;
         }
@@ -630,8 +630,8 @@ String String::toLower() const {
 String String::swapCase() const {
     String ret = *this;
 
-    for (size_t i = 0; i < _len; ++i) {
-        uchar32 cp = ret[i];
+    for (int64 i = 0; i < _len; ++i) {
+        char32 cp = ret[i];
         if (isUpper(cp)) {
             ret._str[ret.offsetForCharIndex(i)] += 32;
         } else if (isLower(cp)) {
@@ -654,7 +654,7 @@ char *String::c_str() const {
 }
 
 std::string String::stdString() const {
-    return std::string(_str);
+    return {_str};
 }
 
 int String::toInt(int base) const {
@@ -720,7 +720,7 @@ double String::toDouble() const {
     return strtod(_str, nullptr);
 }
 
-void String::reserve(size_t size) {
+void String::reserve(int64 size) {
     if (_str != nullptr) {
         return;
     }
@@ -732,7 +732,7 @@ void String::reserve(size_t size) {
     _str[0] = '\0';
 }
 
-void String::resize(size_t size) {
+void String::resize(int64 size) {
     if (size == 0 || size < _allocated) {
         return;
     }
@@ -762,12 +762,12 @@ void String::resize(size_t size) {
     }
 }
 
-size_t String::offsetForCharIndex(size_t index) const {
+int64 String::offsetForCharIndex(int64 index) const {
     if (!_str || index > _len || index == 0) {
         return 0;
     }
 
-    size_t c, i, l;
+    int64 c, i, l;
 
     for (l = 0, i = 0; i < _bsize - 1; ++i, ++l) {
         c = (unsigned char)_str[i];
@@ -791,7 +791,7 @@ size_t String::offsetForCharIndex(size_t index) const {
     return 0;
 }
 
-char String::raw(size_t index) const {
+char String::raw(int64 index) const {
     if (index >= _bsize) {
         return '\0';
     }
@@ -799,48 +799,48 @@ char String::raw(size_t index) const {
     return _str[index];
 }
 
-uint32 String::codepoint(size_t index) const {
+int32 String::codepoint(int64 index) const {
     if (index > _len) {
         return 0;
     }
 
-    uint32 cp = 0;
+    char32 cp = 0;
     index = offsetForCharIndex(index);
-    uint32 c = (uchar)_str[index];
+    char32 c = (uchar)_str[index];
 
     if ((c & 0x80u) == 0) {
         cp = (unsigned char)c;
     } else if ((c & 0xE0u) == 0xC0) {
-        cp =  ((uint32)_str[index]     & 0x1Fu) << 6u;
-        cp |= ((uint32)_str[index + 1] & 0x3Fu);
+        cp =  ((int32)_str[index]     & 0x1F) << 6u;
+        cp |= ((int32)_str[index + 1] & 0x3F);
     } else if ((c & 0xF0u) == 0xE0) {
-        cp =  ((uint32)_str[index]     & 0xFu)  << 12u;
-        cp |= ((uint32)_str[index + 1] & 0x3Fu) << 6u;
-        cp |= ((uint32)_str[index + 2] & 0x3Fu);
+        cp =  ((int32)_str[index]     & 0xF)  << 12u;
+        cp |= ((int32)_str[index + 1] & 0x3F) << 6u;
+        cp |= ((int32)_str[index + 2] & 0x3F);
     } else if ((c & 0xF8u) == 0xF0) {
-        cp =  ((uint32)_str[index]     & 0x7u)  << 18u;
-        cp |= ((uint32)_str[index + 1] & 0x3Fu) << 12u;
-        cp |= ((uint32)_str[index + 2] & 0x3Fu) << 6u;
-        cp |= ((uint32)_str[index + 3] & 0x3Fu);
+        cp =  ((int32)_str[index]     & 0x7)  << 18u;
+        cp |= ((int32)_str[index + 1] & 0x3F) << 12u;
+        cp |= ((int32)_str[index + 2] & 0x3F) << 6u;
+        cp |= ((int32)_str[index + 3] & 0x3F);
     } else if ((c & 0xFCu) == 0xF8) {
-        cp =  ((uint32)_str[index]     & 0x3u)  << 24u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 18u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 12u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 6u;
-        cp |= ((uint32)_str[index]     & 0x3Fu);
+        cp =  ((int32)_str[index]     & 0x3)  << 24u;
+        cp |= ((int32)_str[index]     & 0x3F) << 18u;
+        cp |= ((int32)_str[index]     & 0x3F) << 12u;
+        cp |= ((int32)_str[index]     & 0x3F) << 6u;
+        cp |= ((int32)_str[index]     & 0x3F);
     } else if ((c & 0xFEu) == 0xFC) {
-        cp =  ((uint32)_str[index]     & 0x1u)  << 30u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 24u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 18u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 12u;
-        cp |= ((uint32)_str[index]     & 0x3Fu) << 6u;
-        cp |= ((uint32)_str[index]     & 0x3Fu);
+        cp =  ((int32)_str[index]     & 0x1)  << 30u;
+        cp |= ((int32)_str[index]     & 0x3F) << 24u;
+        cp |= ((int32)_str[index]     & 0x3F) << 18u;
+        cp |= ((int32)_str[index]     & 0x3F) << 12u;
+        cp |= ((int32)_str[index]     & 0x3F) << 6u;
+        cp |= ((int32)_str[index]     & 0x3F);
     }
 
     return cp;
 }
 
-uchar32 String::codepointFor(const String &str) {
+char32 String::codepointFor(const String &str) {
     if (str._len != 1) {
         vwarn("Expected string length of 1, got length of " << str._len);
 
@@ -852,9 +852,9 @@ uchar32 String::codepointFor(const String &str) {
     return str.codepoint(0);
 }
 
-String String::stringFrom(uchar32 cp) {
+String String::stringFrom(char32 cp) {
     int size;
-    return String(cptocstr(cp, size));
+    return {cptocstr(cp, size)};
 }
 
 String String::readFromFile(const String &path) {
@@ -866,7 +866,7 @@ String String::readFromFile(const String &path) {
     std::string line;
     if (file.is_open()) {
         //This method uses less memory for whatever reason.
-        size_t fileSize = 0;
+        int64 fileSize = 0;
         until(file.get() == EOF) {
             ++fileSize;
         }
@@ -957,7 +957,7 @@ String String::operator+=(const String &other) {
     return *this;
 }
 
-String String::operator+=(uchar32 cp) {
+String String::operator+=(char32 cp) {
     append(cp);
 
     return *this;
@@ -975,12 +975,12 @@ String String::operator+=(const std::string &other) {
     return *this;
 }
 
-uchar32 String::operator[](size_t index) const {
+char32 String::operator[](int64 index) const {
     return codepoint(index);
 }
 
 /*
-uchar32 &String::operator[](size_t index) {
+char32 &String::operator[](size_t index) {
     return codepoint(index);
 }
 */

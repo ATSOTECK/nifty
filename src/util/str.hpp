@@ -44,69 +44,69 @@ public:
     String(double n);
     ~String() noexcept;
 
-    keep size_t length() const;
-    keep size_t size() const;
+    keep int64 length() const;
+    keep int64 size() const;
 
     void clear();
     keep bool empty() const;
 
-    keep int64 indexOf(uchar32 cp) const;
+    keep int64 indexOf(char32 cp) const;
     keep int64 indexOf(const String &str) const;
-    keep int64 indexOfNext(uchar32 cp, size_t startFrom) const;
-    keep int64 indexOfNext(const String &str, size_t startFrom) const;
-    keep int64 indexOfLast(uchar32 cp) const;
+    keep int64 indexOfNext(char32 cp, int64 startFrom) const;
+    keep int64 indexOfNext(const String &str, int64 startFrom) const;
+    keep int64 indexOfLast(char32 cp) const;
     keep int64 indexOfLast(const String &str) const;
-    keep bool contains(uchar32 cp) const;
+    keep bool contains(char32 cp) const;
     keep bool contains(const String &str) const;
 
-    static bool isNumber(uchar32 cp);
-    static bool isHexNumber(uchar32 cp);
-    static bool isHexLetter(uchar32 cp);
-    static bool isAlpha(uchar32 cp);
-    static bool isLower(uchar32 cp);
-    static bool isUpper(uchar32 cp);
-    static bool isAlphanumeric(uchar32 cp);
-    static bool isWhitespace(uchar32 cp);
-    static bool isNewline(uchar32 cp);
+    static bool isNumber(char32 cp);
+    static bool isHexNumber(char32 cp);
+    static bool isHexLetter(char32 cp);
+    static bool isAlpha(char32 cp);
+    static bool isLower(char32 cp);
+    static bool isUpper(char32 cp);
+    static bool isAlphanumeric(char32 cp);
+    static bool isWhitespace(char32 cp);
+    static bool isNewline(char32 cp);
 
     keep bool startsWith(const String &str, bool ignoreWhitespace = false) const;
     keep bool endsWith(const String &str, bool ignoreWhitespace = false) const;
 
-    keep String stringAfter(size_t index) const;
-    keep String stringBefore(size_t index) const;
+    keep String stringAfter(int64 index) const;
+    keep String stringBefore(int64 index) const;
 
-    keep String stringAfterLast(uchar32 cp) const;
-    keep String stringAfterLast(uchar32 cp0, uchar32 cp1) const;
+    keep String stringAfterLast(char32 cp) const;
+    keep String stringAfterLast(char32 cp0, char32 cp1) const;
     //This is NOT the same as (stringAfterLast(cp0) || stringAfterLast(cp1)).
     //Same for the following functions.
 
-    keep String stringAfterFirst(uchar32 cp) const;
-    keep String stringAfterFirst(uchar32 cp0, uchar32 cp1) const;
+    keep String stringAfterFirst(char32 cp) const;
+    keep String stringAfterFirst(char32 cp0, char32 cp1) const;
 
-    keep String stringBeforeFirst(uchar32 cp) const;
-    keep String stringBeforeFirst(uchar32 cp0, uchar32 cp1) const;
+    keep String stringBeforeFirst(char32 cp) const;
+    keep String stringBeforeFirst(char32 cp0, char32 cp1) const;
 
-    keep String stringBeforeLast(uchar32 cp) const;
-    keep String stringBeforeLast(uchar32 cp0, uchar32 cp1) const;
+    keep String stringBeforeLast(char32 cp) const;
+    keep String stringBeforeLast(char32 cp0, char32 cp1) const;
 
-    void erase(size_t index, size_t count = 1);
+    void erase(int64 index, int64 count = 1);
 
     void trimLeadingWhitespace();
     void trimTrailingWhitespace();
     void trimWhitespace();
 
-    void append(uchar32 cp, size_t buffSize = 0);
-    void append(const String &string, size_t buffSize = 0);
-    void prepend(uchar32 cp, size_t buffSize = 0);
-    void prepend(const String &string, size_t buffSize = 0);
-    void insert(uchar32 cp, size_t index);
-    void insert(const String &str, size_t index);
+    void append(char32 cp, int64 buffSize = 0);
+    void append(const String &string, int64 buffSize = 0);
+    void prepend(char32 cp, int64 buffSize = 0);
+    void prepend(const String &string, int64 buffSize = 0);
+    void insert(char32 cp, int64 index);
+    void insert(const String &str, int64 index);
 
-    void replace(size_t index, size_t len, const String &str);
+    void replace(int64 index, int64 len, const String &str);
     bool replace(const String &findStr, const String &replaceStr);
 
-    keep String substring(size_t index, size_t len = 0) const;
-    keep String substr(size_t begin, size_t end) const;
+    keep String substring(int64 index, int64 len = 0) const;
+    keep String substr(int64 begin, int64 end) const;
 
     ///Only works with ASCII.
     keep String toUpper() const;
@@ -122,14 +122,14 @@ public:
     keep float toFloat() const;
     keep double toDouble() const;
 
-    void reserve(size_t size);
-    void resize(size_t size);
+    void reserve(int64 size);
+    void resize(int64 size);
 
-    keep size_t offsetForCharIndex(size_t index) const;
-    keep char raw(size_t index) const;
-    keep uint32 codepoint(size_t index) const;
-    static uchar32 codepointFor(const String &str);
-    static String stringFrom(uchar32 cp);
+    keep int64 offsetForCharIndex(int64 index) const;
+    keep char raw(int64 index) const;
+    keep int32 codepoint(int64 index) const;
+    static int32 codepointFor(const String &str);
+    static String stringFrom(char32 cp);
 
     static String readFromFile(const String &path);
 
@@ -143,12 +143,12 @@ public:
     String operator +(const String &other);
     String operator +(const char *other);
     String operator+=(const String &other);
-    String operator+=(uchar32 cp);
+    String operator+=(char32 cp);
     String operator+=(const char *other);
     String operator+=(const std::string &other);
 
-    uchar32 operator[](size_t index) const;
-    //uchar32 &operator[](size_t index);
+    char32 operator[](int64 index) const;
+    //char32 &operator[](int64 index);
 
     enum Base {
         Guess = 0,
@@ -169,9 +169,9 @@ private:
     friend std::ostream &operator <<(std::ostream &os, const String &str);
 
     char *_str;
-    size_t _allocated; //Size in bytes of the memory allocated to the string.
-    size_t _bsize; //Minimum number of bytes needed to represent the string.
-    size_t _len; //Number of characters in the string.
+    int64 _allocated; //Size in bytes of the memory allocated to the string.
+    int64 _bsize; //Minimum number of bytes needed to represent the string.
+    int64 _len; //Number of characters in the string.
 };
 
 String operator+(char *lhs, const String &rhs);

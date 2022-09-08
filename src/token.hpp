@@ -31,6 +31,7 @@ enum Tokens {
     TK_UNKNOWN = 0,
 
     TK_FN,
+    TK_STATIC,
 
     TK_IF,
     TK_IF_NOT,
@@ -40,16 +41,16 @@ enum Tokens {
     TK_IN,
     TK_STEP,
     TK_AS,
-    TK_CLASS,
+    TK_CAST,
     TK_STRUCT,
+    TK_IMPL,
+    TK_DOES,
+    TK_BEHAVIOR,
     TK_ENUM,
     TK_UNION,
-    TK_SELF,
     TK_PUBLIC,
     TK_PRIVATE,
     TK_READ_ONLY,
-    TK_PROTECTED,
-    TK_FRIEND,
 
     TK_DELAY,
     TK_ASSERT,
@@ -60,7 +61,7 @@ enum Tokens {
     TK_WHILE,
     TK_UNTIL,
     TK_WHEN,
-    TK_REPEAT,
+    TK_REPEAT, // could be a macro
     TK_GOTO,
     TK_BREAK,
     TK_CONTINUE,
@@ -82,7 +83,7 @@ enum Tokens {
     TK_DELETE,
 
     TK_USE,
-    TK_PACKAGE,
+    TK_NAMESPACE,
 
     TK_SIZEOF,
     TK_ALIGNOF,
