@@ -23,6 +23,9 @@
 #include "lexer.hpp"
 
 #include <utility>
+#include <iostream>
+
+#define cpstr(x) String::stringFrom(x)
 
 Lexer::Lexer(String path):
     _path(std::move(path)),
@@ -60,11 +63,467 @@ Token Lexer::nextToken() {
             return t;
         }
 
+        if (String::isNumber(_currentChar)) {
+            String word;
+            while ((_currentChar == '_' || _currentChar == '.' || String::isHexNumber(_currentChar) || _currentChar == 'x' || _currentChar == 'X') ||
+                   _currentChar == 'o' || _currentChar == 'O' || _currentChar == 'b' || _currentChar == 'B' ||
+                   (!String::isWhitespace(_currentChar) && (String::isNumber(_currentChar) && !(String::isAlpha(_currentChar))))) {
+                if (_currentChar != '_') {
+                    word += _currentChar;
+                }
+                eat();
+            }
+
+            t.type = TK_NUMBER;
+            t.lexeme = word;
+
+            return t;
+        }
+
         if (String::isWhitespace(_currentChar)) {
             eatWhiteSpace();
             continue;
         }
+
+        switch (_currentChar) {
+            case '"': {
+                String str;
+                eat();
+                bool overwrite = false;
+
+                while (_currentChar != '"' || overwrite) {
+                    overwrite = false;
+
+                    if (_currentChar == '\\' && _code[_pos + 1] == '"') {
+                        overwrite = true;
+                    }
+
+                    if (String::isNewline(_currentChar)) {
+                        ++_line;
+                        str += "\\n";
+                        eat();
+                        continue;
+                    }
+
+                    str += _currentChar;
+                    eat();
+                }
+                t.type = TK_STRING_LIT;
+                t.lexeme = str;
+                eat();
+                return t;
+            }
+            case '\'': {
+                eat();
+                t.lexeme = cpstr(_currentChar);
+                eat(2); //TODO: Error if no '
+                t.type = TK_CHAR_LIT;
+                return t;
+            }
+            case ':': {
+                if (peek() == ':') {
+                    if (peek(2) == '=') {
+                        t.lexeme = TK_VAL_DECL;
+                        t.lexeme = "::=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_SCOPE;
+                    t.lexeme = "::";
+                    eat(2);
+                    return t;
+                } else {
+                    if (peek() == '=') {
+                        t.type = TK_LET_DECL;
+                        t.lexeme = ":=";
+                        eat(2);
+                        return t;
+                    }
+
+                    t.type = TK_COLON;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case ',': {
+                t.type = TK_COMMA;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case 0x0000037E: //Greek Question Mark
+                warn("Encountered unicode character U+037E, treating it as a semicolon.");
+            case ';': {
+                t.type = TK_SEMICOLON;
+                t.lexeme = ';';
+                eat();
+                return t;
+            }
+            case '(': {
+                t.type = TK_LPAREN;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case ')': {
+                t.type = TK_RPAREN;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case '{': {
+                t.type = TK_LBRACE;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case '}': {
+                t.type = TK_RBRACE;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case '[': {
+                t.type = TK_LBRACKET;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case ']': {
+                t.type = TK_RBRACKET;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case '.': {
+                if (peek() == '.') {
+                    if (peek(2) == '.') {
+                        t.type = TK_VARY;
+                        t.lexeme = "...";
+                        eat(3);
+                        return t;
+                    } else if (peek(2) == '<') {
+                        t.type = TK_ERANGE;
+                        t.lexeme = "..<";
+                        eat(3);
+                        return t;
+                    } else {
+                        t.type = TK_IRANGE;
+                        t.lexeme = "..";
+                        eat(2);
+                        return t;
+                    }
+                } else if (peek() == '*') {
+                    t.type = TK_DOTREF;
+                    t.lexeme = ".*";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_DOT;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '#': {
+                eat();
+
+                while (!String::isWhitespace(_currentChar) && String::isAlphanumeric(_currentChar)) {
+                    eat();
+                }
+            } break;
+                //case '€':
+            case '$': {
+                t.type = TK_MACRO;
+                eat();
+
+                while (!String::isWhitespace(_currentChar) && String::isAlphanumeric(_currentChar)) {
+                    t.lexeme += _currentChar;
+                    eat();
+                }
+
+                return t;
+            }
+            case '=': {
+                if (peek() == '=') {
+                    t.type = TK_EQU;
+                    t.lexeme = "==";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_ASSIGN;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '!': {
+                if (peek() == '=') {
+                    t.type = TK_NOTEQU;
+                    t.lexeme = "!=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_NOT;
+                    t.lexeme = "!";
+                    eat();
+                    return t;
+                }
+            }
+            case '+': {
+                if (peek() == '=') {
+                    t.type = TK_ADDEQU;
+                    t.lexeme = "+=";
+                    eat(2);
+                    return t;
+                } else if (peek() == '+') {
+                    t.type = TK_INC;
+                    t.lexeme = "++";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_ADD;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '-': {
+                if (peek() == '=') {
+                    t.type = TK_SUBEQU;
+                    t.lexeme = "-=";
+                    eat(2);
+                    return t;
+                } else if (peek() == '-') {
+                    t.type = TK_DEC;
+                    t.lexeme = "--";
+                    eat(2);
+                    return t;
+                } else if (peek() == '>') {
+                    if (peek(2) == '*') {
+                        t.type = TK_PDREF;
+                        t.lexeme = "->*";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_POINT;
+                    t.lexeme = "->";
+                    eat(2);
+                    return t;
+                } else if (String::isNumber(peek())) {
+                    eat();
+                    String word = "-";
+                    while ((_currentChar == '_' || _currentChar == '.' || String::isHexNumber(_currentChar) || _currentChar == 'x' || _currentChar == 'X') ||
+                           _currentChar == 'q' || _currentChar == 'Q' || _currentChar == 'b' || _currentChar == 'B' ||
+                           (!String::isWhitespace(_currentChar) && (String::isNumber(_currentChar) && !(String::isAlpha(_currentChar))))) {
+                        if (_currentChar != '_') {
+                            word += _currentChar;
+                        }
+                        eat();
+                    }
+
+                    t.type = TK_NUMBER;
+                    t.lexeme = word;
+
+                    return t;
+                } else {
+                    t.type = TK_SUB;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '*': {
+                if (peek() == '=') {
+                    t.type = TK_MULEQU;
+                    t.lexeme = "*=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_MUL;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '/': {
+                if (peek() == '/') {
+                    eatLine();
+                } else if (peek() == '-' || peek() == '*') {
+                    eatBlock();
+                } else if (peek() == '=') {
+                    t.type = TK_DIVEQU;
+                    t.lexeme = "/=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_DIV;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            } break;
+            case '%': {
+                if (peek() == '=') {
+                    t.type = TK_MODEQU;
+                    t.lexeme = "%=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_MOD;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '^': {
+                if (peek() == '=') {
+                    t.type = TK_XOREQU;
+                    t.lexeme = "^=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_XOR;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            case '~': {
+                t.type = TK_BITNOT;
+                t.lexeme = cpstr(_currentChar);
+                eat();
+                return t;
+            }
+            case '>': {
+                if (peek() == '=') {
+                    t.type = TK_GREATEREQU;
+                    t.lexeme = ">=";
+                    eat(2);
+                    return t;
+                } if (peek() == '>') {
+                    if (peek(2) == '=') {
+                        t.type = TK_BITRSEQU;
+                        t.lexeme = ">>=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_BITRS;
+                    t.lexeme = ">>";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_GREATER;
+                    t.lexeme = ">";
+                    eat();
+                    return t;
+                }
+            }
+            case '<': {
+                if (peek() == '=') {
+                    t.type = TK_LESSEQU;
+                    t.lexeme = "<=";
+                    eat(2);
+                    return t;
+                } if (peek() == '<') {
+                    if (peek(2) == '=') {
+                        t.type = TK_BITLSEQU;
+                        t.lexeme = "<<=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_BITLS;
+                    t.lexeme = "<<";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_LESS;
+                    t.lexeme = "<";
+                    eat();
+                    return t;
+                }
+            }
+            case '&': {
+                if (peek() == '&') {
+                    t.type = TK_AND;
+                    t.lexeme = "&&";
+                    eat(2);
+                    return t;
+                } else if (peek() == '=') {
+                    t.type = TK_BITANDEQU;
+                    t.lexeme = "&=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_BITAND;
+                    t.lexeme = "&";
+                    eat();
+                    return t;
+                }
+            }
+            case '|': {
+                if (peek() == '|') {
+                    if (peek(2) == '=') {
+                        t.type = TK_NULLISH_COALESCE_ASSIGN;
+                        t.lexeme = "||=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_OR;
+                    t.lexeme = "||";
+                    eat(2);
+                    return t;
+                } else if (peek() == '=') {
+                    t.type = TK_BITOREQU;
+                    t.lexeme = "|=";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_BITOR;
+                    t.lexeme = "|";
+                    eat();
+                    return t;
+                }
+            }
+            case '?': {
+                if (peek() == '.') {
+                    t.type = TK_QDOT;
+                    t.lexeme = "?.";
+                    eat(2);
+                    return t;
+                } else if (peek() == '?') {
+                    if (peek(2) == '=') {
+                        t.type = TK_NULL_COALESCE_ASSIGN;
+                        t.lexeme = "\?\?=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_NULL_COALESCE;
+                    t.lexeme = "??";
+                    eat(2);
+                    return t;
+                } else {
+                    t.type = TK_QMRK;
+                    t.lexeme = cpstr(_currentChar);
+                    eat();
+                    return t;
+                }
+            }
+            default: {
+                eat();
+            } break;
+        }
     }
+
+    t.type = TK_EOF;
+    t.lexeme = "EOF";
 
     return t;
 }
@@ -80,6 +539,38 @@ void Lexer::eat(uint8 amount) {
     _currentChar = _pos >= _code.length() ? EOF : _code[_pos];
 }
 
+void Lexer::eatLine() {
+    while (!String::isNewline(_currentChar)) {
+        eat();
+    }
+}
+
+void Lexer::eatBlock() {
+    bool endFound = false;
+    uint8 nestedFound = 0;
+    while (!endFound && _currentChar != EOF) {
+        eat();
+
+        if (String::isNewline(_currentChar)) {
+            ++_line;
+        }
+
+        if (_currentChar == '/' && (peek() == '-' || peek() == '*')) {
+            ++nestedFound;
+        }
+
+        if ((_currentChar == '-' || _currentChar == '*') && peek() == '/') {
+            if (nestedFound > 0) {
+                --nestedFound;
+            } else {
+                endFound = true;
+            }
+        }
+    }
+
+    eat(2);
+}
+
 void Lexer::eatWhiteSpace() {
     while (String::isWhitespace(_currentChar)) {
         if (String::isNewline(_currentChar)) {
@@ -89,4 +580,46 @@ void Lexer::eatWhiteSpace() {
 
         eat();
     }
+}
+
+char32 Lexer::peek(uint8 count) const {
+    return _code[_pos + count];
+}
+
+void Lexer::warn(const String &warning) const {
+    dbnln(_filename << ":L" << _line << ",C" << _linePos << ": ");
+    setCmdColor(WarnColor);
+    dbnln("Warning ");
+    setCmdColor(TextColor);
+
+    db("on line " << _line << ": " << warning);
+    uint32 lineBegin, lineEnd = 0;
+
+    for (int64 i = _pos; i >= 0; --i) {
+        if (_code[i] == '\n') {
+            lineBegin = i + 1;
+            break;
+        }
+    }
+
+    for (int64 i = _pos; i <= _code.length(); ++i) {
+        if (_code[i] == '\n') {
+            lineEnd = i - 1;
+            break;
+        }
+    }
+
+    String line;
+    for (size_t i = lineBegin; i <= lineEnd; ++i) {
+        line += _code[i];
+    }
+
+    db(line);
+    setCmdColor(GreenColor);
+    uint32 i;
+    for (i = 0; i < _linePos - 1; ++i) {
+        dbnln("~");
+    }
+    db("^");
+    setCmdColor(TextColor);
 }

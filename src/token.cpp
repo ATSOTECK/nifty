@@ -38,6 +38,7 @@ std::map<String, Tokens> Token::keywords = {
         {"local", TK_LOCAL},
 
         {"fn", TK_FN},
+        {"static", TK_STATIC},
 
         {"return", TK_RETURN},
         {"if", TK_IF},
@@ -65,10 +66,13 @@ std::map<String, Tokens> Token::keywords = {
 
         {"struct", TK_STRUCT},
         {"impl", TK_IMPL},
+        {"endimpl", TK_END_IMPL},
         {"does", TK_DOES},
         {"behavior", TK_BEHAVIOR},
         {"enum", TK_ENUM},
         {"union", TK_UNION},
+        {"public", TK_PUBLIC},
+        {"private", TK_PRIVATE},
         {"readonly", TK_READ_ONLY},
 
         {"assert", TK_ASSERT},
@@ -138,8 +142,12 @@ String tokenToString(const Token &t) {
         case TK_IRANGE: return fmtTTS("TK_IRANGE", t.lexeme);
         case TK_ERANGE: return fmtTTS("TK_ERANGE", t.lexeme);
         case TK_VARY: return fmtTTS("TK_VARY", t.lexeme);
+        case TK_LABEL: return fmtTTS("TK_LABEL", t.lexeme);
         case TK_ANNOTATION: return fmtTTS("TK_ANNOTATION", t.lexeme);
         case TK_MACRO: return fmtTTS("TK_MACRO", t.lexeme);
+        case TK_SCOPE: return fmtTTS("TK_SCOPE", t.lexeme);
+        case TK_LET_DECL: return fmtTTS("TK_LET_DECL", t.lexeme);
+        case TK_VAL_DECL: return fmtTTS("TK_VAL_DECL", t.lexeme);
         case TK_ASSIGN: return fmtTTS("TK_ASSIGN", t.lexeme);
         case TK_EQU: return fmtTTS("TK_EQU", t.lexeme);
         case TK_ADD: return fmtTTS("TK_ADD", t.lexeme);
@@ -166,6 +174,7 @@ String tokenToString(const Token &t) {
         case TK_QDOT: return fmtTTS("TK_QDOT", t.lexeme);
         case TK_NULL_COALESCE: return fmtTTS("TK_NULL_COALESCE", t.lexeme);
         case TK_NULL_COALESCE_ASSIGN: return fmtTTS("TK_NULL_COALESCE_ASSIGN", t.lexeme);
+        case TK_NULLISH_COALESCE_ASSIGN: return fmtTTS("TK_NULLISH_COALESCE_ASSIGN", t.lexeme);
         case TK_EOF: return fmtTTS("TK_EOF", t.lexeme);
         default: return fmtTTS("???", t.lexeme);
     }

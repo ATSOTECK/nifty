@@ -44,6 +44,7 @@ enum Tokens {
     TK_CAST,
     TK_STRUCT,
     TK_IMPL,
+    TK_END_IMPL,
     TK_DOES,
     TK_BEHAVIOR,
     TK_ENUM,

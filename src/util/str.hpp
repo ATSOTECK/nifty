@@ -139,7 +139,7 @@ public:
     String &operator =(String &&other) noexcept;
     String &operator =(const char *other);
     String &operator =(const std::string &other);
-    String &operator =(char other);
+    String &operator =(char32 other);
     String operator +(const String &other);
     String operator +(const char *other);
     String operator+=(const String &other);

@@ -31,15 +31,19 @@ public:
 
     Token nextToken();
 
+private:
     void eat();
     void eat(uint8 amount);
     void eatLine();
     void eatBlock();
-    Token eatIdent();
     void eatWhiteSpace();
 
-private:
+    keep char32 peek(uint8 count = 1) const;
+
+    void warn(const String &warning) const;
+
     String _path;
+    String _filename;
     String _code;
     uint32 _pos;
     uint32 _linePos;

@@ -930,7 +930,7 @@ String &String::operator =(const std::string &other) {
     return *this;
 }
 
-String &String::operator=(char other) {
+String &String::operator=(char32 other) {
     reset();
     *this = stringFrom(other);
 
