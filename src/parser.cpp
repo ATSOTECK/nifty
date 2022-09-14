@@ -20,43 +20,4 @@
  *
  */
 
-#ifndef __NIFTY_LEXER_HPP__
-#define __NIFTY_LEXER_HPP__
-
-#include "token.hpp"
-
-#include <vector>
-
-class Lexer {
-public:
-    explicit Lexer(String path);
-
-    Token nextToken();
-
-private:
-    Token next();
-    void genTokens();
-
-    void eat();
-    void eat(uint8 amount);
-    void eatLine();
-    void eatBlock();
-    void eatWhiteSpace();
-
-    keep char32 peek(uint8 count = 1) const;
-
-    void warn(const String &warning) const;
-
-    std::vector<Token> _tokens;
-    int _idx;
-    String _path;
-    String _filename;
-    String _code;
-    uint32 _pos;
-    uint32 _linePos;
-    uint32 _line;
-    char32 _currentChar;
-};
-
-
-#endif //__NIFTY_LEXER_HPP__
+#include "parser.hpp"

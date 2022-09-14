@@ -28,6 +28,7 @@
 #define cpstr(x) String::stringFrom(x)
 
 Lexer::Lexer(String path):
+    _idx(0),
     _path(std::move(path)),
     _code(String::readFromFile(_path)),
     _pos(0),
@@ -35,10 +36,18 @@ Lexer::Lexer(String path):
     _line(1),
     _currentChar(_code[0])
 {
-    //
+    genTokens();
 }
 
 Token Lexer::nextToken() {
+    if (++_idx == _tokens.size()) {
+        --_idx;
+    }
+
+    return _tokens[_idx];
+}
+
+Token Lexer::next() {
     Token t;
     t.type = TK_UNKNOWN;
     t.line = _line;
@@ -528,6 +537,18 @@ Token Lexer::nextToken() {
     return t;
 }
 
+void Lexer::genTokens() {
+    Token t = next();
+    for(;;) {
+        _tokens.push_back(t);
+        if (t.type == TK_EOF) {
+            break;
+        }
+
+        t = next();
+    }
+}
+
 void Lexer::eat() {
     ++_linePos;
     _currentChar = ++_pos >= _code.length() ? EOF : _code[_pos];
@@ -610,7 +631,7 @@ void Lexer::warn(const String &warning) const {
     }
 
     String line;
-    for (size_t i = lineBegin; i <= lineEnd; ++i) {
+    for (int64 i = lineBegin; i <= lineEnd; ++i) {
         line += _code[i];
     }
 
