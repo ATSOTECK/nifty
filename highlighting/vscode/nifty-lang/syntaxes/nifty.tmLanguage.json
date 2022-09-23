@@ -206,7 +206,7 @@
 			"patterns": [
 				{
 					"name": "constant.numeric.nifty",
-					"match": "\\b[0-9]+(?:.[0-9]+)?\\b"
+					"match": "\\b[0-9_]+(?:.[0-9_f]+)?\\b"
 				}
 			]
 		},
