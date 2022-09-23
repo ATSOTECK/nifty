@@ -1,0 +1,582 @@
+// [HELLO WORLD]
+
+package main
+
+use "nsl.fmt"
+
+fn main() {
+    fmt::println(“Hello world!”)
+}
+
+
+// [COMMENTS]
+
+// Single line comments use '//'.
+// This is a comment.
+
+/-
+Multiline comments use '/-' and '-/'
+Comments can be nested so the following is valid
+-/
+
+/-
+    /-
+        //bla
+    -/
+-/
+
+/- Multiline comments can be on just one line too -/
+
+/*
+C-style comments can be used as well and mixed with nifty comments.
+*/
+
+// [VARIABLES]
+
+// Variables are declared with the 'let' keyword.
+let x = 12
+
+// The variable declaration operator can be used as well.
+x := 12 // int
+y := 12.f // f32 (or should it be f64?)
+y := 12.0 // f32 (or should it be f64?)
+
+// The types are inferred but can be specified.
+let x: int = 12
+x: int = 12
+
+// If no value is specified the type must be specified
+let x // Invalid
+let x: int // Valid
+
+// Immutable variables (runtime constants) are declared with the 'val' keyword.
+val x = 12
+
+// The constant declaration operator can be used as well.
+x ::= 12
+
+// They type is inferred for constants as well but it can also be specified.
+val x: int = 12
+x:: int = 12
+val y: int
+
+// Variables are auto initialized in Nifty.
+let x: int
+y := x // Valid, both will be 0
+
+// Variables can be explicitly uninitialized
+let x: int = undefined
+x := undefined // Invalid, no type given
+x: int = undefined // Valid
+
+// It is important to know that undefined is only used for declaring variables. You can't check to see if a variable is undefined.
+if (x == undefined) // Invalid
+// Because of this undefined is NOT null
+undefined == null // Invalid
+
+// A variabled can't be later set to undefined.
+x := 12
+x = undefined // Invalid
+
+lateinit let buf: u32 = undefined // Or lateinint buf: u32 = undefined
+genBuffers(1, &buf) // buf get initialized here (Should this generate an error if lateinit is not used?)
+y := buf // Valid
+
+// [CONSTANTS]
+
+// Constants use the 'const' keyword and their value must be determined at compile time.
+const x = 12
+const y = func() // Invalid
+
+// The constant declaration operator can be used as well.
+
+x $= 12 // TODO: Use this???
+
+// [TYPES]
+
+// Basic Types:
+rune // same as s32 (or should I just use char?)
+int // same as s32
+uint // same as u32
+float // same as f32
+double // same as f64
+
+bool
+
+u8
+u16
+u32
+u64
+u128
+s8
+s16
+s32
+s64
+s128
+f16
+f32
+f64
+
+// Strings will be supported via the standard library and will not be built in. Strings will be included by default since they are so common.
+
+type Custom as int
+
+x: s8 = 100
+y := cast(x, s32) // cast(thing, to)
+
+// Types in nifty are not implicitly converted.
+
+x := 12
+y := 42
+z: f64 = x / y // Invalid
+z: f64 = cast(x, f64) / cast(y, f64) // Valid
+z: f64 = cast(x / y, f64) // Valid, but probably not what you want.
+
+x := 12
+if (x) {} // Invalid
+if (x != 0) {} // Valid
+
+b := true
+if (b) {} // Valid
+if (b == true) {} // Valid, but like why?
+
+p: ^int = null
+if (p) {} // Invalid
+if (p != null) {} // Valid
+
+// [PACKAGES]
+
+// All nifty programs are made of packages.
+
+package main
+
+use "nsl.fmt"
+use "nsl.math"
+
+fn main() {
+    // Do something
+}
+
+// By default the name of the package is the last element of the package 
+// path, which is also the name of the package in the file. This, however,
+// can be changed with the 'as' keyword
+
+use "nsl.fmt"
+use "nsl.math" as M
+use "nsl.math/random"
+
+fn main() {
+    fmt::println(M::PI) // math::PI is invalid
+    fmt::println(random::number())
+}
+
+// Note the 'random' is a package inside the 'math' package and must be used
+// separately from 'math'.
+
+// All items inside a package can be added to the current scope with the 'using' keyword.
+
+use "nsl.fmt"
+using fmt // All items exported from the package fmt are now in this file's scope.
+
+fn main() {
+    println("Yo whaddup?")
+}
+
+use "nsl.fmt"
+
+fn sayHi() {
+    using fmt // All items from the package fmt are now in this function's scope.
+    println("Hello")
+}
+
+fn main() {
+    fmt::println("Yo whaddup?")   
+}
+
+// All items not marked local and not starting with an underscore are exported
+// from the package.
+
+package somePackage
+
+let _privateVar: int // Private to the package.
+let exportedVar: f64
+local let localVar: string // Private to the file, doesn't need to start with an underscore.
+
+const exportedCont = 100
+const _privateCont = 42
+
+fn _somePrivateFunction() {
+    // Do something
+}
+
+fn exportedFunction() {
+    // Do something
+}
+
+type _PrivateStruct struct {
+    // Stuff
+}
+
+type ExportedStruct struct {
+    // Stuff
+}
+
+// [FUNCTIONS]
+
+// Functions are declared with the 'fn' keyword.
+
+fn someFunc() {
+    // Do something
+}
+
+// Functions can have arguments.
+
+fn sayHi(name: string) {
+    fmt::println("Hi", name)
+}
+
+// ...and return types
+
+fn add(a: int, b: int): int {
+    return a + b
+}
+
+// Functions can have default arguments
+
+fn add(a := 10, b := 10): int {
+    return a + b
+}
+
+// Here type inference was used for the argument types but they can be specified as well.
+
+fn add(a: int = 10, b: int = 10): int {
+    return a + b
+}
+
+// Non-default arguments can't come after default arguments.
+
+// Invalid
+fn add(a := 10, b := 10, c: int): int {
+    return a + b + c
+}
+
+// If a function returns something the type must be specified in the function definition.
+// A function can be explicitly marked as not having a return. This is purely for the programmers
+// convenience, there is no difference for the compiler. 
+
+fn yeet(): void {
+    fmt::println("Yeet")
+}
+
+// All function arguments are immutable.
+
+fn someFunc(x: int) {
+    x = 12 // Invalid
+}
+
+// If you need to change the argument for some reason you must make a copy.
+fn someFunc(x: int) {
+    newX := x
+    newX = 12 // Valid
+}
+
+// Pointers can also be used to change the value.
+
+fn someFunc(x: ^int) {
+    newX := x
+    newX^ = 12
+}
+
+let x: ^int
+x^ = 2
+someFunc(^x) // See section on pointers for an explination.
+// x is now 12
+
+
+// [CONTROL FLOW]
+
+// For loops work much like they do in c/c++
+
+for (i := 0; i < 10; ++i) {
+    // Do something
+}
+
+// But aslo have ranges
+
+for (0 .. 10) {} // [a, b]
+for (0 ..< 10) {} // [a, b)
+for (0 .. 10 step 2) {}
+for (i in 0 .. 10 step 2) {}
+for (val str in strings) {}
+
+// While loops work like they do in c/c++.
+
+while (thing) {
+    // Do something
+}
+
+do {
+    // Something
+} while (thing)
+
+// Until loops. The opposite of while loops.
+
+until (thing) {
+    // Do something
+}
+
+do {
+    // Something
+} until (thing)
+
+// When statements are much like switch statements in c/c++.
+
+x := 2
+when (x) {
+    1: fmt::println("one")
+    2: fmt::println("two")
+    3: fmt::println("three")
+    else: fmt::println("???")
+}
+
+// Multiple cases can be handled at once.
+
+when (x) {
+    1, 3, 5, 7, 9: fmt::println("odd")
+    2, 4, 6, 8, 10: fmt::println("even")
+    else: fmt::println("???")
+}
+
+// Ranges can also be used.
+
+when (x) {
+    in 0 .. 10: fmt::println("0 .. 10")
+    in 10 .. 100: fmt::println("10 .. 100")
+    else: fmt::println("big")
+}
+
+// By default cases do not fall through. To fall through use '->'.
+
+x := 2
+when (x) {
+    1 -> fmt::println("one")
+    2 -> fmt::println("two")
+    3: fmt::println("three")
+    else: fmt::println("???")
+}
+
+// The above when statement will trigger 2 and 3.
+
+// When is not just limited to numbers.
+
+str := "one"
+when (str) {
+    "one": fmt::println("1")
+    "two", "three": fmt::println("2 or 3")
+    else: fmt::println("???")
+}
+
+strs0 := ["one", "two", "three"]
+strs1 := ["four", "five", "six"]
+str := "two"
+
+when (str) {
+    in strs0: fmt::println("1, 2, or 3")
+    in strs1: fmt::println("4, 5, or 6")
+    else: fmt::println("???")
+}
+
+// In general 'else' is required with when statements. 
+// The exception is with enums where the values the variable can be are 
+// limited and it is possible to capture all options. 
+// See the enums section for an example of this.
+
+// If statements. Work how they do in c/c++ with the addition of elif.
+
+if (thing) {
+    // Do something 1
+} else if (thing2) {
+    // Do something 2
+} elif (thing3) {
+    // Do something 3
+} else {
+    // Do something 4
+}
+
+// Logic operators work the same as in c/c++.
+// && for and
+// || for or
+// ! for not
+
+// Ternary operator. Ternary operators can't be nested.
+
+trueCondition ::= 12
+falseCondition ::= 42
+condition ::= true
+x := condition ? trueCondition : falseCondition
+
+// [ENUMS]
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+}
+
+// [STRUCTS]
+
+type Point struct {
+    x: int
+    y: int
+}
+
+point := {x: 12, y: 42}
+let p: Point
+p.x = 12
+p.y = 42
+
+// [OOP]
+
+// For methods the md keyword is used so that if the impl keyword is missed by a programmer or a programmer jumps to the middle of the file it is obvious that these are methods and not ordinary functions. 
+
+type Collection struct {
+    list: int[]
+    _average: float // Private variable
+}
+
+impl Collection
+
+// Constructor
+md new() {
+    list = nsl::Array::new() // or new nsl::Array()
+    _average = 0
+}
+
+md add(num: int) {
+    list.push(num)
+    _calculateAverage()
+}
+
+md average(): float {
+    return _average
+}
+
+// Private function
+md _calculateAverage() {
+    total := 0
+    for (val num in list) {
+        total += num
+	}
+
+	average = total / list.len()
+}
+
+endimpl
+
+collection := new Collection() // Type is ^Collection
+
+collection->add(12) // Valid
+// Is effectively the same as (but is not the same as)
+add(collection, 12) // Invalid
+
+// Because of this it is important to note that the 'object' calling the function can be null.
+
+collection = null
+collection->add(12) // The function add will be called.
+
+// In the function you can either check that
+this != null
+// or use '?' to require that the calling object not be null
+
+md add?(num: int) {
+    // Do something
+}
+
+// The compiler will error if collection can be null when the function is called.
+
+collection->add(12) // Error! collection can be null
+
+if (collection != null) {
+    collection->add(12) // No error.
+}
+
+// If you don't allocate the object on the heap this is not an issue.
+
+collection := Collection{} // Type is Collection
+collection.add(12) // No check needed even if '?' is used.
+
+// You may have noticed that I used both '->' and '.' when calling the 
+// functions. Nifty works like c++ in that objects that are pointers use 
+// '->' and objects that are not pointers use '.'. This is to visually 
+// distinguish the two.
+
+// [MACROS]
+
+// Macros 
+
+// [POINTERS]
+
+// Pointers in nifty use the Pascal syntax.
+// For types '^' is on the left and indicates it is a pointer type.
+// For dereferencing '^' is on the right of the variable. 
+// Like c/c++ '&' is the addressof operator.
+
+let p: ^int // p is null
+x := 12
+p = &x // p now points to x
+y := p^ // y is 12
+p^ = 42 // x is 42
+
+// If a function takes a pointer type then ^ is used on the left of the variable
+// to visually indicate that.
+
+fn someFunc(x: ^int) {
+    // Do something
+}
+
+x := 12
+y: ^int = &x
+
+someFunc(^y) // Valid
+someFunc(y) // Invalid
+// This is not dereferencing y or doing anything other that passing y.
+// This is just so the programmer can quickly see this function is taking
+// a pointer and that y could potentially be modified by the function.
+
+// Nifty does not have pointer arithmetic.
+
+let p: ^f64
+// ...
+p^ // Causes a panic if p is still null.
+
+// If the compiler knows that a value is null when it is being dereferenced
+// it will not compile.
+
+let p: ^f64
+p^ // Invalid
+
+// The '?' token can be used to indicate that a pointer is not allowed to be
+// null.
+
+let p?: ^int // Invalid
+let p?: ^int = new int // Valid
+p = null // Invalid
+
+// Nifty has null coalescing.
+
+x := 12
+p := &x
+
+y := p^ ?? 12
+// The above line is the same as
+let y: int
+if (p != null) {
+    y = p^
+} else {
+    y = 12
+}
+
+p ??= &x
+// The above line is the same as
+if (p == null) {
+    p = &x
+}

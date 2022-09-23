@@ -1,0 +1,25 @@
+{
+    "name": "nifty-lang",
+    "displayName": "nifty-lang",
+    "description": "Syntax highlighting for the nifty programming language.",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.71.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "nifty",
+            "aliases": ["Nifty", "nifty"],
+            "extensions": [".nifty"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "nifty",
+            "scopeName": "source.nifty",
+            "path": "./syntaxes/nifty.tmLanguage.json"
+        }]
+    }
+}
