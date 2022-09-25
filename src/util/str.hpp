@@ -118,7 +118,6 @@ public:
     keep std::string stdString() const;
 
     keep int toInt(int base = Dec) const;
-    keep int128 toInt128(int base = Guess) const;
     keep float toFloat() const;
     keep double toDouble() const;
 

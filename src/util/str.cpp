@@ -661,57 +661,6 @@ int String::toInt(int base) const {
     return (int)strtol(_str, nullptr, base);
 }
 
-int128 String::toInt128(int base) const {
-    int128 ret = 0;
-    bool sign = false;
-    char *str = _str;
-    int realBase = base == Guess ? Dec : base;
-
-    while (isWhitespace(*str)) {
-        ++str;
-    }
-
-    if (*str == '-') {
-        sign = true;
-        ++str;
-    } else if (*str == '+') {
-        ++str;
-    }
-
-    if (*str == '0') {
-        const char c = (char)tolower(*++str);
-        if (c == 'b') {
-            realBase = base == Guess ? Bin : realBase;
-            ++str;
-        } else if (c == 'q' || c == 'o') {
-            realBase = base == Guess ? Oct : realBase;
-            ++str;
-        } else if (c == 'x') {
-            realBase = base == Guess ? Hex : realBase;
-            ++str;
-        } else {
-            --str;
-        }
-    }
-
-    until (*str == '\0') {
-        const char c = *str++;
-        ret *= realBase;
-
-        if (realBase != Dec && isHexLetter(c)) {
-            ret += tolower(c) - 'a' + 10;
-        } else if (isNumber(c)) {
-            ret += c - '0';
-        }
-    }
-
-    if (sign) {
-        ret *= -1;
-    }
-
-    return ret;
-}
-
 float String::toFloat() const {
     return (float)strtod(_str, nullptr);
 }
@@ -985,7 +934,7 @@ char32 &String::operator[](size_t index) {
 }
 */
 
-String operator+(const char *lhs, const String &rhs) {
+String operator+(char *lhs, const String &rhs) {
     String s;
     s += lhs;
     s += rhs;
