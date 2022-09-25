@@ -1,3 +1,26 @@
+// [TOP]
+// [HELLO WORLD]
+// [COMMENTS]
+// [VARIABLES]
+// [TYPES]
+// [PACKAGES]
+// [FUNCTIONS]
+// [CONTROL FLOW]
+// [RANGES]
+// [ENUMS]
+// [STRUCTS]
+// [OOP]
+// [POINTERS]
+// [MACROS]
+
+// Nifty is a new systems programming language in development.
+// This file is an overview of the language and (basically) everything in here is
+// subject to change. I am open to suggestion and if anything is unclear let me
+// know. This file is much easier to read in vscode with the nifty extension.
+// The extension is in the highlighting/vscode folder and you can copy and paste
+// it into you vscode extensions folder to install it. You will have to restart
+// vscode for it to go into effect.
+
 // [HELLO WORLD]
 
 package main
@@ -8,6 +31,7 @@ fn main() {
     fmt::println(“Hello world!”)
 }
 
+// Semicolons are optional.
 
 // [COMMENTS]
 
@@ -15,21 +39,30 @@ fn main() {
 // This is a comment.
 
 /-
-Multiline comments use '/-' and '-/'
-Comments can be nested so the following is valid
+    Multiline comments use '/-' and '-/'
+    Comments can be nested so the following is valid
 -/
 
 /-
     /-
-        //bla
+        // bla
     -/
 -/
 
 /- Multiline comments can be on just one line too -/
 
 /*
-C-style comments can be used as well and mixed with nifty comments.
+    C-style comments can be used as well and mixed with nifty comments.
 */
+
+/-
+    Like so
+    /*
+        and so
+    -/
+*/
+
+// Why not just use /* */? I'm lazy, but you do you.
 
 // [VARIABLES]
 
@@ -69,7 +102,8 @@ let x: int = undefined
 x := undefined // Invalid, no type given
 x: int = undefined // Valid
 
-// It is important to know that undefined is only used for declaring variables. You can't check to see if a variable is undefined.
+// It is important to know that undefined is only used for declaring variables. 
+// You can't check to see if a variable is undefined.
 if (x == undefined) // Invalid
 // Because of this undefined is NOT null
 undefined == null // Invalid
@@ -79,18 +113,62 @@ x := 12
 x = undefined // Invalid
 
 lateinit let buf: u32 = undefined // Or lateinint buf: u32 = undefined
-genBuffers(1, &buf) // buf get initialized here (Should this generate an error if lateinit is not used?)
+genBuffers(1, &buf) // buf gets initialized here (Should this generate an error if lateinit is not used?)
 y := buf // Valid
+
+// Nifty does not support variable shadowing.
+
+fn someFunc(x: int) {
+    x := 12 // Invalid
+}
+
+fn someFunc() {
+    someVar := 12
+    {
+        someVar := 42 // Invalid
+    }
+}
+
+// Variables can also be unused.
+// Lets say you have a function getFromTable that returns true if the key is in the
+// table, false otherwise, and takes a pointer to a Value that's where the value gets
+// set if it is in the table. But you don't care about the value in the table  you
+// just want to know if it is there and there is no other way provided by the library.
+
+let val: Value = undefined
+inTable := getFromTable(someTable, someKey, &val)
+// This will give an error that 'val' isn't being used.
+
+let unused: Value = undefined
+inTable := getFromTable(someTable, someKey, &unused)
+// 'unused' is a special variable name that lets the compiler know the variable is
+// unused. In the case 'getFromTable' will be able to set the variable from inside
+// the function and then the unused variable will be immediatly freed and can be
+// used again.
+
+let unused: Value = undefined
+inTable := getFromTable(someTable, someKey, &unused)
+
+let unused: Value = undefined // Because 'unused' is a special variable name it can be redefined.
+inTable2 := getFromTable(someOtherTable, someOtherKey, &unused)
+
+// If it will be used with the same type it doesn't have to be redefined.
+let unused: Value = undefined
+inTable := getFromTable(someTable, someKey, &unused)
+inTable2 := getFromTable(someOtherTable, someOtherKey, &unused) // Also valid
 
 // [CONSTANTS]
 
 // Constants use the 'const' keyword and their value must be determined at compile time.
 const x = 12
-const y = func() // Invalid
+const y = someFunc() // Invalid
 
 // The constant declaration operator can be used as well.
 
-x $= 12 // TODO: Use this???
+x ::= 12
+
+// The compiler will differenciate between a runtime constant and a compile time
+// constant so the same operator can be used.
 
 // [TYPES]
 
@@ -191,6 +269,20 @@ fn sayHi() {
 
 fn main() {
     fmt::println("Yo whaddup?")   
+}
+
+// If two packages are brought into the same scope and they have any exported symbols
+// with the same name then the package name must be provided to avoid ambiguity.
+
+use "nsl.fmt"
+use "foo"
+
+using fmt
+using foo // Lets say that package 'foo' also has a println function.
+
+fn main() {
+    println("Ya yeet") // Invalid
+    foo::println("Yote") // Valid
 }
 
 // All items not marked local and not starting with an underscore are exported
@@ -350,7 +442,7 @@ when (x) {
 // Ranges can also be used.
 
 when (x) {
-    in 0 .. 10: fmt::println("0 .. 10")
+    in 0 ..< 10: fmt::println("0 ..< 10")
     in 10 .. 100: fmt::println("10 .. 100")
     else: fmt::println("big")
 }
@@ -415,12 +507,75 @@ falseCondition ::= 42
 condition ::= true
 x := condition ? trueCondition : falseCondition
 
+// [RANGES]
+
+1 .. 5 // [1, 5] 1, 2, 3, 4, 5
+1 ..< 5 // [1, 5) 1, 2, 3, 4
+
+rangeVar := 0 .. 10 // type range
+x := 12
+
+if (x in range) {
+    // Do something
+}
+
+// Maybe? Not sure if I want a range type or not.
+
 // [ENUMS]
 
 type Token enum {
     TK_STRING,
     TK_NUMBER,
+    TK_BOOL,
+    TK_FUNCTION,
+    TK_VAR,
 }
+
+// The above example is just like enums in c/c++. So TK_STRING = 0, TK_NUMBER = 1 ...
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+    TK_BOOL = 5,
+    TK_FUNCTION,
+    TK_VAR,
+}
+
+// Unless otherwise specified enumerators take the value of the enumerator before them + 1.
+// TK_STRING = 0, TK_NUMBER = 1, TK_BOOL = 5, TK_FUNCTION = 6 ...
+
+// The values in an enum must be unique.
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+    TK_BOOL = 5,
+    TK_FUNCTION,
+    TK_VAR = 6, // Invalid
+}
+
+// Enums can be types other than int. When this is the case all enumerators must be specified.
+
+type Numbers enum: f64 {
+    PI = 3.14159,
+    E = 2.71828,
+}
+
+type Animals enum: string {
+    Aardvark = "Aardvark",
+    Cat = "Cat",
+    Dog = "Dog",
+}
+
+// To get the name of a enumeration use the nameof function.
+
+num := Numbers.PI
+name := nameof(num, Numbers)
+fmt::println("num is ${name}") // Prints 'num is PI'
+
+// If the value can't be found it will return an empty string.
+num = 3.4
+name = nameof(num, Numbers) // 'name' is an empty string.
 
 // [STRUCTS]
 
@@ -436,7 +591,9 @@ p.y = 42
 
 // [OOP]
 
-// For methods the md keyword is used so that if the impl keyword is missed by a programmer or a programmer jumps to the middle of the file it is obvious that these are methods and not ordinary functions. 
+// For methods the md keyword is used so that if the impl keyword is missed by a 
+// programmer or a programmer jumps to the middle of the file it is obvious that
+// these are methods and not ordinary functions. 
 
 type Collection struct {
     list: int[]
@@ -447,8 +604,7 @@ impl Collection
 
 // Constructor
 md new() {
-    list = nsl::Array::new() // or new nsl::Array()
-    _average = 0
+    list = new nsl::Array()
 }
 
 md add(num: int) {
@@ -473,12 +629,18 @@ md _calculateAverage() {
 endimpl
 
 collection := new Collection() // Type is ^Collection
+collection := new Collection{} // Type is ^Collection also. 
+// This does not call the constructor and the fields in the struct are set to their defaults.
+// The values can be specified.
+
+collection := new Collection{list: new nsl::Array()} // Private var can't be set.
 
 collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
 add(collection, 12) // Invalid
 
-// Because of this it is important to note that the 'object' calling the function can be null.
+// The calling object is implicetly passed in as 'this'.
+// Because of this it is important to note that the object calling the function can be null.
 
 collection = null
 collection->add(12) // The function add will be called.
@@ -509,10 +671,6 @@ collection.add(12) // No check needed even if '?' is used.
 // '->' and objects that are not pointers use '.'. This is to visually 
 // distinguish the two.
 
-// [MACROS]
-
-// Macros 
-
 // [POINTERS]
 
 // Pointers in nifty use the Pascal syntax.
@@ -541,6 +699,7 @@ someFunc(y) // Invalid
 // This is not dereferencing y or doing anything other that passing y.
 // This is just so the programmer can quickly see this function is taking
 // a pointer and that y could potentially be modified by the function.
+// TODO: Maybe this can be optiional and forced by a compiler flag?
 
 // Nifty does not have pointer arithmetic.
 
@@ -580,3 +739,7 @@ p ??= &x
 if (p == null) {
     p = &x
 }
+
+// [MACROS]
+
+// Macros 

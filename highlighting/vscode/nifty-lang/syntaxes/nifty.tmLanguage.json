@@ -29,7 +29,7 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|return|when|break|continue|impl|endimpl|in|cast)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|return|when|break|continue|impl|endimpl|in|cast|typeof|sizeof|nameof|asm)\\b"
                 },
                 {
                     "name": "keyword.operator.new",
