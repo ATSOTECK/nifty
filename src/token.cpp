@@ -32,8 +32,10 @@ std::map<String, Tokens> Token::keywords = {
         {"let", TK_LET},
         {"val", TK_VAL},
         {"const", TK_CONST},
+        {"lateinit", TK_LATEINIT},
         {"new", TK_NEW},
         {"delete", TK_DELETE},
+        {"this", TK_THIS},
         {"global", TK_GLOBAL},
         {"local", TK_LOCAL},
 
@@ -108,9 +110,12 @@ std::map<String, Tokens> Token::keywords = {
         {"usize", TK_USIZE},
         {"void", TK_VOID},
         {"null", TK_NULL},
+        {"undefined", TK_UNDEFINED},
+        {"unused", TK_UNUSED},
 
-        {"namespace", TK_NAMESPACE},
+        {"package", TK_PACKAGE},
         {"use", TK_USE},
+        {"using", TK_USING},
 
         {"asm", TK_ASM},
         {"inline", TK_INLINE},
@@ -175,6 +180,14 @@ String tokenToString(const Token &t) {
         case TK_NULL_COALESCE: return fmtTTS("TK_NULL_COALESCE", t.lexeme);
         case TK_NULL_COALESCE_ASSIGN: return fmtTTS("TK_NULL_COALESCE_ASSIGN", t.lexeme);
         case TK_NULLISH_COALESCE_ASSIGN: return fmtTTS("TK_NULLISH_COALESCE_ASSIGN", t.lexeme);
+        case TK_DELETE: return fmtTTS("TK_DELETE", t.lexeme);
+        case TK_LATEINIT: return fmtTTS("TK_LATEINIT", t.lexeme);
+        case TK_USE: return fmtTTS("TK_USE", t.lexeme);
+        case TK_USING: return fmtTTS("TK_USING", t.lexeme);
+        case TK_PACKAGE: return fmtTTS("TK_PACKAGE", t.lexeme);
+        case TK_NULL: return fmtTTS("TK_NULL", t.lexeme);
+        case  TK_UNDEFINED: return fmtTTS("TK_UNDEFINED", t.lexeme);
+        case TK_UNUSED: return fmtTTS("TK_UNUSED", t.lexeme);
         case TK_EOF: return fmtTTS("TK_EOF", t.lexeme);
         default: return fmtTTS("???", t.lexeme);
     }

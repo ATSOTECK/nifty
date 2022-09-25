@@ -40,11 +40,28 @@ Lexer::Lexer(String path):
 }
 
 Token Lexer::nextToken() {
+    Token t = _tokens[_idx];
     if (++_idx == _tokens.size()) {
         --_idx;
     }
 
-    return _tokens[_idx];
+    return t;
+}
+
+int Lexer::line() const {
+    return _line;
+}
+
+int Lexer::linePos() const {
+    return _linePos;
+}
+
+String Lexer::filename() const {
+    return _filename;
+}
+
+String Lexer::path() const {
+    return _path;
 }
 
 Token Lexer::next() {

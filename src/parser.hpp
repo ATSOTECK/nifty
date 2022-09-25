@@ -25,14 +25,55 @@
 
 #include "common.hpp"
 #include "lexer.hpp"
+#include "node.hpp"
 
 #include <vector>
 
 class Parser {
 public:
     explicit Parser(Lexer *lex);
+
+    keep bool finishedWithErrors() const {
+        return _finishedWithErrors;
+    }
+
+    keep bool foundEntrypoint() const {
+        return _foundEntrypoint;
+    }
+
+    void firstEat();
+    void eat();
+    void eat(uint8 amount);
+
+    Token lookaheadToken(uint8 t);
+    uint8 lookaheadTokenType(uint8 t);
+
+    void errInit();
+    void warnInit();
+    void printLineWithError();
+    Node *parseError(const String &expected, const String &after);
+    Node *parseErr(const char *error, ...);
+    Node *error(const String &error, const String &token);
+    Node *error(const String &error);
+    void warning(const String &warning);
+
+    std::vector<Node *> parse();
+
 private:
+    Node *parsePrimary();
+
     Lexer *_lex;
+    Token _lookahead;
+    Token _current;
+    int _lookaheadLine;
+    int _line;
+    int _lookaheadPos;
+    int _pos;
+
+    std::vector<Node *> _nodes;
+
+    bool _finishedWithErrors;
+    bool _foundEntrypoint;
 };
 
 

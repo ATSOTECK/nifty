@@ -49,20 +49,21 @@ enum Tokens {
     TK_BEHAVIOR,
     TK_ENUM,
     TK_UNION,
-    TK_PUBLIC,
-    TK_PRIVATE,
-    TK_READ_ONLY,
+
+    TK_PUBLIC, // Is this needed?
+    TK_PRIVATE, // Is this needed?
+    TK_READ_ONLY, // Is this needed?
 
     TK_DELAY,
     TK_ASSERT,
 
     TK_TYPE,
     TK_FOR,
-    TK_FOREVER,
+    TK_FOREVER, // Not sure if I'll keep this.
     TK_WHILE,
     TK_UNTIL,
     TK_WHEN,
-    TK_REPEAT, // could be a macro
+    TK_REPEAT, // Could this be a macro?
     TK_GOTO,
     TK_BREAK,
     TK_CONTINUE,
@@ -80,11 +81,14 @@ enum Tokens {
     TK_LET, // mutable
     TK_VAL, // immutable
     TK_CONST, // immutable, compile time
+    TK_LATEINIT,
     TK_NEW,
     TK_DELETE,
+    TK_THIS,
 
     TK_USE,
-    TK_NAMESPACE,
+    TK_USING,
+    TK_PACKAGE,
 
     TK_SIZEOF,
     TK_ALIGNOF,
@@ -110,7 +114,10 @@ enum Tokens {
     TK_ISIZE,
     TK_USIZE,
     TK_VOID,
+
     TK_NULL,
+    TK_UNDEFINED,
+    TK_UNUSED,
 
     TK_OPERATOR,
 
@@ -132,7 +139,7 @@ enum Tokens {
     TK_MACRO,                   // #
     TK_SCOPE,                   // ::
     TK_LET_DECL,                // :=
-    TK_VAL_DECL,                // ::=
+    TK_VAL_DECL,                // ::=    Also used for const.
 
     TK_ASSIGN,                  // =
     TK_EQU,                     // == is

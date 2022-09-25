@@ -31,6 +31,7 @@
 
 enum NodeType {
     EmptyNodeType,
+    TypeNodeType,
     IntNodeType,
     FloatNodeType,
     BoolNodeType,
@@ -41,10 +42,28 @@ enum NodeType {
     PrototypeNodeType,
     BlockNodeType,
     FunctionNodeType,
+    ReturnNodeType,
+    VarNodeType,
+};
+
+enum VarKind {
+    Let,
+    Val,
+    Const,
 };
 
 struct Node {
     NodeType type;
+};
+
+struct TypeNode : Node {
+    TypeNode(String lexeme) : Node(),
+        strType(std::move(lexeme))
+    {
+        type = TypeNodeType;
+    }
+
+    String strType;
 };
 
 struct IntNode : Node {
@@ -163,6 +182,34 @@ struct FunctionNode : Node {
 
     PrototypeNode *prototype;
     BlockNode *body;
+};
+
+struct ReturnNode : Node {
+    ReturnNode(Node *returnStatement) : Node(),
+        returnStatement(returnStatement)
+    {
+        type = ReturnNodeType;
+    }
+
+    Node *returnStatement;
+};
+
+struct VarNode : Node {
+    VarNode(String name, Node *varType, Node *value, VarKind kind, bool undefined) : Node(),
+        name(std::move(name)),
+        varType(varType),
+        value(value),
+        kind(kind),
+        undefined(undefined)
+    {
+        type = VarNodeType;
+    }
+
+    String name;
+    Node *varType;
+    Node *value;
+    VarKind kind;
+    bool undefined;
 };
 
 #endif //__NIFTY_NODE_HPP__

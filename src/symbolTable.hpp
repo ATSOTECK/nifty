@@ -20,47 +20,25 @@
  *
  */
 
-#ifndef __NIFTY_LEXER_HPP__
-#define __NIFTY_LEXER_HPP__
+#ifndef __NIFTY_SYMBOLTABLE_HPP__
+#define __NIFTY_SYMBOLTABLE_HPP__
 
-#include "token.hpp"
+#include "util/str.hpp"
 
 #include <vector>
+#include <unordered_map>
 
-class Lexer {
-public:
-    explicit Lexer(String path);
+struct Symbol {
+    String name;
+    String type;
+    bool isConst;
+};
 
-    keep Token nextToken();
-    keep int line() const;
-    keep int linePos() const;
-    keep String filename() const;
-    keep String path() const;
-
-private:
-    keep Token next();
-    void genTokens();
-
-    void eat();
-    void eat(uint8 amount);
-    void eatLine();
-    void eatBlock();
-    void eatWhiteSpace();
-
-    keep char32 peek(uint8 count = 1) const;
-
-    void warn(const String &warning) const;
-
-    std::vector<Token> _tokens;
-    int _idx;
-    String _path;
-    String _filename;
-    String _code;
-    int _pos;
-    int _linePos;
-    int _line;
-    int _currentChar;
+struct SymbolTable {
+    SymbolTable *containing;
+    std::vector<SymbolTable *> tables;
+    // std::unordered_map<String,
 };
 
 
-#endif //__NIFTY_LEXER_HPP__
+#endif //__NIFTY_SYMBOLTABLE_HPP__
