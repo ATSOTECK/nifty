@@ -1,0 +1,5 @@
+package basic
+
+fn main(): int {
+    return 2 + 2
+}
