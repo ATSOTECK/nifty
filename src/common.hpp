@@ -46,7 +46,8 @@
 #define forever for (;;)
 
 #define NIFTY_VERSION "0.0.0"
-#define NIFTY_BUILD_FILE "nifty_build.txt"
+#define NIFTY_DATE "25 - September - 2022"
+#define NIFTY_BUILD_FILE "nifty.toml"
 
 typedef int8_t  int8;
 typedef int16_t int16;
@@ -100,7 +101,7 @@ typedef __uint128_t uint128;
 #define dbnln(x) std::cout << x
 #define db(x) std::cout << x << std::endl
 #define dbln std::cout << std::endl;
-#define trace(x) std::cout << __FILE__ << ", L" << __LINE__ << ": " << x << std::endl
+#define trace(x) std::cout << __FILE__ << ", L" << __LINE__ << ": " << (x) << std::endl
 #define tracemsg std::cout << __FILE__ << ", L" << __LINE__ << ": "
 
 #ifdef VWIN
@@ -117,7 +118,7 @@ typedef __uint128_t uint128;
 #   define ErrorColor  31
 #   define WarnColor   33
 #   define ResetColor  0
-#	define setCmdColor(x) std::cerr << "\033[" << x << "m"
+#	define setCmdColor(x) std::cerr << "\033[" << (x) << "m"
 #endif
 
 #endif //__NIFTY_COMMON_HPP__

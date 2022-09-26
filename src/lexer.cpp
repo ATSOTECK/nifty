@@ -36,6 +36,7 @@ Lexer::Lexer(String path):
     _line(1),
     _currentChar(_code[0])
 {
+    _filename = _path.stringAfterLast('/');
     genTokens();
 }
 

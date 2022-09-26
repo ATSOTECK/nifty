@@ -206,9 +206,9 @@ enum Tokens {
 struct Token {
     String lexeme;
     int type;
-    uint32 line;
-    uint32 pos;
-    uint32 index;
+    int line;
+    int pos;
+    int index;
 
     Token &operator=(const Token &other) = default;
 

@@ -43,7 +43,12 @@ public:
 
     void firstEat();
     void eat();
+    void eat(int type, const String &expected, const String &after);
     void eat(uint8 amount);
+
+    bool check(int type);
+    bool lookahead(int type);
+    bool match(int type);
 
     Token lookaheadToken(uint8 t);
     uint8 lookaheadTokenType(uint8 t);
@@ -61,6 +66,12 @@ public:
 
 private:
     Node *parsePrimary();
+    Node *parseExpression();
+    Node *parseBinOpRhs(int precedence, Node *lhs);
+    Node *parseNumber();
+    Node *parseType();
+    PrototypeNode *parsePrototype(String name);
+    Node *parseFunction();
 
     Lexer *_lex;
     Token _lookahead;

@@ -1,5 +1,5 @@
-package basic
+// package basic
 
-fn main(): int {
+fn main (): int {
     return 2 + 2
 }

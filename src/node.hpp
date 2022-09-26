@@ -32,6 +32,7 @@
 enum NodeType {
     EmptyNodeType,
     TypeNodeType,
+    VoidNodeType,
     IntNodeType,
     FloatNodeType,
     BoolNodeType,
@@ -57,13 +58,19 @@ struct Node {
 };
 
 struct TypeNode : Node {
-    TypeNode(String lexeme) : Node(),
+    explicit TypeNode(String lexeme) : Node(),
         strType(std::move(lexeme))
     {
         type = TypeNodeType;
     }
 
     String strType;
+};
+
+struct VoidNode : Node {
+    VoidNode() : Node() {
+        type = VoidNodeType;
+    }
 };
 
 struct IntNode : Node {
@@ -81,17 +88,15 @@ struct IntNode : Node {
 };
 
 struct FloatNode : Node {
-    FloatNode(int b, String v, bool s) : Node(),
+    FloatNode(int b, String v) : Node(),
         bits(b),
-        value(std::move(v)),
-        isSigned(s)
+        value(std::move(v))
     {
         type = FloatNodeType;
     }
 
     int bits;
     String value;
-    bool isSigned;
 };
 
 struct BoolNode : Node {

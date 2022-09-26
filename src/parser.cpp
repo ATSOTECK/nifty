@@ -48,6 +48,23 @@ void Parser::eat() {
     _current = _lookahead;
     _line = _lookaheadLine;
     _pos = _lookaheadPos;
+
+    _lookahead = _lex->nextToken();
+    _lookaheadLine = _lex->line();
+    _lookaheadPos = _lex->linePos();
+
+    String tok = tokenToString(_current);
+    db(tok);
+}
+
+void Parser::eat(int type, const String &expected, const String &after) {
+    eat();
+
+    if (_current.type == type) {
+        return;
+    }
+
+    parseError(expected, after);
 }
 
 void Parser::eat(uint8 amount) {
@@ -56,10 +73,27 @@ void Parser::eat(uint8 amount) {
     }
 }
 
+bool Parser::check(int type) {
+    return _current.type == type;
+}
+
+bool Parser::lookahead(int type) {
+    return _lookahead.type == type;
+}
+
+bool Parser::match(int type) {
+    if (!check(type)) {
+        return false;
+    }
+
+    eat();
+    return true;
+}
+
 void Parser::errInit() {
     _finishedWithErrors = true;
 
-    std::cerr << _lex->filename() << ":L" << _current.line << ",C" << _current.pos << ": ";
+    std::cerr << _lex->filename() << " L" << _current.line << ",C" << _current.pos << ": ";
     setCmdColor(ErrorColor);
     std::cerr << "Parse error: ";
     setCmdColor(TextColor);
@@ -73,8 +107,7 @@ void Parser::warnInit() {
 }
 
 void Parser::printLineWithError() {
-    FILE *file = 0;
-    file = fopen(_lex->path().c_str(), "r");
+    FILE *file = fopen(_lex->path().c_str(), "r");
 
     if (file != nullptr) {
         int lineNumber = 0;
@@ -87,10 +120,23 @@ void Parser::printLineWithError() {
 
         fclose(file);
 
+        int width = 3;
+        for (int n = _current.line; n > 0; n /= 10) {
+            ++width;
+        }
+
+        setCmdColor(GreenColor);
+        std::cerr << _current.line << " | ";
+        setCmdColor(TextColor);
         std::cerr << line;
         setCmdColor(GreenColor);
-        for (int i = 0; i < _current.pos - 1; ++i) {
+        int i = 0;
+        for (; i < width - 2; ++i) {
             std::cerr << " ";
+        }
+        std::cerr << "| ";
+        for (; i - width + 2 < _current.pos; ++i) {
+            std::cerr << "~";
         }
         std::cerr << "^" << std::endl;
         setCmdColor(TextColor);
@@ -105,7 +151,7 @@ void Parser::printLineWithError() {
 
 Node *Parser::parseError(const String &expected, const String &after) {
     errInit();
-    std::cerr << " expected ";
+    std::cerr << " Expected ";
     setCmdColor(PurpleColor);
     std::cerr << "'" << expected << "'";
     setCmdColor(TextColor);
@@ -188,6 +234,120 @@ Node *Parser::parsePrimary() {
     if (isTokenType(_current.type)) {
         return new TypeNode(_current.lexeme);
     }
+
+    switch (_current.type) {
+        case TK_NUMBER: return parseNumber();
+        case TK_FN: return parseFunction();
+    }
+
+    return nullptr;
+}
+
+Node *Parser::parseExpression() {
+    Node *lhs = parsePrimary();
+    if (lhs == nullptr) {
+        return nullptr;
+    }
+
+    return parseBinOpRhs(0, lhs);
+}
+
+Node *Parser::parseBinOpRhs(int precedence, Node *lhs) {
+    for (;;) {
+        int tokenPrec = getTokenPrecedence(_current.type);
+
+        if (tokenPrec < precedence) {
+            return lhs;
+        }
+
+        Token binOp = _current;
+        eat();
+
+        /*
+        if (isTokenOpPrePostFix(binOp.type)) {
+            if (binOp.type == TK_INC) {
+                return new PostIncNode(lhs);
+            } else {
+                return new PostDecNode(lhs);
+            }
+        }
+        */
+
+        Node *rhs = parsePrimary();
+        if (rhs == nullptr) {
+            return nullptr;
+        }
+
+        int nextPrec = getTokenPrecedence(_current.type);
+        if (tokenPrec < nextPrec) {
+            rhs = parseBinOpRhs(tokenPrec + 1, rhs);
+            if (rhs == nullptr) {
+                return nullptr;
+            }
+        }
+
+        // TODO: Fix this.
+        lhs = new BinaryNode(binOp, lhs, rhs);
+    }
+}
+
+Node *Parser::parseNumber() {
+    String num = _current.lexeme;
+
+    eat();
+
+    if (num.contains('d') || num.contains('D')) {
+        return new FloatNode(8, num);
+    } else if (num.contains('f') || num.contains('F') || num.contains('.')) {
+        return new FloatNode(4, num);
+    }
+
+    bool isSigned = true;
+    if (num.contains('u') || num.contains('U')) {
+        isSigned = false;
+    }
+
+    return new IntNode(4, num, isSigned);
+}
+
+PrototypeNode *Parser::parsePrototype(String name) {
+    int arity = 0;
+    std::vector<Node *> args;
+    std::vector<Node *> returnTypes;
+    if (!check(TK_RPAREN)) {
+        do {
+            if (++arity > 32) {
+                error("Can't have more than 32 arguments.");
+            }
+
+            //TODO: name: type, etc
+            //TODO: name: type = value, etc
+        } while (match(TK_COMMA));
+    }
+
+    eat(); // Eat the )
+    eat(TK_COLON, ":", ")");
+
+    if (check(TK_LBRACE)) {
+        returnTypes.push_back(new VoidNode());
+    } else {
+
+    }
+
+    return nullptr;
+}
+
+Node *Parser::parseFunction() {
+    eat(); // Eat the fn
+
+    if (!check(TK_IDENT)) {
+        return parseError("name", "fn");
+    }
+
+    String name = _current.lexeme;
+
+    eat(TK_LPAREN, "(", "name");
+    PrototypeNode *prototype = parsePrototype(name);
 
     return nullptr;
 }

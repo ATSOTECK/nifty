@@ -423,7 +423,6 @@ bool isSignedForToken(int type) {
         case TK_U32:
         case TK_U64:
         case TK_U128:
-        case TK_CHAR_TYPE:
             return false;
         default:
             return true;
