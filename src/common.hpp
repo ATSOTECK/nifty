@@ -68,11 +68,9 @@ typedef uint64_t		   uint64;
 typedef int16       char16;
 typedef int32       char32;
 typedef int64       char64;
-typedef __int128_t  int128;
 typedef uint16      uchar16;
 typedef uint32      uchar32;
 typedef uint64      uchar64;
-typedef __uint128_t uint128;
 
 #define staticCast(x, y)	  static_cast<x>(y)
 #define staticCasti(x)		  static_cast<int>(x)
