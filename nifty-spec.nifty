@@ -7,6 +7,7 @@
 // [FUNCTIONS]
 // [CONTROL FLOW]
 // [RANGES]
+// [ARRAYS]
 // [ENUMS]
 // [STRUCTS]
 // [OOP]
@@ -384,6 +385,25 @@ x^ = 2
 someFunc(^x) // See section on pointers for an explination.
 // x is now 12
 
+// Functions can be variadic, meaning they can take a variable number of arguments.
+fn sum(nums: ..int): int {
+    res := 0
+    for (n in nums) {
+        res += n
+    }
+    
+    return res
+}
+
+sum()
+sum(1, 2, 3)
+sum(4, 5, 6, 7, 8)
+
+// The variadic argument can be treated like a static array.
+
+// Arguments can't come after a variadic argument.
+fn counts(cnts: ..int, type: string) // Invalid
+
 
 // [CONTROL FLOW]
 
@@ -398,7 +418,7 @@ for (i := 0; i < 10; ++i) {
 for (0 .. 10) {} // [a, b]
 for (0 ..< 10) {} // [a, b)
 for (0 .. 10 step 2) {}
-for (i in 0 .. 10 step 2) {}
+for (i in 0 .. 10 step 2) {} // i is implicitly immutable here
 for (val str in strings) {}
 
 // While loops work like they do in c/c++.
@@ -521,6 +541,61 @@ if (x in range) {
 
 // Maybe? Not sure if I want a range type or not.
 
+// [ARRAYS]
+
+// Nifty has both static and dynamic arrays.
+// Static arrays work as follows.
+
+arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
+arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
+arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
+arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
+arr: []int // Invalid
+arr: [5]int = undefined // Array of 5 integers not initialized to anything.
+
+// Arrays are 0 indexed.
+x := arr[0] // x is 1
+arr[2] = 12 // [1, 2, 12, 4, 5]
+// Arrays are bounds checked at compile time and runtime.
+x := arr[5] // Compile time error.
+arr[12] = 42 // Compile time error.
+
+y := 5
+x := arr[y] // Runtime error.
+
+// Runtime bounds checking can be disabled at a block level with $no_bounds_check
+// This can be important in situations where performance is critical. Could lead to undefined behavior.
+$no_bounds_check {
+    x = arr[y] // Y could still be out of bounds.
+}
+
+// To get the length of an array use the included len() function.
+assert(len(arr) == 5) // true
+// Static arrays can't have their length changed.
+
+// Dynamic arrays are made with the included make() function.
+
+arr := make([]int) // Dynamic array with length 0 and capacity 0
+arr := make([]int, 5) // // Dynamic array with length 5 and capacity 5 auto initialized to [0, 0, 0, 0, 0]
+arr := make([]int, 0, 5) // // Dynamic array with length 0 and capacity 5 auto initialized to []
+
+// To fill an array with a specified value use the included fill() function.
+arr := make([]int, 0, 5) // []
+fill(arr, 5) // [5, 5, 5, 5, 5]
+
+// Dynamic arrays are bounds checked as well. Can be disabled with $no_bounds_check as well.
+arr[5] = 6 // Runtime error.
+
+// To append to an array use the included append() function.
+append(&arr, 4) // [5, 5, 5, 5, 5, 4]
+// Multiple values can be appended at once.
+append(&arr, 6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
+
+// Dynamic arrays can be deleted with the 'delete' operator.
+delete arr // [] or should it be null?
+
+// Additional array functionality can be found in the nsl.array package.
+
 // [ENUMS]
 
 type Token enum {
@@ -553,6 +628,29 @@ type Token enum {
     TK_FUNCTION,
     TK_VAR = 6, // Invalid
 }
+
+// More advanced patterns can be used as well for the increments.
+type EvensForSomeReason enum {
+    unused = $jot * 2
+    First,  // 2
+    Second, // 4
+    Third,  // 8
+}
+
+type Permission enum {
+    read = 1 << $jot, // 00000001
+    write,            // 00000010
+    delete,           // 00000100
+}
+
+type MemSize enum {
+    unused = 1 << ($jot * 10)
+    KB, // dec: 1024       bin: 00000000000000000000010000000000
+    MB, // dec: 1048576    bin: 00000000000100000000000000000000
+    GB, // dec: 1073741824 bin: 01000000000000000000000000000000
+}
+
+// 'jot' works much like 'iota' in go (the etymology nerds out there should love this).
 
 // Enums can be types other than int. When this is the case all enumerators must be specified.
 
@@ -596,7 +694,7 @@ p.y = 42
 // these are methods and not ordinary functions. 
 
 type Collection struct {
-    list: int[]
+    list: []int
     _average: float // Private variable
 }
 
@@ -604,7 +702,7 @@ impl Collection
 
 // Constructor
 md new() {
-    list = new nsl::Array()
+    list = make([]int)
 }
 
 md add(num: int) {
@@ -633,7 +731,7 @@ collection := new Collection{} // Type is ^Collection also.
 // This does not call the constructor and the fields in the struct are set to their defaults.
 // The values can be specified.
 
-collection := new Collection{list: new nsl::Array()} // Private var can't be set.
+collection := new Collection{list: make([]int)} // Private var can't be set.
 
 collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
@@ -743,3 +841,21 @@ if (p == null) {
 // [MACROS]
 
 // Macros 
+
+// Built in macros
+
+$file          // replaced with the filename
+$path          // replaced with the full file path
+$line          // replaced with the line the macro is on
+$function      // replaced with the function name the macro is in
+$os            // replaced with the OS that the compiler is running on currecntly
+$time          // replaced with the current time
+$date          // replaced with the current date
+
+$nifty_version // replaced with the version of the nifty compiler
+$nifty_version_major
+$nifty_version_minor
+$opt           // replaced with the current optimization level
+
+$counter       // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
+$jot           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and reset every block

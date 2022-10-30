@@ -316,12 +316,13 @@ PrototypeNode *Parser::parsePrototype(String name) {
     std::vector<Node *> returnTypes;
     if (!check(TK_RPAREN)) {
         do {
-            if (++arity > 32) {
-                error("Can't have more than 32 arguments.");
+            if (++arity > 16) {
+                error("Can't have more than 16 arguments.");
             }
 
             //TODO: name: type, etc
             //TODO: name: type = value, etc
+            //TODO: name := value
         } while (match(TK_COMMA));
     }
 
@@ -331,7 +332,7 @@ PrototypeNode *Parser::parsePrototype(String name) {
     if (check(TK_LBRACE)) {
         returnTypes.push_back(new VoidNode());
     } else {
-
+        // Get return types
     }
 
     return nullptr;
