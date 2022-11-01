@@ -29,11 +29,15 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|return|when|break|continue|impl|endimpl|in|cast|typeof|sizeof|nameof|asm)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|cast|typeof|sizeof|nameof|asm)\\b"
                 },
                 {
                     "name": "keyword.operator.new",
                     "match": "\\b(new)\\b"
+                },
+                {
+                    "name": "keyword.operator.delete",
+                    "match": "\\b(delete)\\b"
                 },
                 {
                     "name": "constant.language.null.nifty",
@@ -96,7 +100,7 @@
                     "name": "keyword.other.package.nifty"
                 },
                 {
-                    "match": "\\b(use|using)\\b",
+                    "match": "\\b(use|using|as)\\b",
                     "name": "keyword.other.use.nifty"
                 },
                 {
@@ -108,12 +112,16 @@
                     "match": "\\b(struct|enum)\\b"
                 },
                 {
-                    "match": "\\b(bool|rune|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|void)\\b",
+                    "match": "\\b(bool|rune|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|void|error)\\b",
                     "name": "storage.type.primitive.nifty"
                 },
                 {
                     "name": "keyword.other.lateinit.nifty",
                     "match": "\\b(lateinit|local|inline)\\b"
+                },
+                {
+                    "name": "keyword.other.included",
+                    "match": "\\b(assert|make|append|len|cap)\\b"
                 }
             ]
 		},
@@ -131,7 +139,7 @@
 					}
 				},
 				{
-					"match": "\\b(fn|md)\\s+([A-Za-z_][A-Za-z0-9_]*)\\??\\s*\\(",
+                    "match": "\\b(fn|md)\\s+([A-Za-z_][A-Za-z0-9_]*)\\??\\s*\\(",
 					"captures": {
 						"1": {
 							"name":"keyword.type.function.nifty"
@@ -147,6 +155,20 @@
 								}
 							]
 						}
+					}
+				},
+                {
+                    "match": "\\b(fn|md)\\s+([A-Za-z_][A-Za-z0-9_]*)\\??\\s+(overloads)\\s*{",
+					"captures": {
+						"1": {
+							"name":"keyword.type.function.nifty"
+						},
+						"2": {
+							"name":"entity.name.function.nifty"
+						},
+                        "3": {
+                            "name":"keyword.type.overload.nifty"
+                        }
 					}
 				},
                 {

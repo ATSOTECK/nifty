@@ -11,6 +11,7 @@
 // [ENUMS]
 // [STRUCTS]
 // [OOP]
+// [GENERICS]
 // [POINTERS]
 // [MACROS]
 
@@ -72,7 +73,7 @@ let x = 12
 
 // The variable declaration operator can be used as well.
 x := 12 // int
-y := 12.f // f32 (or should it be f64?)
+y := 12.f // f32
 y := 12.0 // f32 (or should it be f64?)
 
 // The types are inferred but can be specified.
@@ -89,9 +90,9 @@ val x = 12
 // The constant declaration operator can be used as well.
 x ::= 12
 
-// They type is inferred for constants as well but it can also be specified.
+// The type is inferred for constants as well but it can also be specified.
 val x: int = 12
-x:: int = 12
+x :: int = 12
 val y: int
 
 // Variables are auto initialized in Nifty.
@@ -242,7 +243,7 @@ fn main() {
 
 use "nsl.fmt"
 use "nsl.math" as M
-use "nsl.math/random"
+use "nsl.math.random"
 
 fn main() {
     fmt::println(M::PI) // math::PI is invalid
@@ -295,14 +296,19 @@ let _privateVar: int // Private to the package.
 let exportedVar: f64
 local let localVar: string // Private to the file, doesn't need to start with an underscore.
 
-const exportedCont = 100
-const _privateCont = 42
+const exportedConst = 100
+const _privateConst = 42
+local const localConst = 12
 
 fn _somePrivateFunction() {
     // Do something
 }
 
 fn exportedFunction() {
+    // Do something
+}
+
+local fn localFunction() {
     // Do something
 }
 
@@ -313,6 +319,12 @@ type _PrivateStruct struct {
 type ExportedStruct struct {
     // Stuff
 }
+
+local type LocalStruct struct {
+    // Stuff
+}
+
+// etc...
 
 // [FUNCTIONS]
 
@@ -404,6 +416,68 @@ sum(4, 5, 6, 7, 8)
 // Arguments can't come after a variadic argument.
 fn counts(cnts: ..int, type: string) // Invalid
 
+// Nifty has function overloading, but it works differently compared to languges like c/c++.
+// Instead of two functions having the same name but different arguments the functions have
+// different names and are explicetly overloaded. For instance if you had a pow function for
+// int, float, and double it might look like this:
+
+fn powi(x: int, y: int): int {}
+fn powf(x: float, y: float): float {}
+fn powd(x: double, y: double): double {}
+
+fn pow overloads{powi, powf, powd}
+
+// This is done to be more explicit and searchable as well as making the compiler simpler to develop.
+
+// The original functions can still be called or the overloaded function can be called.
+a := 2.f
+b := 8.f
+x := 2
+y := 8
+
+z := powi(x, y)
+w := pow(x, y) // Calls powi()
+v := pow(a, b) // Calls powf()
+u := powf(a, b)
+
+// The following will not compile:
+
+fn pow(x: int, y: int): int {}
+fn pow(x: float, y: float): float {}
+fn pow(x: double, y: double): double {}
+
+// Sometimes you want to guarantee the return variable is handled.
+// $keep can be used to force the return variable to be used.
+// Very similar to [[nodiscard]] in c++.
+
+$keep // Do I like this syntax? Why should it be different from inline/local?
+fn returnsError(): error {
+    // do stuff
+}
+
+// This will force the caller to handle the returned error.
+
+// Do something
+returnsError() // Invalid
+// Do more things
+
+// Do something
+err := returnsError() // Invalid, err isn't being used.
+// Do more things
+
+// Do something
+unused := returnsError() // Invalid, can't use unused.
+// Do more things
+
+// Do something
+err := returnsError() // Valid
+if (err != null) {
+    // Handle error.
+}
+// Do more things
+
+// Functions can be inlined with the 'inline' keyword.
+inline fn smallFastFn() {}
 
 // [CONTROL FLOW]
 
@@ -488,8 +562,8 @@ when (str) {
     else: fmt::println("???")
 }
 
-strs0 := ["one", "two", "three"]
-strs1 := ["four", "five", "six"]
+strs0 := []string{"one", "two", "three"}
+strs1 := []string{"four", "five", "six"}
 str := "two"
 
 when (str) {
@@ -550,10 +624,11 @@ arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
 arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
 arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
-arr: []int // Invalid
+arr: []int // Valid, dynamic, not static.
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
 
 // Arrays are 0 indexed.
+arr := []int{1, 2, 3, 4, 5}
 x := arr[0] // x is 1
 arr[2] = 12 // [1, 2, 12, 4, 5]
 // Arrays are bounds checked at compile time and runtime.
@@ -579,9 +654,8 @@ arr := make([]int) // Dynamic array with length 0 and capacity 0
 arr := make([]int, 5) // // Dynamic array with length 5 and capacity 5 auto initialized to [0, 0, 0, 0, 0]
 arr := make([]int, 0, 5) // // Dynamic array with length 0 and capacity 5 auto initialized to []
 
-// To fill an array with a specified value use the included fill() function.
-arr := make([]int, 0, 5) // []
-fill(arr, 5) // [5, 5, 5, 5, 5]
+// To get the capacity of an array use the included cap() function.
+assert(cap(arr) == 5) // true
 
 // Dynamic arrays are bounds checked as well. Can be disabled with $no_bounds_check as well.
 arr[5] = 6 // Runtime error.
@@ -595,6 +669,11 @@ append(&arr, 6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 delete arr // [] or should it be null?
 
 // Additional array functionality can be found in the nsl.array package.
+
+/- Not sure if I should keep this. -/
+// To fill an array with a specified value use the included fill() function.
+arr := make([]int, 0, 5) // []
+fill(arr, 5) // [5, 5, 5, 5, 5] Not sure if I should keep this.
 
 // [ENUMS]
 
@@ -706,7 +785,7 @@ md new() {
 }
 
 md add(num: int) {
-    list.push(num)
+    append(list, num)
     _calculateAverage()
 }
 
@@ -721,10 +800,15 @@ md _calculateAverage() {
         total += num
 	}
 
-	average = total / list.len()
+	average = cast(total, f32) / cast(len(list), f32)
 }
 
 endimpl
+
+// Optionally the name of the struct can be specified with endimpl.
+endimpl Collection
+// This is just to improve readability in files with multiple struct implementations.
+// This does not allow for impl nesting.
 
 collection := new Collection() // Type is ^Collection
 collection := new Collection{} // Type is ^Collection also. 
@@ -761,13 +845,91 @@ if (collection != null) {
 
 // If you don't allocate the object on the heap this is not an issue.
 
-collection := Collection{} // Type is Collection
+collection := Collection{list: make([]int)} // Type is Collection
 collection.add(12) // No check needed even if '?' is used.
 
 // You may have noticed that I used both '->' and '.' when calling the 
 // functions. Nifty works like c++ in that objects that are pointers use 
 // '->' and objects that are not pointers use '.'. This is to visually 
 // distinguish the two.
+
+// Optionally an interface can be used for improved readability and to force an implementation
+// to implement the functions in the interface.
+
+type Collection interface { // TODO(Skyler): Needs work.
+    new()
+    add()
+    average()
+    _calculateAverage()
+}
+
+// If an implementation is missing one or more of those functions it will cause a compiler error.
+
+// [GENERICS]
+
+// What if you wanted to store more than just int in the Collection struct above?
+// Well then you would need to use generics.
+
+type Collection<T> struct {
+    list: []T
+    _average: float // Private variable
+}
+
+impl Collection<T>
+
+// Constructor
+md new() {
+    list = make([]T)
+}
+
+md add(num: T) {
+    append(list, num)
+    _calculateAverage()
+}
+
+md average(): float {
+    return _average
+}
+
+// Private function
+md _calculateAverage() {
+    total := 0
+    for (val num in list) {
+        total += num
+	}
+
+	average = cast(total, f32) / cast(len(list), f32)
+}
+
+endimpl
+
+collection := new Collection<f32>()
+collection->add(12.f)
+
+// You can also restrict methods to a certain type.
+
+impl Collection<int>
+
+md sum(): int {
+    total := 0
+    for (val num in list) {
+        total += num
+	}
+}
+
+endimpl
+
+// The sum function is only available for Collection<int>.
+
+collectionInt := new Collection<int>()
+collectionF32 := new Collection<f32>()
+
+// do stuff
+
+sumInt := collectionInt->sum() // Valid
+sumF32 := collectionF32->sum() // Comile error
+
+// Generics are figured out at compile time so there is no runtime cost assosiated with them.
 
 // [POINTERS]
 
