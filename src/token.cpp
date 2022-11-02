@@ -59,8 +59,8 @@ std::map<String, Tokens> Token::keywords = {
         {"break", TK_BREAK},
         {"continue", TK_CONTINUE},
         {"goto", TK_GOTO},
-        {"delay", TK_DELAY},
-        {"default", TK_DEFAULT},
+        {"defer", TK_DEFER},
+        {"restrict", TK_RESTRICT},
 
         {"type", TK_TYPE},
         {"as", TK_AS},
@@ -85,10 +85,11 @@ std::map<String, Tokens> Token::keywords = {
         {"true", TK_TRUE},
         {"false", TK_FALSE},
 
-        {"sizeof", TK_SIZEOF},
-        {"alignof", TK_ALIGNOF},
-        {"typeof", TK_TYPEOF},
-        {"nameof", TK_NAMEOF},
+        {"size_of", TK_SIZEOF},
+        {"align_of", TK_ALIGNOF},
+        {"type_of", TK_TYPEOF},
+        {"type_from", TK_TYPEFROM},
+        {"name_of", TK_NAMEOF},
 
         {"int", TK_INT},
         {"float", TK_FLOAT},
@@ -112,6 +113,7 @@ std::map<String, Tokens> Token::keywords = {
         {"null", TK_NULL},
         {"undefined", TK_UNDEFINED},
         {"unused", TK_UNUSED},
+        {"error", TK_ERROR},
 
         {"package", TK_PACKAGE},
         {"use", TK_USE},
@@ -119,6 +121,7 @@ std::map<String, Tokens> Token::keywords = {
 
         {"asm", TK_ASM},
         {"inline", TK_INLINE},
+        {"noinline", TK_NOINLINE},
 };
 
 String tokenToString(const Token &t) {

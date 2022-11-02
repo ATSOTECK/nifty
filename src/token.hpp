@@ -54,7 +54,8 @@ enum Tokens {
     TK_PRIVATE, // Is this needed?
     TK_READ_ONLY, // Is this needed?
 
-    TK_DELAY,
+    TK_DEFER,
+    TK_RESTRICT,
     TK_ASSERT,
 
     TK_TYPE,
@@ -68,10 +69,10 @@ enum Tokens {
     TK_BREAK,
     TK_CONTINUE,
     TK_RETURN,
-    TK_DEFAULT,
 
     TK_ASM,
     TK_INLINE,
+    TK_NOINLINE,
 
     TK_TRUE,
     TK_FALSE,
@@ -93,6 +94,7 @@ enum Tokens {
     TK_SIZEOF,
     TK_ALIGNOF,
     TK_TYPEOF,
+    TK_TYPEFROM,
     TK_NAMEOF,
 
     TK_INT,
@@ -114,6 +116,7 @@ enum Tokens {
     TK_ISIZE,
     TK_USIZE,
     TK_VOID,
+    TK_ERROR,
 
     TK_NULL,
     TK_UNDEFINED,

@@ -6,14 +6,19 @@
 // [PACKAGES]
 // [FUNCTIONS]
 // [CONTROL FLOW]
+// [DEFER]
 // [RANGES]
 // [ARRAYS]
+// [SLICES]
 // [ENUMS]
 // [STRUCTS]
 // [OOP]
 // [GENERICS]
 // [POINTERS]
+// [FUNCTION POINTERS]
 // [MACROS]
+// [MISC]
+// [WITH]
 
 // Nifty is a new systems programming language in development.
 // This file is an overview of the language and (basically) everything in here is
@@ -22,6 +27,31 @@
 // The extension is in the highlighting/vscode folder and you can copy and paste
 // it into you vscode extensions folder to install it. You will have to restart
 // vscode for it to go into effect.
+
+/-
+
+Naming conventions:
+
+The following naming conventions are my personal preference and are what nifty uses.
+These are not enforced by the compiler.
+
+functions:          camelCase
+types:              PascalCase
+enum values:        PascalCase
+variables:          camelCase
+macros:             camelCase
+constants:          SCREAMING_SNAKE_CASE
+package names:      snake_case
+keywords:           snake_case
+built-in functions: snake_case
+built-in types:     snake_case
+
+The following naming conventions ARE enforced by the compiler.
+
+Exports may not start with an underscore.
+Privates must start with an underscore.
+
+-/
 
 // [HELLO WORLD]
 
@@ -136,6 +166,7 @@ fn someFunc() {
 // table, false otherwise, and takes a pointer to a Value that's where the value gets
 // set if it is in the table. But you don't care about the value in the table  you
 // just want to know if it is there and there is no other way provided by the library.
+// This is a contrived example because nifty supports multiple returns.
 
 let val: Value = undefined
 inTable := getFromTable(someTable, someKey, &val)
@@ -164,6 +195,7 @@ inTable2 := getFromTable(someOtherTable, someOtherKey, &unused) // Also valid
 // Constants use the 'const' keyword and their value must be determined at compile time.
 const x = 12
 const y = someFunc() // Invalid
+const z = $MACRO_CONST // Valid
 
 // The constant declaration operator can be used as well.
 
@@ -175,34 +207,32 @@ x ::= 12
 // [TYPES]
 
 // Basic Types:
-rune // same as s32 (or should I just use char?)
+char // same as s32
 int // same as s32
 uint // same as u32
 float // same as f32
 double // same as f64
 
-bool
+bool b8 b16 b32 b64
 
-u8
-u16
-u32
-u64
-u128
-s8
-s16
-s32
-s64
-s128
-f16
-f32
-f64
+u8 u16 u32 u64 u128
+s8 s16 s32 s64 s128
 
-// Strings will be supported via the standard library and will not be built in. Strings will be included by default since they are so common.
+f16 f32 f64
+
+string
+
+// Strings will be fully supported via the standard library, the string type is very basic.
+// Strings (nsl.string) will be included by default since they are so common. (Maybe?)
+
+// Custom types can be created as follows:
 
 type Custom as int
 
+// Casting uses the 'cast' operator.
+
 x: s8 = 100
-y := cast(x, s32) // cast(thing, to)
+y := cast(x, s32) // cast(var, type)
 
 // Types in nifty are not implicitly converted.
 
@@ -213,16 +243,16 @@ z: f64 = cast(x, f64) / cast(y, f64) // Valid
 z: f64 = cast(x / y, f64) // Valid, but probably not what you want.
 
 x := 12
-if (x) {} // Invalid
-if (x != 0) {} // Valid
+if (x) { /- ... -/ } // Invalid
+if (x != 0) { /- ... -/ } // Valid
 
 b := true
-if (b) {} // Valid
-if (b == true) {} // Valid, but like why?
+if (b) { /- ... -/ } // Valid
+if (b == true) { /- ... -/ } // Valid, but like why?
 
 p: ^int = null
-if (p) {} // Invalid
-if (p != null) {} // Valid
+if (p) { /- ... -/ } // Invalid
+if (p != null) { /- ... -/ } // Valid
 
 // [PACKAGES]
 
@@ -262,6 +292,8 @@ fn main() {
     println("Yo whaddup?")
 }
 
+// --- --- --- --- ---
+
 use "nsl.fmt"
 
 fn sayHi() {
@@ -271,6 +303,13 @@ fn sayHi() {
 
 fn main() {
     fmt::println("Yo whaddup?")   
+}
+
+// 'using' can also be used to import the package and bring it in to the file scope.
+using "nsl.fmt"
+
+fn main() {
+    println("Hello world!")
 }
 
 // If two packages are brought into the same scope and they have any exported symbols
@@ -290,7 +329,7 @@ fn main() {
 // All items not marked local and not starting with an underscore are exported
 // from the package.
 
-package somePackage
+package example
 
 let _privateVar: int // Private to the package.
 let exportedVar: f64
@@ -343,6 +382,16 @@ fn sayHi(name: string) {
 // ...and return types
 
 fn add(a: int, b: int): int {
+    return a + b
+}
+// ...and multiple return types
+fn openFile(name: string): File, error {
+    // do stuff
+}
+
+// If two or more consecutive arguments have the same type the type can be omitted for all but the
+// last argument of that type.
+fn add(a, b: int): int {
     return a + b
 }
 
@@ -398,6 +447,7 @@ someFunc(^x) // See section on pointers for an explination.
 // x is now 12
 
 // Functions can be variadic, meaning they can take a variable number of arguments.
+// The variadic argument can be treated like a static array.
 fn sum(nums: ..int): int {
     res := 0
     for (n in nums) {
@@ -411,7 +461,23 @@ sum()
 sum(1, 2, 3)
 sum(4, 5, 6, 7, 8)
 
-// The variadic argument can be treated like a static array.
+// If a variadic function requires a minimum number of arguments to work, that can be specified with $min_arity(int).
+
+$min_arity(2)
+fn sum(nums: ..int): int {
+    res := 0
+    for (n in nums) {
+        res += n
+    }
+    
+    return res
+}
+
+sum() // Invalid
+sum(2, 2) // Valid
+
+// $max_arity(int) can also be used.
+// Did you know that a function with 9 arguments is called Novenary? Well now you do!
 
 // Arguments can't come after a variadic argument.
 fn counts(cnts: ..int, type: string) // Invalid
@@ -421,9 +487,9 @@ fn counts(cnts: ..int, type: string) // Invalid
 // different names and are explicetly overloaded. For instance if you had a pow function for
 // int, float, and double it might look like this:
 
-fn powi(x: int, y: int): int {}
-fn powf(x: float, y: float): float {}
-fn powd(x: double, y: double): double {}
+fn powi(x: int, y: int): int { /- ... -/ }
+fn powf(x: float, y: float): float { /- ... -/ }
+fn powd(x: double, y: double): double { /- ... -/ }
 
 fn pow overloads{powi, powf, powd}
 
@@ -442,9 +508,9 @@ u := powf(a, b)
 
 // The following will not compile:
 
-fn pow(x: int, y: int): int {}
-fn pow(x: float, y: float): float {}
-fn pow(x: double, y: double): double {}
+fn pow(x: int, y: int): int { /- ... -/ }
+fn pow(x: float, y: float): float { /- ... -/ }
+fn pow(x: double, y: double): double { /- ... -/ }
 
 // Sometimes you want to guarantee the return variable is handled.
 // $keep can be used to force the return variable to be used.
@@ -477,7 +543,9 @@ if (err != null) {
 // Do more things
 
 // Functions can be inlined with the 'inline' keyword.
-inline fn smallFastFn() {}
+inline fn smallFastFn() { /- ... -/ }
+// Or explicetly not inlined with
+noinline fn bigSlowFn() { /- ... -/ }
 
 // [CONTROL FLOW]
 
@@ -489,11 +557,11 @@ for (i := 0; i < 10; ++i) {
 
 // But aslo have ranges
 
-for (0 .. 10) {} // [a, b]
-for (0 ..< 10) {} // [a, b)
-for (0 .. 10 step 2) {}
-for (i in 0 .. 10 step 2) {} // i is implicitly immutable here
-for (val str in strings) {}
+for (0 .. 10) { /- ... -/ } // [a, b]
+for (0 ..< 10) { /- ... -/ } // [a, b)
+for (0 .. 10 step 2) { /- ... -/ }
+for (i in 0 .. 10 step 2) { /- ... -/ } // i is implicitly immutable here
+for (val str in strings) { /- ... -/ }
 
 // While loops work like they do in c/c++.
 
@@ -615,6 +683,50 @@ if (x in range) {
 
 // Maybe? Not sure if I want a range type or not.
 
+// [DEFER]
+
+// 'defer' defers the execution of code until the end of the current scope.
+
+fn someFunc() {
+    // stuff
+    someFile.open("myFile.txt")
+    defer someFile.close()
+    // more stuff
+}
+
+// Blocks of code can be deffered as well.
+
+fn anotherFunc() {
+    defer {
+        call1()
+        if (condition) {
+            call2()
+        }
+    }
+    // stuff
+}
+
+// Defer statements can be stacked as well and are executed in a First In Last Out (FILO) fashion.
+
+package main
+using "nsl.fmt"
+
+fn main() {
+    for (i in 0 ..< 5) {
+        defer println(i)
+    }
+    println("Hello world")
+}
+
+/- Will print the following:
+Hello world
+4
+3
+2
+1
+0
+-/
+
 // [ARRAYS]
 
 // Nifty has both static and dynamic arrays.
@@ -626,6 +738,10 @@ arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
 arr: []int // Valid, dynamic, not static.
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
+// Should static arrays be able to infer type?
+arr := ["one", "two", "etc"]
+// is the same as
+arr := []string{"one", "two", "etc"}
 
 // Arrays are 0 indexed.
 arr := []int{1, 2, 3, 4, 5}
@@ -638,9 +754,9 @@ arr[12] = 42 // Compile time error.
 y := 5
 x := arr[y] // Runtime error.
 
-// Runtime bounds checking can be disabled at a block level with $no_bounds_check
+// Runtime bounds checking can be disabled at a block level with $noBoundsCheck
 // This can be important in situations where performance is critical. Could lead to undefined behavior.
-$no_bounds_check {
+$noBoundsCheck {
     x = arr[y] // Y could still be out of bounds.
 }
 
@@ -657,7 +773,7 @@ arr := make([]int, 0, 5) // // Dynamic array with length 0 and capacity 5 auto i
 // To get the capacity of an array use the included cap() function.
 assert(cap(arr) == 5) // true
 
-// Dynamic arrays are bounds checked as well. Can be disabled with $no_bounds_check as well.
+// Dynamic arrays are bounds checked as well. Can be disabled with $noBoundsCheck as well.
 arr[5] = 6 // Runtime error.
 
 // To append to an array use the included append() function.
@@ -674,6 +790,10 @@ delete arr // [] or should it be null?
 // To fill an array with a specified value use the included fill() function.
 arr := make([]int, 0, 5) // []
 fill(arr, 5) // [5, 5, 5, 5, 5] Not sure if I should keep this.
+
+// [SLICES]
+
+// TODO
 
 // [ENUMS]
 
@@ -744,15 +864,15 @@ type Animals enum: string {
     Dog = "Dog",
 }
 
-// To get the name of a enumeration use the nameof function.
+// To get the name of a enumeration use the name_of operator.
 
 num := Numbers.PI
-name := nameof(num, Numbers)
+name := name_of(num, Numbers)
 fmt::println("num is ${name}") // Prints 'num is PI'
 
 // If the value can't be found it will return an empty string.
 num = 3.4
-name = nameof(num, Numbers) // 'name' is an empty string.
+name = name_of(num, Numbers) // 'name' is an empty string.
 
 // [STRUCTS]
 
@@ -811,7 +931,7 @@ endimpl Collection
 // This does not allow for impl nesting.
 
 collection := new Collection() // Type is ^Collection
-collection := new Collection{} // Type is ^Collection also. 
+collection := new Collection{ /- ... -/ } // Type is ^Collection also. 
 // This does not call the constructor and the fields in the struct are set to their defaults.
 // The values can be specified.
 
@@ -866,6 +986,15 @@ type Collection interface { // TODO(Skyler): Needs work.
 // If an implementation is missing one or more of those functions it will cause a compiler error.
 
 // [GENERICS]
+
+fn add<T>(a, b: T): T {
+    return a + b
+}
+
+type Point<T> struct {
+    x: T
+    y: T
+}
 
 // What if you wanted to store more than just int in the Collection struct above?
 // Well then you would need to use generics.
@@ -1000,9 +1129,27 @@ if (p == null) {
     p = &x
 }
 
+// [FUNCTION POINTERS]
+
+fn addFn(a, b: int): int {
+    return a + b
+}
+
+fn otherFunc() {
+    add := addFn // Type is ^fn(int, int): int
+    add(2, 2)
+}
+
+type AddFn as fn(int, int): int
+
+fn add(a, b: int): int { /- ... -/ }
+type AddFn as type_from(add) // Also works
+
 // [MACROS]
 
 // Macros 
+
+// TODO
 
 // Built in macros
 
@@ -1014,10 +1161,79 @@ $os            // replaced with the OS that the compiler is running on currecntl
 $time          // replaced with the current time
 $date          // replaced with the current date
 
-$nifty_version // replaced with the version of the nifty compiler
-$nifty_version_major
-$nifty_version_minor
-$opt           // replaced with the current optimization level
+$niftyVersion      // replaced with the version of the nifty compiler
+$niftyVersionMajor //
+$niftyVersionMinor //
+$opt               // replaced with the current optimization level
 
-$counter       // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
-$jot           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and reset every block
+$counter           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
+$jot               // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and reset every block
+
+$noBoundsCheck
+
+// Function related.
+$keep
+$min_arity(int)
+$max_arity(int)
+$deprecated
+$maybeUnused
+
+$error(string) // Causes the compiler to error with the given message.
+$warn(string) // Causes the compiler to emit a warning with the given message.
+
+// [MISC]
+
+b := false
+assert(type_from(b) == bool) // true
+assert(type_of(b) == "bool") // true
+
+c: type_from(b) // c is type bool
+assert(type_from(c) == bool) // true
+assert(type_of(c) == "bool") // true
+
+num := 42.f
+assert(size_of(num) == 4) // true
+
+type Point struct {
+    x: f32
+    y: f32
+}
+
+assert(align_of(Point) == 4) // true
+
+restrict // See https://en.wikipedia.org/wiki/Restrict
+
+fn updatePointers(restrict ptrA: ^int, restrict ptrB: ^int, restrict value: ^int) {
+    ptrA^ += value^
+    ptrB^ += value^
+}
+
+fn updatePointers(restrict ptrA, ptrB, value: ^int) { /- ... -/ }
+// It is important to note that if the function is formed like this 'restrict' only applies to ptrA.
+fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -/ } // Better
+
+// [WITH] (maybe? not sure how errors would be handled)
+
+// Nifty uses the with statement from Python as a way to open files.
+with open(fileName, mode: string) { /- ... -/ }
+
+// In practice...
+
+fn main() {
+    with open("test.txt", "w") {
+        file.writeln("Yeet")
+    }
+}
+
+// By default with creates an immutible variable called 'file'.
+// The name can be changed.
+
+fn main() {
+    with open("test.txt", "w") as testFile {
+        testFile.writeln("Yeet")
+    }
+}
+
+// At the end of the with scope the file is automatically closed.
+
+// With creates an instance of "nsl.file". This does not need to be included for with to work.
