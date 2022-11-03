@@ -19,6 +19,7 @@
 // [MACROS]
 // [MISC]
 // [WITH]
+// [BUILDING]
 
 // Nifty is a new systems programming language in development.
 // This file is an overview of the language and (basically) everything in here is
@@ -1237,3 +1238,36 @@ fn main() {
 // At the end of the with scope the file is automatically closed.
 
 // With creates an instance of "nsl.file". This does not need to be included for with to work.
+
+// [BUILDING]
+
+// The build file is done with TOML. The default build file name is 'nifty.toml'.
+
+[<TargetName:string>]
+name = string // Name of the output.
+entryPoint = string // The file containing 'main()'.
+noDepreciated = bool // Disabled by default.
+noGoto = bool // Enabled by default.
+debug = bool // Disabled by default.
+defines = [string]
+errorOnWarn = bool // Disabled by default.
+noWarn = bool // Disabled by default.
+noEntry = bool // Disabled by default.
+optimization = string // Defaults to "fast".
+default = bool // Defaults to true in the first target, otherwise false.
+
+/-
+
+nifty new // Interactive dialog to create a new nifty project
+
+nifty build // Builds using the default build file in the current directory.
+nifty build [fileName.extension] // Builds using the specified build file or source file.
+nifty build [targetName] // Builds using the specified target with the default build file.
+nifty build [targetName] // Builds using the specified target with the default build file.
+
+nifty run // Takes the same arguments as 'nifty build' but builds and then runs the project.
+
+When not specifying a target the first target is used by default. Targets can optionally be marked
+as the default. Only one target may be marked as default at a time.
+
+-/
