@@ -1300,17 +1300,31 @@ fn main() {
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
 
 [<TargetName:string>]
-name = string // Name of the output.
-entryPoint = string // The file containing 'main()'.
-noDepreciated = bool // Disabled by default.
-noGoto = bool // Enabled by default.
-debug = bool // Disabled by default.
-defines = [string]
-errorOnWarn = bool // Disabled by default.
-noWarn = bool // Disabled by default.
-noEntry = bool // Disabled by default.
-optimization = string // Defaults to "fast".
-default = bool // Defaults to true in the first target, otherwise false.
+name = string 
+// Name of the output.
+entryPoint = string 
+// The file containing 'main()'.
+noEntryPoint = bool 
+// Set to true to remove the requirement for a 'main()' function. Defaults to false.
+noDepreciated = bool 
+// Error if a function marked depreciated is used. Disabled by default.
+noGoto = bool 
+// Error if goto is used. Enabled by default.
+debug = bool 
+// Compile to debug mode. Disabled by default.
+defines = [string] 
+// defines = ["name=value", "name2=value2"]
+errorOnWarn = bool 
+// Treat warnings as errors. Disabled by default.
+noWarn = bool 
+// Disable warnings. Disabled by default.
+optimization = string 
+// Sets the optimization level. Options are none, fast, size, debug. 
+// Defaults to "fast". Set to 'debug'. if debug mode is enabled.
+default = bool 
+// Defaults to true in the first target, otherwise false.
+noBoundsChecks = bool 
+// Disables bounds checking for the entire program. Defaults to false.
 
 /-
 
@@ -1319,9 +1333,12 @@ nifty new // Interactive dialog to create a new nifty project
 nifty build // Builds using the default build file in the current directory.
 nifty build [fileName.extension] // Builds using the specified build file or source file.
 nifty build [targetName] // Builds using the specified target with the default build file.
-nifty build [targetName] // Builds using the specified target with the default build file.
+nifty build [buildFile]:[targetName] // Builds using the specified target with the specified build file.
 
 nifty run // Takes the same arguments as 'nifty build' but builds and then runs the project.
+
+nifty run prod // Builds an runs using 'nifty.toml' with target 'prod'.
+nifty run server:debug // Builds and runs using 'server.toml' with target 'debug'
 
 When not specifying a target the first target is used by default. Targets can optionally be marked
 as the default. Only one target may be marked as default at a time.
