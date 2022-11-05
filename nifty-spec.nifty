@@ -124,7 +124,7 @@ x ::= 12
 // The type is inferred for constants as well but it can also be specified.
 val x: int = 12
 x :: int = 12
-val y: int
+val y: int // Invalid
 
 // Variables are auto initialized in Nifty.
 let x: int
@@ -148,6 +148,15 @@ x = undefined // Invalid
 lateinit let buf: u32 = undefined // Or lateinint buf: u32 = undefined
 genBuffers(1, &buf) // buf gets initialized here (Should this generate an error if lateinit is not used?)
 y := buf // Valid
+
+buf : u32 = undefined
+bufNum := buf // Invalid?
+
+lateinit let buf: u32 // Implicitly undefined
+bufNum := buf // Compiler error?
+
+// Is there any point to lateinit? Seems redundant with undefined.
+// Or shoud explicit undefined require explicit initialization while lateinit can use implied initialization?
 
 // Nifty does not support variable shadowing.
 
@@ -365,6 +374,21 @@ local type LocalStruct struct {
 }
 
 // etc...
+
+// All built-in functions are in the 'nsl' package and are implicetly used in every file.
+// If a function is defined with the same name as a built-in function and is in scope then
+// the package must be specified.
+
+package main
+using "sample" // Includes a function called 'make'.
+
+fn main() {
+    arr := nsl::make([]int, 0, 100)
+    exampleSample := sample::make(/- ... -/)
+}
+
+// In general it is a good idea to avoid using function names that are built in.
+// Should using a built-in function name in a function cause a warning?
 
 // [FUNCTIONS]
 
@@ -794,7 +818,39 @@ fill(arr, 5) // [5, 5, 5, 5, 5] Not sure if I should keep this.
 
 // [SLICES]
 
-// TODO
+// Slices are like arrays but can be more accurately thought of as a view into the array.
+// A slice is created by specifying the start index and the end index.
+
+array[low : high]
+
+array := []int{1, 2, 3, 4, 5, 6, 7}
+arr := array[1:4] // Includes elements 1 through 3. [2, 3, 4]
+
+// The following expressions are all equivalent.
+array[0:7]
+array[:7]
+array[0:]
+array[:]
+
+// Slice literal.
+slice := [:]int{1, 2, 3} // Creates an array with [1, 2, 3] then creates a slice for it
+
+// Slices have length an capacity.
+arr := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+slice := arr[1:5] // [1, 2, 3, 4]
+
+len(slice) // 4
+cap(slice) // 10
+
+newSlice := slice[0:20] // Compiler error. End is out of bounds of static array.
+
+arr := make([]int, 5) // This is a dynamic array which is actually a slice as well.
+slice := arr[2:50] // Runtime error. End is out of bounds.
+
+arr := make([]int, 5) // [0, 0, 0, 0, 0]
+slice := arr[1:5] // [0, 0, 0, 0]
+
+slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
 
 // [ENUMS]
 
