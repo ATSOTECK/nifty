@@ -1,0 +1,37 @@
+package calc_pi
+
+use "math.random"
+use "time"
+using "fmt"
+
+fn estimatePi(numPoints: int): f64 {
+    x, y, rSquared: f64
+    withinCircle: int
+    
+    for (i := 0; i < numPoints; ++i) {
+        x = random::float64()
+        y = random::float64()
+        
+        rSquared = x ** 2 + y ** 2
+        if (rSquared <= 1) {
+            ++withinCircle
+        }
+    }
+    
+    pi := cast(withinCircle, f64) / cast(numPoints * 4, f64)
+    return pi
+}
+
+fn main() {
+    avgTime: f64
+    for (i := 0; i < 10; ++i) {
+        start := time::now().toMs()
+        pi := estimatePi(10_000_000)
+        stop = time::now().toMs()
+        runTime := cast(stop - start, f64)
+        avgTime += runTime
+        println("Pi is approx ${pi} and took ${runTime} ms to compute.")
+    }
+    
+    println("On average pi took ${avgTime / 10} ms to compute.")
+}

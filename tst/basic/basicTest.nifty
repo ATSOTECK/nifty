@@ -1,5 +1,9 @@
-// package basic
+package basic
 
-fn main (): int {
-    return 2 + 2
+fn add(x, y: int): int {
+    return x + y
+}
+
+fn main(): int {
+    return add(2, 2)
 }

@@ -121,7 +121,7 @@
                 },
                 {
                     "name": "keyword.other.lateinit.nifty",
-                    "match": "\\b(lateinit|local|inline|noinline)\\b"
+                    "match": "\\b(lateinit|local|global|inline|noinline|maybeinline)\\b"
                 },
                 {
                     "name": "keyword.other.included",
@@ -251,7 +251,7 @@
 			"patterns": [
 				{
 					"name": "constant.numeric.nifty",
-					"match": "\\b[0-9_]+(?:.[0-9_f]+)?\\b"
+					"match": "\\b[0-9_]+(?:.[0-9_fd]+)?\\b"
 				}
 			]
 		},

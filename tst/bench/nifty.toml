@@ -1,0 +1,13 @@
+# Created on 11/7/2022
+
+project = "calc_pi"
+
+[fast]
+outputName = "calc_pi_nifty"
+entryPoint = "calc_pi.nifty"
+optimization = "fast"
+
+[debug]
+outputName = "calc_pi_debug_nifty"
+entryPoint = "calc_pi.nifty"
+optimization = "debug"

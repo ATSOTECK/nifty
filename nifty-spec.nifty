@@ -18,7 +18,6 @@
 // [FUNCTION POINTERS]
 // [MACROS]
 // [MISC]
-// [WITH]
 // [BUILDING]
 
 // Nifty is a new systems programming language in development.
@@ -105,7 +104,8 @@ let x = 12
 // The variable declaration operator can be used as well.
 x := 12 // int
 y := 12.f // f32
-y := 12.0 // f32 (or should it be f64?)
+y := 12.0 // f64
+y := 12.d // f64
 
 // The types are inferred but can be specified.
 let x: int = 12
@@ -569,8 +569,10 @@ if (err != null) {
 
 // Functions can be inlined with the 'inline' keyword.
 inline fn smallFastFn() { /- ... -/ }
-// Or explicetly not inlined with
+// Or explicetly not inlined with the 'noinline' keyword.
 noinline fn bigSlowFn() { /- ... -/ }
+// Let the compiler decide if it should be inlined or not.
+maybeinline fn someOtherFn() { /- ... -/ }
 
 // [CONTROL FLOW]
 
@@ -1042,6 +1044,35 @@ type Collection interface { // TODO(Skyler): Needs work.
 
 // If an implementation is missing one or more of those functions it will cause a compiler error.
 
+// A struct can be implemented multiple times. So for instance a struct could exist in a library
+// and you could extend it in you own code.
+
+package someLib
+
+type SomeStruct struct {
+    // ...
+}
+
+impl SomeStruct
+// ...
+endimpl
+
+// Somewhere in your code:
+
+impl SomeStruct
+// Your code ...
+endimpl
+
+// To prevent this the 'const' keyword can be used.
+
+const impl SomeStruct
+// ...
+endimpl
+
+// Your code ...
+
+impl SomeStruct // Compiler error.
+
 // [GENERICS]
 
 fn add<T>(a, b: T): T {
@@ -1269,38 +1300,17 @@ fn updatePointers(restrict ptrA, ptrB, value: ^int) { /- ... -/ }
 // It is important to note that if the function is formed like this 'restrict' only applies to ptrA.
 fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -/ } // Better
 
-// [WITH] (maybe? not sure how errors would be handled)
-
-// Nifty uses the with statement from Python as a way to open files.
-with open(fileName, mode: string) { /- ... -/ }
-
-// In practice...
-
-fn main() {
-    with open("test.txt", "w") {
-        file.writeln("Yeet")
-    }
-}
-
-// By default with creates an immutible variable called 'file'.
-// The name can be changed.
-
-fn main() {
-    with open("test.txt", "w") as testFile {
-        testFile.writeln("Yeet")
-    }
-}
-
-// At the end of the with scope the file is automatically closed.
-
-// With creates an instance of "nsl.file". This does not need to be included for with to work.
-
 // [BUILDING]
 
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
+// Each build file can have multiple targets.
+
+// A common usecase for having multiple targets is having a debug build and a production build.
+
+project = string
 
 [<TargetName:string>]
-name = string 
+outputName = string 
 // Name of the output.
 entryPoint = string 
 // The file containing 'main()'.
@@ -1320,11 +1330,16 @@ noWarn = bool
 // Disable warnings. Disabled by default.
 optimization = string 
 // Sets the optimization level. Options are none, fast, size, debug. 
-// Defaults to "fast". Set to 'debug'. if debug mode is enabled.
+// Defaults to "none". Set to 'debug'. if debug mode is enabled.
 default = bool 
 // Defaults to true in the first target, otherwise false.
 noBoundsChecks = bool 
 // Disables bounds checking for the entire program. Defaults to false.
+commands = [string]
+// Shell commands than can be run.
+
+// Have a way for a target to depend on one or more targets? 
+// Or have a target trigger one or more targets when it finishes?
 
 /-
 
@@ -1337,7 +1352,7 @@ nifty build [buildFile]:[targetName] // Builds using the specified target with t
 
 nifty run // Takes the same arguments as 'nifty build' but builds and then runs the project.
 
-nifty run prod // Builds an runs using 'nifty.toml' with target 'prod'.
+nifty run prod // Builds and runs using 'nifty.toml' with target 'prod'.
 nifty run server:debug // Builds and runs using 'server.toml' with target 'debug'
 
 When not specifying a target the first target is used by default. Targets can optionally be marked
