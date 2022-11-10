@@ -1,0 +1,13 @@
+# Created on 11/7/2022
+
+project = "nice_primes"
+
+[fast]
+outputName = "nice_nifty"
+entryPoint = "nice.nifty"
+optimization = "fast"
+
+[debug]
+outputName = "nice_debug_nifty"
+entryPoint = "nice.nifty"
+optimization = "debug"

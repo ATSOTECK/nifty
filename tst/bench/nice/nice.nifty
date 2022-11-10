@@ -1,0 +1,50 @@
+package nice
+
+using "fmt"
+
+fn isPrime(n: int): bool {
+    if (n < 2) {
+        return false
+    }
+    if (n % 2 == 0) {
+        return n == 2
+    }
+    if (n % 3 == 0) {
+        return n == 3
+    }
+    for (p: u64 = 5; p * p <= n; p += 4) {
+        if (n % p == 0) {
+            return false
+        }
+        p += 2
+        if (n % p == 0) {
+            return false
+        }
+    }
+    
+    return true
+}
+
+fn digitalRoot(n: u64): u64 {
+    return n == 0 ? 0 : 1 + (n - 1) % 9
+}
+
+fn main() {
+    const from, to: u64 = 500, 1000
+    count: u64
+    
+    println("Nice primes from ${from} to ${to}.")
+    for ( n := from; n < to; ++n) {
+        if (isPrime(digitalRoot(n)) && isPrime(n)) {
+            ++count
+            print(n)
+            if (count % 10 == 0) {
+                println()
+            } else {
+                print(' ')
+            }
+        }
+    }
+    
+    println("${count} nice primes found.")
+}
