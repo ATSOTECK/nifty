@@ -1358,4 +1358,7 @@ nifty run server:debug // Builds and runs using 'server.toml' with target 'debug
 When not specifying a target the first target is used by default. Targets can optionally be marked
 as the default. Only one target may be marked as default at a time.
 
+nifty create [options] // Creates a new nifty project. Like nifty new but requires no user interaction.
+nifty create name=tst
+
 -/
