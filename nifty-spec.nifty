@@ -486,9 +486,9 @@ sum()
 sum(1, 2, 3)
 sum(4, 5, 6, 7, 8)
 
-// If a variadic function requires a minimum number of arguments to work, that can be specified with $min_arity(int).
+// If a variadic function requires a minimum number of arguments to work, that can be specified with $minArity(int).
 
-$min_arity(2)
+$minArity(2)
 fn sum(nums: ..int): int {
     res := 0
     for (n in nums) {
@@ -501,7 +501,7 @@ fn sum(nums: ..int): int {
 sum() // Invalid
 sum(2, 2) // Valid
 
-// $max_arity(int) can also be used.
+// $maxArity(int) can also be used.
 // Did you know that a function with 9 arguments is called Novenary? Well now you do!
 
 // Arguments can't come after a variadic argument.
@@ -837,7 +837,7 @@ array[:]
 // Slice literal.
 slice := [:]int{1, 2, 3} // Creates an array with [1, 2, 3] then creates a slice for it
 
-// Slices have length an capacity.
+// Slices have length and capacity.
 arr := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 slice := arr[1:5] // [1, 2, 3, 4]
 
@@ -1261,8 +1261,8 @@ $noBoundsCheck
 
 // Function related.
 $keep
-$min_arity(int)
-$max_arity(int)
+$minArity(int)
+$maxArity(int)
 $deprecated
 $maybeUnused
 
@@ -1359,6 +1359,6 @@ When not specifying a target the first target is used by default. Targets can op
 as the default. Only one target may be marked as default at a time.
 
 nifty create [options] // Creates a new nifty project. Like nifty new but requires no user interaction.
-nifty create name=tst
+nifty create name=tst 
 
 -/
