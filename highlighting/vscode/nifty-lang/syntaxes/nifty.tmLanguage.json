@@ -29,7 +29,7 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|asm|defer|restrict)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|asm|defer|restrict|goto)\\b"
                 },
                 {
                     "name": "keyword.intrinsics.nifty",
@@ -120,8 +120,8 @@
                     "name": "storage.type.primitive.nifty"
                 },
                 {
-                    "name": "keyword.other.lateinit.nifty",
-                    "match": "\\b(lateinit|local|global|inline|noinline|maybeinline)\\b"
+                    "name": "keyword.other.inline.nifty",
+                    "match": "\\b(inline|no_inline|maybe_inline)\\b"
                 },
                 {
                     "name": "keyword.other.included",

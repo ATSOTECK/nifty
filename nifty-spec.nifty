@@ -40,6 +40,7 @@ types:              PascalCase
 enum values:        PascalCase
 variables:          camelCase
 macros:             camelCase
+macro constants     SCREAMING_SNAKE_CASE
 constants:          SCREAMING_SNAKE_CASE
 package names:      snake_case
 keywords:           snake_case
@@ -48,8 +49,9 @@ built-in types:     snake_case
 
 The following naming conventions ARE enforced by the compiler.
 
-Exports may not start with an underscore.
+Exports may not start or end with an underscore.
 Privates must start with an underscore.
+Locals must end with an underscore.
 
 -/
 
@@ -60,7 +62,7 @@ package main
 use "nsl.fmt"
 
 fn main() {
-    fmt::println(“Hello world!”)
+    fmt::println(“Hello, world!”)
 }
 
 // Semicolons are optional.
@@ -145,18 +147,11 @@ undefined == null // Invalid
 x := 12
 x = undefined // Invalid
 
-lateinit let buf: u32 = undefined // Or lateinint buf: u32 = undefined
-genBuffers(1, &buf) // buf gets initialized here (Should this generate an error if lateinit is not used?)
-y := buf // Valid
-
 buf : u32 = undefined
 bufNum := buf // Invalid?
 
-lateinit let buf: u32 // Implicitly undefined
-bufNum := buf // Compiler error?
-
-// Is there any point to lateinit? Seems redundant with undefined.
-// Or shoud explicit undefined require explicit initialization while lateinit can use implied initialization?
+// Immutable variables can not be set to undefined.
+val someVal: int = undefined // Invalid
 
 // Nifty does not support variable shadowing.
 
@@ -178,8 +173,8 @@ fn someFunc() {
 // just want to know if it is there and there is no other way provided by the library.
 // This is a contrived example because nifty supports multiple returns.
 
-let val: Value = undefined
-inTable := getFromTable(someTable, someKey, &val)
+let value: Value = undefined
+inTable := getFromTable(someTable, someKey, &value)
 // This will give an error that 'val' isn't being used.
 
 let unused: Value = undefined
@@ -200,12 +195,17 @@ let unused: Value = undefined
 inTable := getFromTable(someTable, someKey, &unused)
 inTable2 := getFromTable(someOtherTable, someOtherKey, &unused) // Also valid
 
+// unused can't be immutable.
+val unused: Value // Invalid
+
+
 // [CONSTANTS]
 
 // Constants use the 'const' keyword and their value must be determined at compile time.
 const x = 12
 const y = someFunc() // Invalid
-const z = $MACRO_CONST // Valid
+const z = #MACRO_CONST // Valid
+const w = #constEvalFunc() // Valid
 
 // The constant declaration operator can be used as well.
 
@@ -213,6 +213,8 @@ x ::= 12
 
 // The compiler will differenciate between a runtime constant and a compile time
 // constant so the same operator can be used.
+
+// Constants can't be undefined or unused either.
 
 // [TYPES]
 
@@ -336,18 +338,17 @@ fn main() {
     foo::println("Yote") // Valid
 }
 
-// All items not marked local and not starting with an underscore are exported
-// from the package.
+// All items not starting or ending with an underscore are exported from the package.
 
 package example
 
 let _privateVar: int // Private to the package.
 let exportedVar: f64
-local let localVar: string // Private to the file, doesn't need to start with an underscore.
+let localVar_: string // Private to the file.
 
 const exportedConst = 100
 const _privateConst = 42
-local const localConst = 12
+const localConst_ = 12
 
 fn _somePrivateFunction() {
     // Do something
@@ -357,7 +358,7 @@ fn exportedFunction() {
     // Do something
 }
 
-local fn localFunction() {
+fn localFunction_() {
     // Do something
 }
 
@@ -369,11 +370,27 @@ type ExportedStruct struct {
     // Stuff
 }
 
-local type LocalStruct struct {
+type LocalStruct_ struct {
     // Stuff
 }
 
 // etc...
+
+// You might be thinking what if you have
+let _someVar_: string
+// Then what will happen? In this case the compiler will default to the most private case.
+// So _someVar_ will be a local variable (private to the file).
+// It is not recommended to start and end with an underscore though and this will generate
+// a warning.
+
+// Underscores can be used in variable names in other contexts with no warnings, though it isn't
+// always recommended.
+fn someFunc(_someVar, secondVar_, _thirdVar_: int) {/- ... -/} // Nothing special about any of these args.
+
+fn otherFunc() {
+    // Stuff
+    _x := 12 // Nothing special about _x.
+}
 
 // All built-in functions are in the 'nsl' package and are implicetly used in every file.
 // If a function is defined with the same name as a built-in function and is in scope then
@@ -486,9 +503,9 @@ sum()
 sum(1, 2, 3)
 sum(4, 5, 6, 7, 8)
 
-// If a variadic function requires a minimum number of arguments to work, that can be specified with $minArity(int).
+// If a variadic function requires a minimum number of arguments to work, that can be specified with minArity(int).
 
-$minArity(2)
+#[minArity(2)]
 fn sum(nums: ..int): int {
     res := 0
     for (n in nums) {
@@ -501,7 +518,7 @@ fn sum(nums: ..int): int {
 sum() // Invalid
 sum(2, 2) // Valid
 
-// $maxArity(int) can also be used.
+// maxArity(int) can also be used.
 // Did you know that a function with 9 arguments is called Novenary? Well now you do!
 
 // Arguments can't come after a variadic argument.
@@ -538,10 +555,10 @@ fn pow(x: float, y: float): float { /- ... -/ }
 fn pow(x: double, y: double): double { /- ... -/ }
 
 // Sometimes you want to guarantee the return variable is handled.
-// $keep can be used to force the return variable to be used.
+// keep can be used to force the return variable to be used.
 // Very similar to [[nodiscard]] in c++.
 
-$keep // Do I like this syntax? Why should it be different from inline/local?
+#[keep]
 fn returnsError(): error {
     // do stuff
 }
@@ -570,13 +587,48 @@ if (err != null) {
 // Functions can be inlined with the 'inline' keyword.
 inline fn smallFastFn() { /- ... -/ }
 // Or explicetly not inlined with the 'noinline' keyword.
-noinline fn bigSlowFn() { /- ... -/ }
-// Let the compiler decide if it should be inlined or not.
-maybeinline fn someOtherFn() { /- ... -/ }
+no_inline fn bigSlowFn() { /- ... -/ }
+// Let the compiler decide if it should be inlined or not. This is the default, but can be explicetly stated.
+maybe_inline fn someOtherFn() { /- ... -/ }
+
+// Functions can have one or more attribues.
+#[attribName, attribName2(value)]
+
+#[depreciated("Function 'foo' is depreciated, use 'bar' instead.")]
+fn foo() { /- ... -/ }
+
+#[depreciated("DO NOT USE")]
+fn badFunc() { /- ... -/ }
+
+#[warning("ABANDON ALL HOPE YE HWO ENTER HERE")]
+fn reallyBadFunc() { /- ... -/ }
+
+// Custom attributes can be used as well as attributes provided by the compiler.
+// For instance
+
+// TODO
+
+// Built-in function attributes.
+/- 
+keep
+minArity(argc: int)
+maxArity(argc: int)
+deprecated(msg: string = "")
+maybeUnused
+warning(msg: string)
+static // Like static in c/c++.
+requireTargetFeature(feature: string)
+noReturn
+traceVars(names: ..string) // Prints the values of the variables listed every time they change.
+-/
 
 // [CONTROL FLOW]
 
 // For loops work much like they do in c/c++
+
+for (let i = 0; i < 10; ++i) {
+    // Do something
+}
 
 for (i := 0; i < 10; ++i) {
     // Do something
@@ -587,28 +639,35 @@ for (i := 0; i < 10; ++i) {
 for (0 .. 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
 for (0 .. 10 step 2) { /- ... -/ }
-for (i in 0 .. 10 step 2) { /- ... -/ } // i is implicitly immutable here
+for (val i in 0 .. 10 step 2) { /- ... -/ }
 for (val str in strings) { /- ... -/ }
+for (val str, index in strings) { /- ... -/ }
+for (let str in strings) { /- ... -/ }
+for (val [key, value] in map) { /- ... -/ }
+for (val [key, value, index] in map) { /- ... -/ }
+// or
+for (val key, value in map) { /- ... -/ }
+for (val key, value, index in map) { /- ... -/ }
 
 // While loops work like they do in c/c++.
 
-while (thing) {
+while (condition == true) {
     // Do something
 }
 
 do {
     // Something
-} while (thing)
+} while (condition == true)
 
-// Until loops. The opposite of while loops.
+// Until loops. The opposite of while loops. AKA while (!(condition == true))
 
-until (thing) {
+until (condition == true) {
     // Do something
 }
 
 do {
     // Something
-} until (thing)
+} until (condition == true)
 
 // When statements are much like switch statements in c/c++.
 
@@ -688,6 +747,7 @@ if (thing) {
 // && for and
 // || for or
 // ! for not
+// | bit or, & bit and, ^ bit xor, ~ bit not, << lsl, >> lsr
 
 // Ternary operator. Ternary operators can't be nested.
 
@@ -695,6 +755,60 @@ trueCondition ::= 12
 falseCondition ::= 42
 condition ::= true
 x := condition ? trueCondition : falseCondition
+
+// Labels are defined with labelName!
+someLabel!
+
+// Labels can be used with continue, break, and goto.
+// Yes nifty has goto, however use of goto is disabled by default. Misuse of goto can quickly cause
+// messy code but it can be very powerful in specific senarios. So I see no reason not to include it.
+
+forever!
+// Code
+goto forever!
+
+// goto can't jump to labels in other functions.
+
+// Continue and break
+
+for (i := 0; i < 10; ++i) {
+    if (i % 2 == 0) {
+        fmt::println("even")
+        continue // Will exit this loop and continue.
+    }
+    
+    fmt::print("odd")
+}
+
+found := false
+for (val v in someArray) {
+    if (v == target) {
+        found = true
+        break // Will exit this loop but will not continue.
+    }
+}
+
+// Labels can be used with breal and continue as well. For instance if you have and inner and
+// outer loop you can use labels to specify which loop to break/continue from. Otherwise
+// nifty will break/continue from the loop the statement is in which may not be what you want.
+
+outer!
+for (i := 0; i < 100; ++i) {
+    inner!
+    for (j := 100; j >= 0; --j) {
+        if (someCondition) {
+            continue inner!
+        }
+        
+        if (otherCondition) {
+            break outer!
+        }
+        
+        // Stuff
+    }
+    
+    // Stuff
+}
 
 // [RANGES]
 
@@ -781,9 +895,9 @@ arr[12] = 42 // Compile time error.
 y := 5
 x := arr[y] // Runtime error.
 
-// Runtime bounds checking can be disabled at a block level with $noBoundsCheck
+// Runtime bounds checking can be disabled at a block level with #noBoundsCheck
 // This can be important in situations where performance is critical. Could lead to undefined behavior.
-$noBoundsCheck {
+#noBoundsCheck {
     x = arr[y] // Y could still be out of bounds.
 }
 
@@ -794,13 +908,13 @@ assert(len(arr) == 5) // true
 // Dynamic arrays are made with the included make() function.
 
 arr := make([]int) // Dynamic array with length 0 and capacity 0
-arr := make([]int, 5) // // Dynamic array with length 5 and capacity 5 auto initialized to [0, 0, 0, 0, 0]
-arr := make([]int, 0, 5) // // Dynamic array with length 0 and capacity 5 auto initialized to []
+arr := make([]int, 5) // Dynamic array with length 5 and capacity 5 auto initialized to [0, 0, 0, 0, 0]
+arr := make([]int, 0, 5) // Dynamic array with length 0 and capacity 5 auto initialized to []
 
 // To get the capacity of an array use the included cap() function.
 assert(cap(arr) == 5) // true
 
-// Dynamic arrays are bounds checked as well. Can be disabled with $noBoundsCheck as well.
+// Dynamic arrays are bounds checked as well. Can be disabled with #noBoundsCheck as well.
 arr[5] = 6 // Runtime error.
 
 // To append to an array use the included append() function.
@@ -889,20 +1003,26 @@ type Token enum {
 
 // More advanced patterns can be used as well for the increments.
 type EvensForSomeReason enum {
-    unused = $jot * 2
+    unused = #jot * 2,
     First,  // 2
     Second, // 4
     Third,  // 8
 }
 
+type EvensForSomeReason enum {
+    First = (#jot + 1) * 2,  // 2
+    Second, // 4
+    Third,  // 8
+}
+
 type Permission enum {
-    read = 1 << $jot, // 00000001
+    read = 1 << #jot, // 00000001
     write,            // 00000010
     delete,           // 00000100
 }
 
 type MemSize enum {
-    unused = 1 << ($jot * 10)
+    unused = 1 << (#jot * 10),
     KB, // dec: 1024       bin: 00000000000000000000010000000000
     MB, // dec: 1048576    bin: 00000000000100000000000000000000
     GB, // dec: 1073741824 bin: 01000000000000000000000000000000
@@ -927,7 +1047,7 @@ type Animals enum: string {
 
 num := Numbers.PI
 name := name_of(num, Numbers)
-fmt::println("num is ${name}") // Prints 'num is PI'
+fmt::println("num is {name}") // Prints 'num is PI'
 
 // If the value can't be found it will return an empty string.
 num = 3.4
@@ -944,6 +1064,19 @@ point := {x: 12, y: 42}
 let p: Point
 p.x = 12
 p.y = 42
+
+// Structs can also have attributes.
+
+#[packed] // Will not add padding
+type Packed struct {
+    x: f64
+    y: s16
+}
+
+/- Built-in struct attributes
+packed
+align(alignment: int)
+-/
 
 // [OOP]
 
@@ -994,7 +1127,7 @@ collection := new Collection{ /- ... -/ } // Type is ^Collection also.
 // This does not call the constructor and the fields in the struct are set to their defaults.
 // The values can be specified.
 
-collection := new Collection{list: make([]int)} // Private var can't be set.
+collection := new Collection{list: make([]int)} // Private var can't be set here.
 
 collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
@@ -1024,6 +1157,7 @@ if (collection != null) {
 
 // If you don't allocate the object on the heap this is not an issue.
 
+collection := Collection() // Type is Collection
 collection := Collection{list: make([]int)} // Type is Collection
 collection.add(12) // No check needed even if '?' is used.
 
@@ -1148,6 +1282,66 @@ sumF32 := collectionF32->sum() // Comile error
 
 // Generics are figured out at compile time so there is no runtime cost assosiated with them.
 
+// You can specify what types are allowed to be used
+
+type Vec3<T: int | float | double> struct {
+    x: T
+    y: T
+    z: T
+}
+
+fn add<T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
+fn sub<T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
+
+// To make using multiple types like this easier you can use union types.
+
+type IFD as int | float | double
+
+// Union types like this can only be used with generics.
+let num: IFD = 12 // Invalid
+
+// The above struct and functions could be re-writen like:
+
+type IFD as int | float | double
+type Vec3<T: IFD> struct {
+    x: T
+    y: T
+    z: T
+}
+
+fn add<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
+fn sub<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
+
+// If you want to make the above struct work so that any type of number can be used, but only numbers
+// you can use the #number built-in macro.
+
+type Vec3<T: #number> struct { /- ... -/ }
+
+// Or if you only want to allow only all floating types only you can use the #decimal built-in macro.
+
+type Vec3<T: #decimal> struct { /- ... -/ }
+
+// I thought about having a number and decimal keyword but I don't think this would come up enough to
+// merit two dedicated keywords.
+
+// Like combined typed 'number' and 'decimal' only work with generics.
+let num: #number = 12 // Invalid
+
+// The union types work for impl  or functions as well
+
+impl Vec3<T: int | float | double>
+impl Vec3<T: IFD>
+impl Vec3<T: #number>
+
+fn add<T: int | float | double>(a, b: T) { /- ... -/ }
+fn add<T: IFD>(a, b: T) { /- ... -/ }
+fn add<T: #decimal>(a, b: T) { /- ... -/ }
+
+// 'void' can't be used as a type for generics.
+type Thing<T> struct { /- ... -/ }
+let thing: Thing<void> // Invalid
+impl Thing<void> // Invalid
+
 // [POINTERS]
 
 // Pointers in nifty use the Pascal syntax.
@@ -1173,10 +1367,10 @@ y: ^int = &x
 
 someFunc(^y) // Valid
 someFunc(y) // Invalid
-// This is not dereferencing y or doing anything other that passing y.
+// This is not dereferencing y or doing anything other than passing y.
 // This is just so the programmer can quickly see this function is taking
 // a pointer and that y could potentially be modified by the function.
-// TODO: Maybe this can be optiional and forced by a compiler flag?
+// TODO: Maybe this can be optional and forced by a compiler flag?
 
 // Nifty does not have pointer arithmetic.
 
@@ -1237,37 +1431,67 @@ type AddFn as type_from(add) // Also works
 
 // Macros 
 
+// There are multiple types of macros that can be defined.
+
+#define SOME_CONST_MACRO
+
+#if SOME_CONST_MACRO {
+    // Code to comile if SOME_CONST_MACRO is defined (not a scope)
+} else {
+    // Code to compile if SOME_CONST_MACRO is not defined (not a scope)
+}
+
+// Values can not be set with #define. This just defines the macro internally in the compiler.
+// To set values in a macro use #set. The values being set must be resolvable at compile time.
+// It does not work like c/c++ where the macro is replaced by the expanded contents of the macro.
+// They MUST resolve to a constant value. Macros are type checked as well, unlike in c/c++.
+
+#set OTHER_CONST_MACRO 12
+
+#if OTHER_CONST_MACRO == 12 { /- ... -/ }
+
+// Macro values can be used by variables as well.
+someVar := #OTHER_CONST_MACRO
+// When macro values are used outside of other macros they must start with a '#'.
+someVar := OTHER_CONST_MACRO // Invalid
+
 // TODO
 
 // Built in macros
 
-$file          // replaced with the filename
-$path          // replaced with the full file path
-$line          // replaced with the line the macro is on
-$function      // replaced with the function name the macro is in
-$os            // replaced with the OS that the compiler is running on currecntly
-$time          // replaced with the current time
-$date          // replaced with the current date
+#file          // replaced with the filename
+#path          // replaced with the full file path
+#line          // replaced with the line the macro is on
+#function      // replaced with the function name the macro is in
+#os            // replaced with the OS that the compiler is running on currently
+#time          // replaced with the current time
+#date          // replaced with the current date
 
-$niftyVersion      // replaced with the version of the nifty compiler
-$niftyVersionMajor //
-$niftyVersionMinor //
-$opt               // replaced with the current optimization level
+#niftyVersion      // replaced with the version of the nifty compiler
+#niftyVersionMajor //
+#niftyVersionMinor //
+#opt               // replaced with the current optimization level
 
-$counter           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
-$jot               // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and reset every block
+#counter           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
+#jot               // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and reset every block
 
-$noBoundsCheck
+#number            // used by generics, see the section on generics for details
+#decimal           // used by generics, see the section on generics for details
 
-// Function related.
-$keep
-$minArity(int)
-$maxArity(int)
-$deprecated
-$maybeUnused
+#noBoundsCheck
 
-$error(string) // Causes the compiler to error with the given message.
-$warn(string) // Causes the compiler to emit a warning with the given message.
+#embedBytes(path: string, limit: u64 = 0)  // Loads a file up to limit bytes and returns its contents as a []u8
+#embedString(path: string, limit: u64 = 0) // Loads a file up to limit bytes and returns its contents as a string
+// If limit is 0 for either then there is no limit (until you run out of RAM that is).
+
+const RAND = #embedBytes("/dev/urandom") // Will crash the compiler, possibly your computer.
+const ARR = #embedBytes("/dev/urandom", 128) // Type is [N]u8 where N is the number of elements determined at compile time.
+
+let str: string = #embedString("hello.txt");
+println(str) // hello
+
+#error(msg: string) // Causes the compiler to error with the given message.
+#warn(msg: string) // Causes the compiler to emit a warning with the given message.
 
 // [MISC]
 
@@ -1330,16 +1554,15 @@ noWarn = bool
 // Disable warnings. Disabled by default.
 optimization = string 
 // Sets the optimization level. Options are none, fast, size, debug. 
-// Defaults to "none". Set to 'debug'. if debug mode is enabled.
+// Defaults to "none". Is set to 'debug' if debug mode is enabled.
 default = bool 
-// Defaults to true in the first target, otherwise false.
+// Defaults to true in the first target, otherwise false. Can only be true for one target at a time.
 noBoundsChecks = bool 
 // Disables bounds checking for the entire program. Defaults to false.
 commands = [string]
 // Shell commands than can be run.
-
-// Have a way for a target to depend on one or more targets? 
-// Or have a target trigger one or more targets when it finishes?
+children = [string]
+// List of child targets that will be run when this target is complete.
 
 /-
 
@@ -1359,6 +1582,6 @@ When not specifying a target the first target is used by default. Targets can op
 as the default. Only one target may be marked as default at a time.
 
 nifty create [options] // Creates a new nifty project. Like nifty new but requires no user interaction.
-nifty create name=tst 
+nifty create name=tst
 
 -/
