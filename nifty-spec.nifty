@@ -600,8 +600,11 @@ fn foo() { /- ... -/ }
 #[depreciated("DO NOT USE")]
 fn badFunc() { /- ... -/ }
 
-#[warning("ABANDON ALL HOPE YE HWO ENTER HERE")]
+#[warning("ABANDON ALL HOPE YE WHO ENTER HERE")]
 fn reallyBadFunc() { /- ... -/ }
+
+#[keep, maybeUnused]
+fn bla() { /- ... -/ }
 
 // Custom attributes can be used as well as attributes provided by the compiler.
 // For instance
@@ -1181,7 +1184,7 @@ type Collection interface { // TODO(Skyler): Needs work.
 // A struct can be implemented multiple times. So for instance a struct could exist in a library
 // and you could extend it in you own code.
 
-package someLib
+package some_lib
 
 type SomeStruct struct {
     // ...
