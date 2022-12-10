@@ -22,14 +22,17 @@
 		},
 		{
 			"include": "#digits"
-		}
+		},
+        {
+            "include": "#macros"
+        }
 	],
 	"repository": {
 		"keywords": {
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|asm|defer|restrict)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|asm|defer|restrict|goto)\\b"
                 },
                 {
                     "name": "keyword.intrinsics.nifty",
@@ -96,10 +99,6 @@
                     "name": "keyword.operator.bitwise.nifty"
                 },
                 {
-                    "match": "(#)",
-                    "name": "keyword.operator.other.nifty"
-                },
-                {
                     "match": "\\b(package)\\b",
                     "name": "keyword.other.package.nifty"
                 },
@@ -120,8 +119,8 @@
                     "name": "storage.type.primitive.nifty"
                 },
                 {
-                    "name": "keyword.other.lateinit.nifty",
-                    "match": "\\b(lateinit|local|global|inline|noinline|maybeinline)\\b"
+                    "name": "keyword.other.inline.nifty",
+                    "match": "\\b(inline|no_inline|maybe_inline)\\b"
                 },
                 {
                     "name": "keyword.other.included",
@@ -266,15 +265,6 @@
         "comments": {
 			"patterns": [
 				{
-					"captures": {
-						"1": {
-							"name": "punctuation.definition.comment.nifty"
-						}
-					},
-					"match": "\\A^(#!).*$\\n?",
-					"name": "comment.line.number-sign.nifty"
-				},
-				{
 					"begin": "/\\*\\*(?!/)|/-",
 					"beginCaptures": {
 						"0": {
@@ -391,7 +381,19 @@
 					]
 				}
 			}
-		}
+		},
+        "macros": {
+            "patterns": [
+                {
+                    "match": "#(\\[+[A-Za-z_][A-Za-z0-9_]*)",
+                    "captures": {
+                        "1": {
+                            "name": "support.function.macro.nifty"
+                        }
+                    }
+                }
+            ]
+        }
 	},
 	"scopeName": "source.nifty"
 }
