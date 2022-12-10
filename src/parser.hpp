@@ -66,6 +66,7 @@ public:
 
 private:
     Node *parsePrimary();
+    void parsePackage();
     Node *parseExpression();
     Node *parseBinOpRhs(int precedence, Node *lhs);
     Node *parseNumber();

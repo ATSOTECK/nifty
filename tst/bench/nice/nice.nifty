@@ -34,7 +34,7 @@ fn main() {
     count: u64
     
     println("Nice primes from ${from} to ${to}.")
-    for ( n := from; n < to; ++n) {
+    for (n := from; n < to; ++n) {
         if (isPrime(digitalRoot(n)) && isPrime(n)) {
             ++count
             print(n)
