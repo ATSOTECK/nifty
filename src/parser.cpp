@@ -234,6 +234,10 @@ Node *Parser::parsePrimary() {
     if (isTokenType(_current.type)) {
         return new TypeNode(_current.lexeme);
     }
+    
+    if (_current.type == TK_PACKAGE) {
+        parsePackage();
+    }
 
     switch (_current.type) {
         case TK_NUMBER: return parseNumber();
@@ -241,6 +245,12 @@ Node *Parser::parsePrimary() {
     }
 
     return nullptr;
+}
+
+void Parser::parsePackage() {
+    eat(TK_IDENT, "identifier", "package");
+    std::cout << "package is now: " << _current.lexeme << std::endl;
+    eat();
 }
 
 Node *Parser::parseExpression() {
@@ -315,15 +325,34 @@ PrototypeNode *Parser::parsePrototype(String name) {
     std::vector<Node *> args;
     std::vector<Node *> returnTypes;
     if (!check(TK_RPAREN)) {
-        do {
+        while (_current.type != TK_RPAREN) {
             if (++arity > 16) {
                 error("Can't have more than 16 arguments.");
+            }
+            
+            eat();
+            if (_current.type != TK_IDENT) {
+                parseErr("Expected identifier.");
+            }
+            
+            String argName = _current.lexeme; // TODO: Check if this exists already.
+            eat();
+            
+            if (_current.type == TK_COLON) {
+                // name: type
+            } else if (_current.type == TK_COMMA) {
+                // name, name: type
+            } else if (_current.type == TK_LET_DECL) {
+                // name := value
+            } else {
+                parseError("':', or, ':=', or ','", "identifier");
             }
 
             //TODO: name: type, etc
             //TODO: name: type = value, etc
-            //TODO: name := value
-        } while (match(TK_COMMA));
+            //TODO: name := value, etc
+            //TODO: name, name: type, etc
+        }
     }
 
     eat(); // Eat the )
@@ -332,7 +361,9 @@ PrototypeNode *Parser::parsePrototype(String name) {
     if (check(TK_LBRACE)) {
         returnTypes.push_back(new VoidNode());
     } else {
-        // Get return types
+        do {
+            //
+        } while (match(TK_COMMA));
     }
 
     return nullptr;
