@@ -16,13 +16,14 @@
 // [GENERICS]
 // [POINTERS]
 // [FUNCTION POINTERS]
+// [OPTIONAL]
 // [MACROS]
 // [MISC]
-// [BUILDING]
+// [BUILDING] [CONFIG]
 
 // Nifty is a new systems programming language in development.
 // This file is an overview of the language and (basically) everything in here is
-// subject to change. I am open to suggestion and if anything is unclear let me
+// subject to change. I am open to suggestions and if anything is unclear let me
 // know. This file is much easier to read in vscode with the nifty extension.
 // The extension is in the highlighting/vscode folder and you can copy and paste
 // it into you vscode extensions folder to install it. You will have to restart
@@ -50,7 +51,7 @@ built-in types:     snake_case
 The following naming conventions ARE enforced by the compiler.
 
 Exports may not start or end with an underscore.
-Privates must start with an underscore.
+Privates must start with an underscore and can't end with an underscore.
 Locals must end with an underscore.
 
 -/
@@ -148,7 +149,7 @@ x := 12
 x = undefined // Invalid
 
 buf : u32 = undefined
-bufNum := buf // Invalid?
+bufNum := buf // Invalid (???)
 
 // Immutable variables can not be set to undefined.
 val someVal: int = undefined // Invalid
@@ -389,7 +390,7 @@ fn someFunc(_someVar, secondVar_, _thirdVar_: int) {/- ... -/} // Nothing specia
 
 fn otherFunc() {
     // Stuff
-    _x := 12 // Nothing special about _x.
+    _x := 12 // Nothing special about _x or x_ or _x_ here.
 }
 
 // All built-in functions are in the 'nsl' package and are implicetly used in every file.
@@ -416,35 +417,32 @@ fn someFunc() {
 }
 
 // Functions can have arguments.
-
 fn sayHi(name: string) {
     fmt::println("Hi", name)
 }
 
 // ...and return types
-
 fn add(a: int, b: int): int {
     return a + b
 }
+
 // ...and multiple return types
 fn openFile(name: string): File, error {
     // do stuff
 }
 
-// If two or more consecutive arguments have the same type the type can be omitted for all but the
+// If two or more consecutive arguments have the same type, the type can be omitted for all but the
 // last argument of that type.
 fn add(a, b: int): int {
     return a + b
 }
 
 // Functions can have default arguments
-
 fn add(a := 10, b := 10): int {
     return a + b
 }
 
 // Here type inference was used for the argument types but they can be specified as well.
-
 fn add(a: int = 10, b: int = 10): int {
     return a + b
 }
@@ -465,7 +463,6 @@ fn yeet(): void {
 }
 
 // All function arguments are immutable.
-
 fn someFunc(x: int) {
     x = 12 // Invalid
 }
@@ -477,7 +474,6 @@ fn someFunc(x: int) {
 }
 
 // Pointers can also be used to change the value.
-
 fn someFunc(x: ^int) {
     newX := x
     newX^ = 12
@@ -492,7 +488,7 @@ someFunc(^x) // See section on pointers for an explination.
 // The variadic argument can be treated like a static array.
 fn sum(nums: ..int): int {
     res := 0
-    for (n in nums) {
+    for (val n in nums) {
         res += n
     }
     
@@ -500,6 +496,7 @@ fn sum(nums: ..int): int {
 }
 
 sum()
+sum(1)
 sum(1, 2, 3)
 sum(4, 5, 6, 7, 8)
 
@@ -777,7 +774,7 @@ goto forever!
 for (i := 0; i < 10; ++i) {
     if (i % 2 == 0) {
         fmt::println("even")
-        continue // Will exit this loop and continue.
+        continue // Will exit this loop and continue the loop.
     }
     
     fmt::print("odd")
@@ -787,7 +784,7 @@ found := false
 for (val v in someArray) {
     if (v == target) {
         found = true
-        break // Will exit this loop but will not continue.
+        break // Will exit this loop but will not continue the loop.
     }
 }
 
@@ -1317,15 +1314,16 @@ fn sub<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
 
 // If you want to make the above struct work so that any type of number can be used, but only numbers
 // you can use the #number built-in macro.
-
 type Vec3<T: #number> struct { /- ... -/ }
 
 // Or if you only want to allow only all floating types only you can use the #decimal built-in macro.
-
 type Vec3<T: #decimal> struct { /- ... -/ }
 
-// I thought about having a number and decimal keyword but I don't think this would come up enough to
-// merit two dedicated keywords.
+// Or if you only want to allow only all integer types only you can use the #integer built-in macro.
+type Vec3<T: #integer> struct { /- ... -/ }
+
+// I thought about having a number, decimal, and integer keywords but I don't think this would come up
+// enough to merit two dedicated keywords.
 
 // Like combined typed 'number' and 'decimal' only work with generics.
 let num: #number = 12 // Invalid
@@ -1344,6 +1342,8 @@ fn add<T: #decimal>(a, b: T) { /- ... -/ }
 type Thing<T> struct { /- ... -/ }
 let thing: Thing<void> // Invalid
 impl Thing<void> // Invalid
+
+// TODO: How to make a generic function only take non nullable pointers?
 
 // [POINTERS]
 
@@ -1430,6 +1430,71 @@ type AddFn as fn(int, int): int
 fn add(a, b: int): int { /- ... -/ }
 type AddFn as type_from(add) // Also works
 
+// [OPTIONAL]
+
+// Nifty has a built-in optional type that can be used. Optional, Value, Empty are used by default.
+// The idea is to have a way to have a variable with no value without crashing or panicking in any
+// situation. Optional can only cause a panic if the programmer explicitly wants to panic.
+
+fn someFunc(): Optional<string> {
+    // ...
+    if (someCondition) {
+        return "a string" // Return does have a value.
+    }
+    
+    return Empty // Return doen't have a value.
+}
+
+const result = someFunc()
+str := result.valueOr("yeet") // str will be yeet if result has no value, otherwise it is the contained value.
+
+str := when (result) {
+    Value: result.value() // The value() function can only be used in a when statement in the 'Value' case.
+    Empty: "yeet"
+}
+// Both the Value and Empty cases must be handled in a when statement.
+
+let str: string
+when (result) {
+    Value: str = result.value()
+    Empty: fmt::println('Empty')
+}
+
+// Instead of writing out Optional a question mark can be used instead.
+fn someFunc(): string? { /- ... -/ } // Same as above.
+
+// Optionals can be in function arguments too.
+fn anotherFunc(arg1?: string, arg2: string, arg3?: string): int
+// Because optionals still have to be passed you can have a non-optional after an optional.
+
+// Default values can be used as well.
+fn anotherFunc(arg1?: string, arg2: string, arg3?: string = Empty): int
+
+// Optionals can be used with pointers.
+
+let p?: ^int = new int // p can't be null
+let opt: Optional<^int> // Pointers in optionals can't be null. Default for Optional is Empty.
+let opt: ^int? // Same as the above line
+let opt: = Optional<^int>(p) // Create an optional and set its value to p.
+let opt: = Optional<type_from(p)>(p) // If p were a more complicated type.
+
+opt.set(p) // Value is now p.
+
+let nullable: ^int
+opt.set(nullable) // Invalid. This pointer could be null so it can't be in an optional.
+
+// Included functions.
+md value<T>(): T // Can only be used in a when statement in the 'Value' case.
+md valueOr<T>(other: T): T // If the optional is Empty then other is returned.
+md valueOrElse<T>(func fn: T ): T // If the optional is Empty then other is returned.
+md valueOrDefault<T>(): T // If the optional is Empty then the default value for the type is returned.
+md valueOrPanic(msg: string): T // Panics with the given message if the optional is Empty, otherwise returns the value.
+
+md hasValue(): bool // Returns true if it has a value.
+md isEmpty(): bool  // Returns true if it is Empty.
+md clear() // Set to Empty.
+md set(value: T) // Set the value of the optional.
+
 // [MACROS]
 
 // Macros 
@@ -1480,6 +1545,7 @@ someVar := OTHER_CONST_MACRO // Invalid
 
 #number            // used by generics, see the section on generics for details
 #decimal           // used by generics, see the section on generics for details
+#integer           // used by generics, see the section on generics for details
 
 #noBoundsCheck
 
@@ -1527,7 +1593,7 @@ fn updatePointers(restrict ptrA, ptrB, value: ^int) { /- ... -/ }
 // It is important to note that if the function is formed like this 'restrict' only applies to ptrA.
 fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -/ } // Better
 
-// [BUILDING]
+// [BUILDING] [CONFIG]
 
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
 // Each build file can have multiple targets.
@@ -1566,6 +1632,8 @@ commands = [string]
 // Shell commands than can be run.
 children = [string]
 // List of child targets that will be run when this target is complete.
+disallowNull = bool
+// If eanbled pointers will not be allowed to be null. Defaults to false.
 
 /-
 
@@ -1586,5 +1654,16 @@ as the default. Only one target may be marked as default at a time.
 
 nifty create [options] // Creates a new nifty project. Like nifty new but requires no user interaction.
 nifty create name=tst
+
+If no command is given then 'run' is used by default.
+
+nifty [fileName.extension] // Same as nifty run [fileName.extension]
+nifty [targetName] // Same as nifty run [targetName]
+nifty [buildFile]:[targetName] // Same as nifty run [buildFile]:[targetName]
+nifty // Will run the default target in the default build file.
+
+If a target has the same name as a command then the command must be used as well.
+For instance if you had a build target you would have to use
+nifty run build
 
 -/
