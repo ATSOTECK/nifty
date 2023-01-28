@@ -63,7 +63,7 @@ package main
 use "nsl.fmt"
 
 fn main() {
-    fmt::println(“Hello, world!”)
+    fmt::println("Hello, world!")
 }
 
 // Semicolons are optional.
@@ -127,7 +127,7 @@ x ::= 12
 // The type is inferred for constants as well but it can also be specified.
 val x: int = 12
 x :: int = 12
-val y: int // Invalid
+val y: int // Invalid, immutable variables must have their value specified.
 
 // Variables are auto initialized in Nifty.
 let x: int
@@ -152,7 +152,7 @@ buf : u32 = undefined
 bufNum := buf // Invalid (???)
 
 // Immutable variables can not be set to undefined.
-val someVal: int = undefined // Invalid
+val y: int = undefined // Invalid, immutable variables must have their value specified.
 
 // Nifty does not support variable shadowing.
 
@@ -583,7 +583,7 @@ if (err != null) {
 
 // Functions can be inlined with the 'inline' keyword.
 inline fn smallFastFn() { /- ... -/ }
-// Or explicetly not inlined with the 'noinline' keyword.
+// Or explicetly not inlined with the 'no_inline' keyword.
 no_inline fn bigSlowFn() { /- ... -/ }
 // Let the compiler decide if it should be inlined or not. This is the default, but can be explicetly stated.
 maybe_inline fn someOtherFn() { /- ... -/ }
@@ -1323,7 +1323,7 @@ type Vec3<T: #decimal> struct { /- ... -/ }
 type Vec3<T: #integer> struct { /- ... -/ }
 
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
-// enough to merit two dedicated keywords.
+// enough to merit three dedicated keywords.
 
 // Like combined typed 'number' and 'decimal' only work with generics.
 let num: #number = 12 // Invalid
