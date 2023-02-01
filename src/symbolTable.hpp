@@ -28,17 +28,48 @@
 #include <vector>
 #include <unordered_map>
 
+enum SymbolPrivilegeLevel {
+    Export,
+    Private,
+    Local
+};
+
+// So we can have two symbols with the same name as long as their kind differs.
+// May get rid of this as it could be confusing.
+enum SymbolKind {
+    Function,
+    Variable,
+    FunctionPointer, // Special kind of variable.
+    Enum,
+    Struct
+};
+
 struct Symbol {
     String name;
     String type;
+    SymbolKind kind;
     bool isConst;
+    int line;
+    int linePos;
+    SymbolPrivilegeLevel privilegeLevel;
 };
 
-struct SymbolTable {
-    SymbolTable *containing;
-    std::vector<SymbolTable *> tables;
-    // std::unordered_map<String,
+class SymbolTable {
+public:
+    SymbolTable();
+    SymbolTable(SymbolTable *container);
+
+    keep bool contains(const String &name, SymbolKind kind) const;
+    bool add(const Symbol &symbol);
+
+
+private:
+    SymbolTable *_containing;
+    std::vector<SymbolTable *> _tables;
+    std::unordered_map<String, Symbol> _symbols;
 };
+
+
 
 
 #endif //__NIFTY_SYMBOLTABLE_HPP__

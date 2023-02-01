@@ -26,8 +26,10 @@
 #include "common.hpp"
 #include "lexer.hpp"
 #include "node.hpp"
+#include "symbolTable.hpp"
 
 #include <vector>
+#include <unordered_map>
 
 class Parser {
 public:
@@ -71,7 +73,7 @@ private:
     Node *parseBinOpRhs(int precedence, Node *lhs);
     Node *parseNumber();
     Node *parseType();
-    PrototypeNode *parsePrototype(String name);
+    PrototypeNode *parsePrototype(const String &name);
     Node *parseFunction();
 
     Lexer *_lex;
@@ -83,6 +85,8 @@ private:
     int _pos;
 
     std::vector<Node *> _nodes;
+    std::unordered_map<String, SymbolTable *> _packages;
+    String _currentPackage;
 
     bool _finishedWithErrors;
     bool _foundEntrypoint;

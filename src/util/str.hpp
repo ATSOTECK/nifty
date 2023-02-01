@@ -188,4 +188,20 @@ std::ostream &operator <<(std::ostream &os, const String &str);
 bool operator <(const String &lhs, const String &rhs);
 bool operator >(const String &lhs, const String &rhs);
 
+namespace std {
+template<>
+class hash<String> {
+public:
+    std::uint64_t operator() (const String &str) const {
+        uint64_t ret = 2166136261u;
+        for (int i = 0; i < str.size(); ++i) {
+            ret ^= (uint8_t)str.raw(i);
+            ret *= 16777619;
+        }
+
+        return ret;
+    }
+};
+}
+
 #endif //__NIFTY_STRING_H__

@@ -320,7 +320,7 @@ Node *Parser::parseNumber() {
     return new IntNode(4, num, isSigned);
 }
 
-PrototypeNode *Parser::parsePrototype(String name) {
+PrototypeNode *Parser::parsePrototype(const String &name) {
     int arity = 0;
     std::vector<Node *> args;
     std::vector<Node *> returnTypes;

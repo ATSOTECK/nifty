@@ -21,3 +21,45 @@
  */
 
 #include "symbolTable.hpp"
+
+#define MAX_DEPTH 256
+
+SymbolTable::SymbolTable():
+    _containing(nullptr)
+{
+    //
+}
+
+SymbolTable::SymbolTable(SymbolTable *container):
+    _containing(container)
+{
+    //
+}
+
+bool SymbolTable::contains(const String &name, SymbolKind kind) const {
+    const auto idx = _symbols.find(name);
+    if (idx != _symbols.end()) {
+        return true;
+    }
+
+    SymbolTable *container = _containing;
+    int count = 0; // TODO: Should this error if at MAX_DEPTH?
+    while (container != nullptr && count++ < MAX_DEPTH) {
+        if (container->contains(name, kind)) {
+            return true;
+        }
+
+        container = container->_containing;
+    }
+
+    return false;
+}
+
+bool SymbolTable::add(const Symbol &symbol) {
+    if (!contains(symbol.name, symbol.kind)) {
+        _symbols[symbol.name] = symbol;
+        return true;
+    }
+
+    return false;
+}
