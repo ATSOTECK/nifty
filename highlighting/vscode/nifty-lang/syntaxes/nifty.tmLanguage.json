@@ -32,7 +32,7 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|endimpl|in|asm|defer|restrict|goto)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|constimpl|endimpl|in|asm|defer|restrict|goto)\\b"
                 },
                 {
                     "name": "keyword.intrinsics.nifty",

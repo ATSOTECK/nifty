@@ -1,0 +1,9 @@
+// Basic test with the global package.
+
+fn add(x, y: int): int {
+    return x + y
+}
+
+fn main(): int {
+    return add(2, 2)
+}

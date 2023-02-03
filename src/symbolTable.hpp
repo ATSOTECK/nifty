@@ -29,6 +29,7 @@
 #include <unordered_map>
 
 enum SymbolPrivilegeLevel {
+	Default, // Non package related.
     Export,
     Private,
     Local
@@ -48,9 +49,11 @@ struct Symbol {
     String name;
     String type;
     SymbolKind kind;
+	bool isNullable;
     bool isConst;
     int line;
     int linePos;
+	String file;
     SymbolPrivilegeLevel privilegeLevel;
 };
 

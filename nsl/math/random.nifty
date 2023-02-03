@@ -14,10 +14,10 @@ fn randomRanged(to, from: double): double {
 
 fn randomRange overloads{randomRangei, randomRangef, randomRanged}
 
-$min_arity(1)
+#[min_arity(1)]
 fn choose<T>(items: ..T): T {
     choice := randomRangei(0, len(items))
-    $noBoundsCheck {
+    #noBoundsCheck {
         return items[choice]
     }
 }

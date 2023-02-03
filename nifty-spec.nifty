@@ -58,12 +58,10 @@ Locals must end with an underscore.
 
 // [HELLO WORLD]
 
-package main
-
-use "nsl.fmt"
+using "nsl.fmt"
 
 fn main() {
-    fmt::println("Hello, world!")
+    println("Hello, world!")
 }
 
 // Semicolons are optional.
@@ -220,19 +218,23 @@ x ::= 12
 // [TYPES]
 
 // Basic Types:
-char // same as s32
-int // same as s32
-uint // same as u32
-float // same as f32
-double // same as f64
+char // same as s32 defaults to '\0'
+int // same as s32 defaults to 0
+uint // same as u32 defaults to 0
+float // same as f32 defaults to 0.f
+double // same as f64 defaults to 0.d
 
+// defaults to false
 bool b8 b16 b32 b64
 
+// defaults to 0
 u8 u16 u32 u64 u128
 s8 s16 s32 s64 s128
 
+//defaults to 0.0
 f16 f32 f64
 
+//defaults to ""
 string
 
 // Strings will be fully supported via the standard library, the string type is very basic.
@@ -279,6 +281,18 @@ use "nsl.math"
 fn main() {
     // Do something
 }
+
+// If no package is specified for a file then the default 'global' package is used.
+
+using "nsl.fmt"
+
+fn main() {
+	println("Hello world!")
+}
+
+// It is fine to just use the global package for your programs. By default the global
+// package is empty. Just using the global package could be an issue for larger
+// programs though.
 
 // By default the name of the package is the last element of the package 
 // path, which is also the name of the package in the file. This, however,
@@ -619,7 +633,7 @@ warning(msg: string)
 static // Like static in c/c++.
 requireTargetFeature(feature: string)
 noReturn
-traceVars(names: ..string) // Prints the values of the variables listed every time they change.
+traceVars(names: ..string) // Prints the values of the variables listed every time they change. This is meant for debugging and will be relatively slow.
 -/
 
 // [CONTROL FLOW]
@@ -1060,7 +1074,8 @@ type Point struct {
     y: int
 }
 
-point := {x: 12, y: 42}
+point := {x: 12, y: 42} // Should this be allowed? What if there is another type with an x and y?
+point: Point = {x: 12, y: 42}
 let p: Point
 p.x = 12
 p.y = 42
@@ -1082,7 +1097,8 @@ align(alignment: int)
 
 // For methods the md keyword is used so that if the impl keyword is missed by a 
 // programmer or a programmer jumps to the middle of the file it is obvious that
-// these are methods and not ordinary functions. 
+// these are methods and not ordinary functions. The fn keyword can be used as 
+// well. The md keyword can't be used outside an impl.
 
 type Collection struct {
     list: []int
@@ -1122,10 +1138,16 @@ endimpl Collection
 // This is just to improve readability in files with multiple struct implementations.
 // This does not allow for impl nesting.
 
-collection := new Collection() // Type is ^Collection
+collection := new Collection() // Type is ^Collection. Calls constructor.
 collection := new Collection{ /- ... -/ } // Type is ^Collection also. 
 // This does not call the constructor and the fields in the struct are set to their defaults.
 // The values can be specified.
+
+// To indicate that collection can be null
+let collection?: ^Collection = new Collection()
+// Or more succinctly
+let collection = new? Collection()
+collection := new? Collection()
 
 collection := new Collection{list: make([]int)} // Private var can't be set here.
 
@@ -1137,7 +1159,7 @@ add(collection, 12) // Invalid
 // Because of this it is important to note that the object calling the function can be null.
 
 collection = null
-collection->add(12) // The function add will be called.
+collection->add(12) // The function add will not be called. This will panic.???
 
 // In the function you can either check that
 this != null
@@ -1157,8 +1179,8 @@ if (collection != null) {
 
 // If you don't allocate the object on the heap this is not an issue.
 
-collection := Collection() // Type is Collection
-collection := Collection{list: make([]int)} // Type is Collection
+collection := Collection() // Type is Collection. Constructor is called.
+collection := Collection{list: make([]int)} // Type is Collection. Constructor is not called.
 collection.add(12) // No check needed even if '?' is used.
 
 // You may have noticed that I used both '->' and '.' when calling the 
@@ -1197,9 +1219,9 @@ impl SomeStruct
 // Your code ...
 endimpl
 
-// To prevent this the 'const' keyword can be used.
+// To prevent this the 'constimpl' keyword can be used.
 
-const impl SomeStruct
+constimpl SomeStruct
 // ...
 endimpl
 
@@ -1352,11 +1374,21 @@ impl Thing<void> // Invalid
 // For dereferencing '^' is on the right of the variable. 
 // Like c/c++ '&' is the addressof operator.
 
-let p: ^int // p is null
+let p: ^int = undefined
 x := 12
 p = &x // p now points to x
 y := p^ // y is 12
 p^ = 42 // x is 42
+
+// By default pointers can't be null.
+let ptr: ^int = null // Invalid
+
+// To allow a pointer to be null use '?'.
+let ptr?: ^int = null // Valid
+let ptr?: ^int // ptr is null
+
+// To return a nullable pointer '?' is used as well.
+fn returnsNullable(): ?^int, bool { /- ... -/ }
 
 // If a function takes a pointer type then ^ is used on the left of the variable
 // to visually indicate that.
@@ -1373,26 +1405,20 @@ someFunc(y) // Invalid
 // This is not dereferencing y or doing anything other than passing y.
 // This is just so the programmer can quickly see this function is taking
 // a pointer and that y could potentially be modified by the function.
+// TODO: Is this annoying?
 // TODO: Maybe this can be optional and forced by a compiler flag?
 
 // Nifty does not have pointer arithmetic.
 
-let p: ^f64
+let p?: ^f64
 // ...
 p^ // Causes a panic if p is still null.
 
 // If the compiler knows that a value is null when it is being dereferenced
 // it will not compile.
 
-let p: ^f64
+let p?: ^f64
 p^ // Invalid
-
-// The '?' token can be used to indicate that a pointer is not allowed to be
-// null.
-
-let p?: ^int // Invalid
-let p?: ^int = new int // Valid
-p = null // Invalid
 
 // Nifty has null coalescing.
 
@@ -1464,15 +1490,21 @@ when (result) {
 fn someFunc(): string? { /- ... -/ } // Same as above.
 
 // Optionals can be in function arguments too.
-fn anotherFunc(arg1?: string, arg2: string, arg3?: string): int
+fn anotherFunc(arg1: string?, arg2: string, arg3: string?): int
 // Because optionals still have to be passed you can have a non-optional after an optional.
 
 // Default values can be used as well.
-fn anotherFunc(arg1?: string, arg2: string, arg3?: string = Empty): int
+fn anotherFunc(arg1: string?, arg2: string, arg3: string? = Empty): int
+
+// You can't return an optional with a nullable pointer.
+fn invalid(): ?^int? { /- ... -/ } // Invalid
+
+// Nor can a function take optionals with nullable pointers.
+fn invalid(x?: ^int?) { /- ... -/ } // Invalid
 
 // Optionals can be used with pointers.
 
-let p?: ^int = new int // p can't be null
+let p: ^int = new int // p can't be null
 let opt: Optional<^int> // Pointers in optionals can't be null. Default for Optional is Empty.
 let opt: ^int? // Same as the above line
 let opt: = Optional<^int>(p) // Create an optional and set its value to p.
@@ -1480,12 +1512,15 @@ let opt: = Optional<type_from(p)>(p) // If p were a more complicated type.
 
 opt.set(p) // Value is now p.
 
-let nullable: ^int
+let nullable?: ^int
 opt.set(nullable) // Invalid. This pointer could be null so it can't be in an optional.
+
+// Optionals can't be of type 'void'.
+fn returnsNothing(): void? // Invalid
 
 // Included functions.
 md value<T>(): T // Can only be used in a when statement in the 'Value' case.
-md valueOr<T>(other: T): T // If the optional is Empty then other is returned.
+md valueOr<T>(other: T): T // If the optional is Empty then other is returned. The other value can't be null.
 md valueOrElse<T>(func fn: T ): T // If the optional is Empty then other is returned.
 md valueOrDefault<T>(): T // If the optional is Empty then the default value for the type is returned.
 md valueOrPanic(msg: string): T // Panics with the given message if the optional is Empty, otherwise returns the value.
@@ -1557,7 +1592,7 @@ const RAND = #embedBytes("/dev/urandom") // Will crash the compiler, possibly yo
 const ARR = #embedBytes("/dev/urandom", 128) // Type is [N]u8 where N is the number of elements determined at compile time.
 
 let str: string = #embedString("hello.txt");
-println(str) // hello
+println(str) // hello.txt contents
 
 #error(msg: string) // Causes the compiler to error with the given message.
 #warn(msg: string) // Causes the compiler to emit a warning with the given message.
@@ -1568,7 +1603,7 @@ b := false
 assert(type_from(b) == bool) // true
 assert(type_of(b) == "bool") // true
 
-c: type_from(b) // c is type bool
+let c: type_from(b) // c is type bool
 assert(type_from(c) == bool) // true
 assert(type_of(c) == "bool") // true
 
@@ -1665,5 +1700,7 @@ nifty // Will run the default target in the default build file.
 If a target has the same name as a command then the command must be used as well.
 For instance if you had a build target you would have to use
 nifty run build
+or
+nifty build build
 
 -/
