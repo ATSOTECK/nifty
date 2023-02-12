@@ -31,7 +31,7 @@ fn digitalRoot(n: u64): u64 {
 
 fn main() {
     const from, to: u64 = 500, 1000
-    count: u64
+    let count: u64
     
     println("Nice primes from ${from} to ${to}.")
     for (n := from; n < to; ++n) {

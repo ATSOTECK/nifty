@@ -10,16 +10,20 @@
 // [RANGES]
 // [ARRAYS]
 // [SLICES]
+// [MAP]
 // [ENUMS]
 // [STRUCTS]
 // [OOP]
 // [GENERICS]
 // [POINTERS]
 // [FUNCTION POINTERS]
+// [MEMORY]
 // [OPTIONAL]
 // [MACROS]
 // [MISC]
 // [BUILDING] [CONFIG]
+// [KEYWORDS]
+// [TODO / MAYBE]
 
 // Nifty is a new systems programming language in development.
 // This file is an overview of the language and (basically) everything in here is
@@ -115,6 +119,8 @@ x: int = 12
 // If no value is specified the type must be specified
 let x // Invalid
 let x: int // Valid
+x: int // Invalid, value must be given here.
+// (Maybe this could be allowed? Don't really like this syntax for normal variables.)
 
 // Immutable variables (runtime constants) are declared with the 'val' keyword.
 val x = 12
@@ -146,7 +152,7 @@ undefined == null // Invalid
 x := 12
 x = undefined // Invalid
 
-buf : u32 = undefined
+buf: u32 = undefined
 bufNum := buf // Invalid (???)
 
 // Immutable variables can not be set to undefined.
@@ -249,6 +255,29 @@ type Custom as int
 x: s8 = 100
 y := cast(x, s32) // cast(var, type)
 
+// To cast between two types of the same size you can uuse the 'recast' operator.
+
+let x: f32 = 12.0
+y := recast(x, u32)
+
+// This is similar to the following pointer cast manipulation:
+
+let x: f32 = 12.0
+y := cast(^u32, &x)^
+
+// Though recast doesn't require taking the address of the value which is not always possible.
+
+// There is a third casting operator called 'auto_cast'.
+
+x := 12.f
+y := 19
+// ...
+y = auto_cast(x)
+
+// auto_cast is convienient but potentially unsafe.
+
+y = cast(type_from(y), x) // Like auto_cast
+
 // Types in nifty are not implicitly converted.
 
 x := 12
@@ -292,7 +321,8 @@ fn main() {
 
 // It is fine to just use the global package for your programs. By default the global
 // package is empty. Just using the global package could be an issue for larger
-// programs though.
+// programs though. The global package can't be imported and can't be used for packages
+// meant to be used as 3rd party packages.
 
 // By default the name of the package is the last element of the package 
 // path, which is also the name of the package in the file. This, however,
@@ -444,6 +474,17 @@ fn add(a: int, b: int): int {
 fn openFile(name: string): File, error {
     // do stuff
 }
+
+fn someFunc(): int, float { /- ... -/ }
+a, b := someFunc() // Valid
+a := someFunc() // Invalid
+a, unused := someFunc() // Valid
+unused, b := someFunc() // Valid
+
+// It is important to note that if unused is used like this the value is still being passed from the
+// function. If this usecase is common and performance is critical then it is recommended to make
+// another function that excludes that return value. (or could this be optimized away with the fast
+// option by creating and calling modified copies of the function that omit that specific return?)
 
 // If two or more consecutive arguments have the same type, the type can be omitted for all but the
 // last argument of that type.
@@ -617,6 +658,21 @@ fn reallyBadFunc() { /- ... -/ }
 #[keep, maybeUnused]
 fn bla() { /- ... -/ }
 
+// optional_ok allows skipping the last return value which must be a bool.
+
+#[optionalOk]
+md get(key: string): int, bool {
+    // Code here ...
+    
+    if (!found) {
+        return 0, false
+    }
+    
+    return value, true
+}
+
+var := container.get("thing") // Valid
+
 // Custom attributes can be used as well as attributes provided by the compiler.
 // For instance
 
@@ -625,6 +681,7 @@ fn bla() { /- ... -/ }
 // Built-in function attributes.
 /- 
 keep
+optionalOk
 minArity(argc: int)
 maxArity(argc: int)
 deprecated(msg: string = "")
@@ -650,10 +707,10 @@ for (i := 0; i < 10; ++i) {
 
 // But aslo have ranges
 
-for (0 .. 10) { /- ... -/ } // [a, b]
+for (0 ..= 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
-for (0 .. 10 step 2) { /- ... -/ }
-for (val i in 0 .. 10 step 2) { /- ... -/ }
+for (0 ..= 10 step 2) { /- ... -/ }
+for (val i in 0 ..= 10 step 2) { /- ... -/ }
 for (val str in strings) { /- ... -/ }
 for (val str, index in strings) { /- ... -/ }
 for (let str in strings) { /- ... -/ }
@@ -705,7 +762,7 @@ when (x) {
 
 when (x) {
     in 0 ..< 10: fmt::println("0 ..< 10")
-    in 10 .. 100: fmt::println("10 .. 100")
+    in 10 ..= 100: fmt::println("10 ..= 100")
     else: fmt::println("big")
 }
 
@@ -765,10 +822,15 @@ if (thing) {
 
 // Ternary operator. Ternary operators can't be nested.
 
-trueCondition ::= 12
-falseCondition ::= 42
-condition ::= true
-x := condition ? trueCondition : falseCondition
+valueIfTrue ::= 12
+valueIfFale ::= 42
+condition := true
+x := condition ? valueIfTrue : valueIfFale
+assert(x == 12) // true
+
+condition = false
+x = condition ? valueIfTrue : valueIfFale
+assert(x == 42) // true
 
 // Labels are defined with labelName!
 someLabel!
@@ -826,10 +888,10 @@ for (i := 0; i < 100; ++i) {
 
 // [RANGES]
 
-1 .. 5 // [1, 5] 1, 2, 3, 4, 5
+1 ..= 5 // [1, 5] 1, 2, 3, 4, 5
 1 ..< 5 // [1, 5) 1, 2, 3, 4
 
-rangeVar := 0 .. 10 // type range
+rangeVar := 0 ..= 10 // type range
 x := 12
 
 if (x in range) {
@@ -867,7 +929,7 @@ package main
 using "nsl.fmt"
 
 fn main() {
-    for (i in 0 ..< 5) {
+    for (val i in 0 ..< 5) {
         defer println(i)
     }
     println("Hello world")
@@ -887,11 +949,11 @@ Hello world
 // Nifty has both static and dynamic arrays.
 // Static arrays work as follows.
 
-arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
+let arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
 arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
 arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
-arr: []int // Valid, dynamic, not static.
+let arr: []int // Valid, dynamic, not static.
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
 // Should static arrays be able to infer type?
 arr := ["one", "two", "etc"]
@@ -912,7 +974,7 @@ x := arr[y] // Runtime error.
 // Runtime bounds checking can be disabled at a block level with #noBoundsCheck
 // This can be important in situations where performance is critical. Could lead to undefined behavior.
 #noBoundsCheck {
-    x = arr[y] // Y could still be out of bounds.
+    x = arr[y] // y could still be out of bounds.
 }
 
 // To get the length of an array use the included len() function.
@@ -940,11 +1002,7 @@ append(&arr, 6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 delete arr // [] or should it be null?
 
 // Additional array functionality can be found in the nsl.array package.
-
-/- Not sure if I should keep this. -/
-// To fill an array with a specified value use the included fill() function.
-arr := make([]int, 0, 5) // []
-fill(arr, 5) // [5, 5, 5, 5, 5] Not sure if I should keep this.
+// For instance filling an array, cheking if an array contains an element, etc...
 
 // [SLICES]
 
@@ -981,6 +1039,71 @@ arr := make([]int, 5) // [0, 0, 0, 0, 0]
 slice := arr[1:5] // [0, 0, 0, 0]
 
 slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
+
+// [MAP]
+
+// Nifty has a built-in map type.
+
+m := make(map<string, int>) // The default value of a map is an empty map.
+defer delete m
+m["Alice"] = 12
+fmt::println(m["Alice"]) // Prints 12
+
+// To insert or update a value use
+m[key] = value
+ 
+// To get a value use
+value = m[key]
+
+// If the keey is not in the map then the default value of the type is returned.
+m := make(map<string, int>)
+i := m["index"] // i will be 0
+
+// Checking if the key exists can be done in two ways:
+m := make(map<string, int>)
+if (i, ok := m["index"]; ok) { /- ... -/ } // i will be 0, ok will be false
+
+// or
+
+ok := "index" in m // ok will be false
+if (ok) { /- ... -/ }
+
+// The first example is the comma ok idiom from go and is the same as:
+i, ok := m["index"]
+if (ok) { /- ... -/ }
+
+// Maps can be initialized with map literals.
+
+m := map<string, int>{
+    "Alice": 12,
+    "Bob": 42
+}
+
+m := map<string, int>{} // Valid, empty map
+let m: map<string, int> // Valid, empty map
+m := make(map<string, int>) // Valid, empty map
+
+// len() can be used to get the number of items in a map
+assert(len(m) == 2) // true
+
+// To remove a key/value pair use 'delete':
+delete m[key]
+
+type Point struct { x, y: f64 }
+m := map<string, Point>{
+    "zero": {},
+    "start": {12.f, 42.f},
+    "stop": {142.f, 96.f}
+}
+
+// Because the value type is specified it is ok to not include the name of the fields.
+// Though it can be included.
+
+m := map<string, Point>{
+    "zero": Point{},
+    "start": Point{12.f, 42.f},
+    "stop": Point{x: 142.f, y: 96.f}
+}
 
 // [ENUMS]
 
@@ -1074,11 +1197,42 @@ type Point struct {
     y: int
 }
 
-point := {x: 12, y: 42} // Should this be allowed? What if there is another type with an x and y?
-point: Point = {x: 12, y: 42}
 let p: Point
 p.x = 12
 p.y = 42
+
+point: Point = {x: 12, y: 42} // Valid
+point: Point = {12, 42} // Valid
+point: Point = {} // Valid, x and y are set to 0, same as let point: Point
+point: Point = {12} // Invalid, either all values must be set or no values are set
+point := Point{x: 12, y: 42} // Valid
+point := Point{x: 12} // Valid, y is 0
+point := {x: 12, y: 42} // Invalid, other types could have an x and y.
+
+// Default values can be given for strcut fields.
+
+type Point3D struct {
+    x: f64 = 100.f
+    y: f64 = 100.f
+    z: f64 = 1.f
+}
+
+// This allows structs to be uninitialized.
+
+type Point3D struct {
+    x: f64 = undefined
+    y: f64 = undefined
+    z: f64 = undefined
+}
+
+// If fields in a struct are of the same type then they can be on the same line.
+
+type Point3D struct { x, y, z: f64 }
+point := Point3D{y: 12.f, Z: 42.f} // Valid
+
+// You can also set fields on the same line to the same value.
+type Point3D struct { x, y, z: f64 = 100.f }
+type Point3D struct { x, y, z: f64 = undefined }
 
 // Structs can also have attributes.
 
@@ -1092,6 +1246,13 @@ type Packed struct {
 packed
 align(alignment: int)
 -/
+
+type Person struct {
+    id:        int        `json:"id",norm:"index"`
+    name:      string     `json:"name"`
+    holding:   []string   `json:"holding",omitempty`
+    createdAt: time::Time `json:"created_at"`
+}
 
 // [OOP]
 
@@ -1108,6 +1269,7 @@ type Collection struct {
 impl Collection
 
 // Constructor
+// Return type for the constructor is implicitly determined and 'this' is implicitly returned.
 md new() {
     list = make([]int)
 }
@@ -1191,14 +1353,68 @@ collection.add(12) // No check needed even if '?' is used.
 // Optionally an interface can be used for improved readability and to force an implementation
 // to implement the functions in the interface.
 
-type Collection interface { // TODO(Skyler): Needs work.
-    new()
-    add()
-    average()
-    _calculateAverage()
+type Collection interface {
+    new() // Return type for the constructor is implicitly determined.
+    add(int) // Argument name is optional.
+    average(): float
+    _calculateAverage(): void // Using void is optional.
 }
 
+// Note that using the fn or md keywords is optional here. 
+
 // If an implementation is missing one or more of those functions it will cause a compiler error.
+// The above interface only applies to implementation of the 'Collection' struct.
+
+// Behaviors are a a way to define shared behavior. To indicate that an implementation does a
+// certain behavior the 'does' keyword is used. Implementations can do one or more behaviors
+// unlike 'interface' which only applied to the specified struct.
+
+// If an implementation does a behavior then all the functions in the behavior must be 
+// implemented or there will be a compiler error. If an implementation does multiple behaviors
+// with conflicting function names then there will be a compiler error. If a behavior and an
+// interface have conflicting function names there will be a compiler error.
+
+use "nsl.math"
+
+type Rect struct { w, h: f64 }
+type Circle struct { r: f64 }
+
+type Geometry behavior {
+    area(): f64
+    perim(): f64
+}
+
+type Arc behavior {
+    partialArea(percent: f64): f64 // The argument name is optional here.
+}
+
+impl Rect does Geometry
+
+md area(): f64 {
+    return w * h
+}
+
+md perim(): f64 {
+    return 2 * w + 2 * h
+}
+
+endimpl
+
+impl Circle does Geometry, Arc
+
+md area(): f64 {
+    return math::PI * r * r
+}
+
+md perim(): f64 {
+    return 2 * math::PI * r
+}
+
+md partialArea(percent: f64): f64 {
+    return area() * percent
+}
+
+endimpl
 
 // A struct can be implemented multiple times. So for instance a struct could exist in a library
 // and you could extend it in you own code.
@@ -1365,6 +1581,8 @@ type Thing<T> struct { /- ... -/ }
 let thing: Thing<void> // Invalid
 impl Thing<void> // Invalid
 
+
+
 // TODO: How to make a generic function only take non nullable pointers?
 
 // [POINTERS]
@@ -1455,6 +1673,24 @@ type AddFn as fn(int, int): int
 
 fn add(a, b: int): int { /- ... -/ }
 type AddFn as type_from(add) // Also works
+
+// [MEMORY]
+
+// Custom allocators can be used with the 'new' keyword.
+
+ptr := new:CustomAlloc int
+
+// To create a custom allocator you must use constimpl and at a minimum have an alloc() function
+// and a free() function.
+
+type CustomAlloc struct {} // The struct doesn't need any fields.
+
+constimpl CustomAlloc
+
+md alloc() { /- ... -/ }
+md free()  { /- ... -/ }
+
+endimpl
 
 // [OPTIONAL]
 
@@ -1702,5 +1938,118 @@ For instance if you had a build target you would have to use
 nifty run build
 or
 nifty build build
+
+-/
+
+// [KEYWORDS]
+
+if
+else
+elif
+while
+until
+do
+for
+step
+return
+when
+break
+continue
+impl
+constimpl
+endimpl
+in
+asm
+defer
+restrict
+goto
+cast
+recast
+auto_cast
+type_of
+type_from
+size_of
+name_of
+align_of
+new
+delete
+null
+unused
+undefined
+true
+false
+this
+package
+use
+using
+as
+behavior
+does
+struct
+enum
+bool
+b8
+b16
+b32
+b64
+char
+string
+int
+uint
+float
+double
+s8
+s16
+s32
+s64
+s128
+u8
+u16
+u32
+u64
+u128
+f16
+f32
+f64
+void
+error
+inline
+no_inline
+maybe_inline
+let
+val
+const
+fn
+md
+type
+map
+
+// Built in functions
+assert
+make
+append
+len
+cap
+
+// [TODO / MAYBE]
+
+/-
+
+If there is a question mark after that means I'm not sure if I want to add that
+to the language. Otherwise it is something I want in the language I just haven't
+written it into the spec yet.
+
+goroutines (?)
+signals/slots
+compiletime code execution (JIT) (?)
+macros
+user annotations
+custom memory allocators
+matrix data type (?)
+complex number data type (?)
+foreign keyword (use foreign)
+static
+operator overloading (?)
+rawptr (void* in c) (?)
 
 -/

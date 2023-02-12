@@ -6,6 +6,17 @@ type Array<T> struct {
     _cap: int
 }
 
+type Array<T> interface {
+    new(int, int)
+    len(): int
+    cap(): int
+    push(T)
+    pop(): T
+    get(int): T
+    set(int, T)
+    fill(T)
+}
+
 impl Array<T>
 
 md new(length := 0, capacity := 0) {
@@ -22,8 +33,12 @@ md new(length := 0, capacity := 0) {
     }
 }
 
-md len() {
+md len(): int {
     return _len
+}
+
+md cap(): int {
+    return _cap
 }
 
 md push(item: T) {

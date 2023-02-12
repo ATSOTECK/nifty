@@ -27,11 +27,21 @@
 
 #include "util/str.hpp"
 
-class Package {
+#include <unordered_map>
+
+class Packages {
 public:
+    Packages *instance();
+    bool contains(const String &name);
+    bool add(const String &name);
+
+    SymbolTable *get(const String &name);
+
 private:
-    String _name;
-    SymbolTable *_table;
+    Packages();
+    Packages *_instance;
+
+    std::unordered_map<String, SymbolTable *> _packages;
 };
 
 

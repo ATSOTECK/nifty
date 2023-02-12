@@ -29,7 +29,6 @@
 #include "symbolTable.hpp"
 
 #include <vector>
-#include <unordered_map>
 
 class Parser {
 public:
@@ -85,7 +84,6 @@ private:
     int _pos;
 
     std::vector<Node *> _nodes;
-    std::unordered_map<String, SymbolTable *> _packages;
     String _currentPackage;
 
     bool _finishedWithErrors;

@@ -5,8 +5,8 @@ use "time"
 using "fmt"
 
 fn estimatePi(numPoints: int): f64 {
-    x, y, rSquared: f64
-    withinCircle: int
+    let x, y, rSquared: f64
+    let withinCircle: int
     
     for (i := 0; i < numPoints; ++i) {
         x = random::float64()
@@ -23,7 +23,7 @@ fn estimatePi(numPoints: int): f64 {
 }
 
 fn main() {
-    avgTime: f64
+    let avgTime: f64
     for (i := 0; i < 10; ++i) {
         start := time::now().toMs()
         pi := estimatePi(10_000_000)

@@ -250,6 +250,9 @@ Node *Parser::parsePrimary() {
 void Parser::parsePackage() {
     eat(TK_IDENT, "identifier", "package");
     std::cout << "package is now: " << _current.lexeme << std::endl;
+    _currentPackage = _current.lexeme;
+    let *package = new SymbolTable();
+    _packages[_current.lexeme] = package;
     eat();
 }
 
