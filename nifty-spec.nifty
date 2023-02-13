@@ -20,6 +20,7 @@
 // [MEMORY]
 // [OPTIONAL]
 // [MACROS]
+// [SIGNALS AND SLOTS]
 // [MISC]
 // [BUILDING] [CONFIG]
 // [KEYWORDS]
@@ -690,7 +691,16 @@ warning(msg: string)
 static // Like static in c/c++.
 requireTargetFeature(feature: string)
 noReturn
-traceVars(names: ..string) // Prints the values of the variables listed every time they change. This is meant for debugging and will be relatively slow.
+traceVars(names: ..string) // Prints the values of the variables listed every time they change.
+                           // This is meant for debugging and will be relatively slow.
+
+// Called at the end of the callers scope.
+deferredIn(function: fn) // Receives the same paramaters as the called function.
+deferredOut(function: fn) // Receives the results of the called function.
+deferredInOut(function: fn) // Receives both the input and output of the called function.
+deferredNone(function: fn) // Receives no input.
+These can be useful but are not always recommended as they can make it not obvious why a function
+is being called without further investigation.
 -/
 
 // [CONTROL FLOW]
@@ -1833,6 +1843,50 @@ println(str) // hello.txt contents
 #error(msg: string) // Causes the compiler to error with the given message.
 #warn(msg: string) // Causes the compiler to emit a warning with the given message.
 
+// [SIGNALS AND SLOTS]
+
+// Instead of callbacks signals and slots can be used in Nifty. When a signal is emitted the
+// corresponding slot or slots are called. This system is type safe so the signature of the signal
+// and the slot must match. When a signal is emitted the emitter neither knows nor cares which slots
+// receive the signal. If a signal is emitted all the corresponding slot will reveive it.
+// Signals and slots can either be standalone functions or methods implemented on a struct. The
+// two different types can be mixed. For instance a function can emit a signal that is recieved by
+// a slot method. Signals do not have implementations and thus do not use the fn or md keywords.
+// Slots on the other hand do have implementations so the fn or md keyword is required. This means
+// that slots can be called like any normal function or method. One signal can be connected to many
+// slots and vice versa. Signals can even be connected to other signals. When this is the case when
+// the signal is emitted the signal connected to it is also immediatly emitted. If multiple signals
+// or slots are connected togther they are executed in the order they were connected.
+// Signals and slots can be slower than just using callbacks because there are runtime checks that
+// happen in the background to make sure the calls to any objects are safe. However in almost all
+// cases the convenience and flexability is woth the overhead.
+
+// Signals must never return a type, they must be void.
+signal valueChanged(newVal: int)
+
+// Slots can return a type as they are otherwise normal functions. However in many cases the return
+// value will be discarded. Because of this the #[keep] attribute can't be used with slots.
+slot fn setValue(newVal: int) {
+    someVal = newVal
+}
+
+#connect_fn(valueChanged, setValue)
+
+// Optionally the types can be specified.
+#connect_fn(valueChanged(int), setValue(int))
+
+// ...
+
+emit valueChanged(changedVal)
+
+#connect_fn(emitterFn, receiverFn)
+#connect_md(^emitter, Emitter::method, ^receiver, Receiver::method)
+#connect_fn_md(emitterFn, ^receiver, Receiver::method)
+#connect_md_fn(^emitter, Emitter::method, receiverFn)
+
+emit emitterFn()
+
+
 // [MISC]
 
 b := false
@@ -2040,7 +2094,6 @@ to the language. Otherwise it is something I want in the language I just haven't
 written it into the spec yet.
 
 goroutines (?)
-signals/slots
 compiletime code execution (JIT) (?)
 macros
 user annotations

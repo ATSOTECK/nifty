@@ -127,6 +127,10 @@
                     "match": "\\b(inline|no_inline|maybe_inline)\\b"
                 },
                 {
+                    "name": "keyword.other.signal_slot.nifty",
+                    "match": "\\b(signal|slot|emit)\\b"
+                },
+                {
                     "name": "keyword.other.static.nifty",
                     "match": "\\b(static)\\b"
                 },
