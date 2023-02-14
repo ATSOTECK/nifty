@@ -5,7 +5,7 @@ use "time"
 using "fmt"
 
 fn estimatePi(numPoints: int): f64 {
-    let x, y, rSquared: f64
+    let x, y, rSquared: f64 = undefined
     let withinCircle: int
     
     for (i := 0; i < numPoints; ++i) {

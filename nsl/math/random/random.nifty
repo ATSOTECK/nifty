@@ -1,0 +1,300 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+ -/
+ 
+ /-
+  - Note this package is not meant to be used for security purposes as the outputs of these 
+  - functions may be easily predictable regardless of how they are seeded.
+  -/
+ 
+package random
+
+type Random struct {
+    state: u64
+    inc: u64
+    seed: u64 // This should only be set with setSeed().
+}
+
+_globalRand := create()
+
+// Initializes a random object with the given seed. 
+// If the seed is 0 then the current cycle count is used.
+fn init(random: ^Random, seed: u64 = 0) {
+    random->state = 0
+    random->inc = (seed << 1) | 1
+    random->seed = seed
+    _rand(random)
+    random->state += seed
+    _rand(random)
+}
+
+// Creates and returns a random object with the given seed.
+// If the seed is 0 then the current cycle count is used.
+fn create(seed: u64 = 0): Random {
+    let random: Random
+    init(&random, seed)
+    return random
+}
+
+// Sets the seed for the global random object.
+fn setSeed(seed: u64 = 0, random?: ^Random = null) {
+    if (random == null) {
+        init(&_globalRand, seed)
+    } else {
+        init(random, seed)
+    }
+}
+
+// Gets the seed for the global random object.
+fn getSeed(): u64 {
+    return _globalRand.seed
+}
+
+fn _rand(random?: ^Random = null): u32 {
+    let rand: ^Random = undefined
+    
+    if (random == null) {
+        rand = _globalRand
+    } else {
+        rand = random
+    }
+    
+    oldState := rand->state
+    rand->state = oldState * 6364136223846793005 + (rand->inc | 1)
+    xorShifted := cast(((oldState >> 18) ~ oldState) >> 27, u32)
+	rot := cast(oldState >> 59, u32)
+	return (xorShifted >> rot) | (xorShifted << ((-rot) & 31))
+}
+
+// Returns a pseudo-random unsigned 32 bit int.
+fn uint32(random?: ^Random = null): u32 {
+    return _rand(random)
+}
+
+// Returns a pseudo-random unsigned 64 bit int.
+fn uint64(random?: ^Random = null): u64 {
+    a := cast(_rand(random, u64))
+    b := cast(_rand(random, u64))
+    return (a << 32) | b
+}
+
+// Returns a pseudo-random unsigned 128 bit int.
+fn uint128(random?: ^Random = null): u128 {
+    a := cast(_rand(random, u128))
+    b := cast(_rand(random, u128))
+    c := cast(_rand(random, u128))
+    d := cast(_rand(random, u128))
+    return (a << 96) | (b << 64) | (c << 32) | d
+}
+
+// int31 is called int31 instead of int32 because the sign bit will always be 0
+// so it is 31 bits of random data. The same logic applies to the other functions
+// that appear to be named one short. This naming convention may chage to match the
+// return types.
+
+// Returns a non-negative pseudo-random 31 bit int as a 32 bit int.
+fn int31(random?: ^Random = null): s32 {
+    return cast(uint32(random) << 1 >> 1, s32) // Set the sign bit to 0 with << 1 >> 1.
+}
+
+// Returns a non-negative pseudo-random 63 bit int as a 64 bit int.
+fn int63(random?: ^Random = null): s64 {
+    return cast(uint64(random) << 1 >> 1, s64)
+}
+
+// Returns a non-negative pseudo-random 127 bit int as a 128 bit int.
+fn int127(random?: ^Random = null): s128 {
+    return cast(uint128(random) << 1 >> 1, s128)
+}
+
+// Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
+fn int31n(n: s32, random?: ^Random = null): s32 {
+    if (n <= 0 ) {
+        panic("Invalid argument to int31n, n must be greater than 0.")
+    }
+    
+    if (n & (n - 1) == 0) {
+        // n is a power of 2, can mask.
+        return int31(r) & (n - 1)
+    }
+    
+    max := cast((1 << 31) - 1 - (1 << 31) % cast(n, u32), s64)
+    v := int31(r)
+    
+    while (v > max) {
+        v = int32(r)
+    }
+    
+    return v % n
+}
+
+// Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
+fn int63n(n: s64, random?: ^Random = null): s64 {
+    if (n <= 0 ) {
+        panic("Invalid argument to int63n, n must be greater than 0.")
+    }
+    
+    if (n & (n - 1) == 0) {
+        // n is a power of 2, can mask.
+        return int63(r) & (n - 1)
+    }
+    
+    max := cast((1 << 63) - 1 - (1 << 63) % cast(n, u64), s64)
+    v := int63(r)
+    
+    while (v > max) {
+        v = int63(r)
+    }
+    
+    return v % n
+}
+
+// Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
+fn int127n(n: s128, random?: ^Random = null): s128 {
+    if (n <= 0 ) {
+        panic("Invalid argument to int127n, n must be greater than 0.")
+    }
+    
+    if (n & (n - 1) == 0) {
+        // n is a power of 2, can mask.
+        return int127(r) & (n - 1)
+    }
+    
+    max := cast((1 << 127) - 1 - (1 << 127) % cast(n, u128), s128)
+    v := int127(r)
+    
+    while (v > max) {
+        v = int127(r)
+    }
+    
+    return v % n
+}
+
+// Returns a non-negative pseudo-random int.
+fn integer(random?: ^Rand = null): int {
+    n := int63(random)
+    return cast(n << 1 >> 1, int)
+}
+
+// Returns a non-negative pseudo-random int in the range [0, n). Panics if n <= 0.
+fn integern(n: int, random?: ^Random = null): int {
+    if (n <= 0) {
+        panic("Invalid argument to integern, n must be greater than 0.")
+    }
+    
+    if (n <= 1 << 31 - 1) {
+        return cast(int31n(cast(n, s32)), int)
+    }
+    
+    return cast(int63n(cast(n, s64)), int)
+}
+
+// Returns a pseudo-random number in the range [0.0, 1.0) as a 64 bit float.
+fn float64(random?: ^Random = null): f64 {
+    return cast(int63n(1 << 53, random) / (1 << 53), f64)
+}
+
+// Returns a pseudo-random number in the range [0.0, 1.0) as a 32 bit float.
+fn float32(random?: ^Random = null): f32 {
+    return cast(float64(random), f32)
+}
+
+// Returns a pseudo-random number in the range [low, high) as a 64 bit float.
+fn float64Range(low, high: f64, random?: ^Random = null): f64 {
+    return (high - low) * float64(random) + low
+}
+
+// Returns a pseudo-random number in the range [low, high) as a 32 bit float.
+fn float32Range(low, high: f32, random?: ^Random = null): f32 {
+    return (high - low) * float32(random) + low
+}
+
+// Returns a pseudo-random number in the range [low, high) as an int.
+fn intRange(low, high: int, random?: ^Random = null): int {
+    return cast((high - low)float64(random) + low, int)
+}
+
+// Returns a pseudo-random number in the range [low, high) as a float.
+fn floatRange(low, high: float, random?: ^Random = null): float {
+    return cast((high - low)float32(random) + low, float)
+}
+
+// Returns a pseudo-random number in the range [low, high) as a double.
+fn doubleRange(low, high: double, random?: ^Random = null): double {
+    return cast((high - low)float64(random) + low, double)
+}
+
+// Returns a pseudo-random number in the range [low, high) as a 32 or 64 bit number.
+// Overloads float64Range, float32Range, intRange, floatRange, and doubleRange.
+fn range overloads{float64Range, float32Range, intRange, floatRange, doubleRange}
+
+// Returns one of the given arguments at random.
+#[min_arity(2)]
+fn choose<T>(items: ..T): T {
+    #noBoundsCheck {
+        return items[int63n(0, len(items))]
+    }
+}
+
+// Returns a random item from an array.
+fn choice<T>(arr: []T): T {
+    length := len(arr)
+    if (length < 1) {
+        return T{}
+    }
+    
+    #noBoundsCheck {
+        return arr[int63n(0, length)]
+    }
+}
+
+// Returns, as a slice of n ints, a pseudo-random permutation of the integers in the range [0,n).
+fn perm(n: int, random?: ^Random = null): []int {
+    m := make([]int, n)
+    
+    for (i := 1; i < n; ++i) {
+        j := integern(i + 1, random)
+        
+        #noBoundsCheck {
+            m[i] = m[j]
+            m[j] = i
+        }
+    }
+}
+
+fn shuffle(n: int, swap: fn(i, j: int), random?: ^Random = null) {
+    if (n < 2) {
+        return
+    }
+    
+    // Fisher-Yates shuffle: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    
+    i := n - 1
+    for (; i > 1 << 31 - 1 - 1; --i) {
+        j := cast(int63n(cast(i + 1, s64), random), int)
+        swap(i, j)
+    }
+    
+    for (; i > 0; --i) {
+        j := cast(int31n(cast(i + 1, s32)), int)
+        swap(i, j)
+    }
+}

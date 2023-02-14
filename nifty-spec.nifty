@@ -701,7 +701,12 @@ deferredInOut(function: fn) // Receives both the input and output of the called 
 deferredNone(function: fn) // Receives no input.
 These can be useful but are not always recommended as they can make it not obvious why a function
 is being called without further investigation.
+
+linkName(name: string)
 -/
+
+#[linkName("llvm.cos.f64")]
+fn cos64(f64): f64 undefined
 
 // [CONTROL FLOW]
 
@@ -828,7 +833,7 @@ if (thing) {
 // && for and
 // || for or
 // ! for not
-// | bit or, & bit and, ^ bit xor, ~ bit not, << lsl, >> lsr
+// | bit or, & bit and, ~ bit xor(binary), ~ bit not(unary), << lsl, >> lsr
 
 // Ternary operator. Ternary operators can't be nested.
 
@@ -1813,6 +1818,7 @@ someVar := OTHER_CONST_MACRO // Invalid
 #line          // replaced with the line the macro is on
 #function      // replaced with the function name the macro is in
 #os            // replaced with the OS that the compiler is running on currently
+#buildFor()    // will build the file only if #os is one of the arguments
 #time          // replaced with the current time
 #date          // replaced with the current date
 
@@ -1833,6 +1839,14 @@ someVar := OTHER_CONST_MACRO // Invalid
 #embedBytes(path: string, limit: u64 = 0)  // Loads a file up to limit bytes and returns its contents as a []u8
 #embedString(path: string, limit: u64 = 0) // Loads a file up to limit bytes and returns its contents as a string
 // If limit is 0 for either then there is no limit (until you run out of RAM that is).
+
+// The following don't expand to anything, they are either defined or not.
+#OS_MAC
+#OS_WINDOWS
+#OS_LINUX
+#OS_FREE_BSD
+#OS_OPEN_BSD
+#OS_NONE
 
 const RAND = #embedBytes("/dev/urandom") // Will crash the compiler, possibly your computer.
 const ARR = #embedBytes("/dev/urandom", 128) // Type is [N]u8 where N is the number of elements determined at compile time.
@@ -2077,6 +2091,9 @@ fn
 md
 type
 map
+emit
+signal
+slot
 
 // Built in functions
 assert
@@ -2104,5 +2121,6 @@ foreign keyword (use foreign)
 static
 operator overloading (?)
 rawptr (void* in c) (?)
+error handling (panic)
 
 -/
