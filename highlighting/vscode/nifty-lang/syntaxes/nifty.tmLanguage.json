@@ -36,7 +36,7 @@
                 },
                 {
                     "name": "keyword.intrinsics.nifty",
-                    "match": "\\b(cast|recast|auto_cast|type_of|type_from|size_of|name_of|align_of)\\b"
+                    "match": "\\b(cast|recast|auto_cast|type_of|typeid_of|type_from|size_of|name_of|align_of)\\b"
                 },
                 {
                     "name": "keyword.operator.new",
@@ -107,10 +107,6 @@
                     "name": "keyword.other.use.nifty"
                 },
                 {
-                    "match": "\\b(map)\\b",
-                    "name": "keyword.other.map.nifty"
-                },
-                {
                     "name": "keyword.other.behavior.nifty",
                     "match": "\\b(behavior|does)\\b"
                 },
@@ -119,12 +115,8 @@
                     "match": "\\b(struct|enum|interface)\\b"
                 },
                 {
-                    "match": "\\b(bool|b8|b16|b32|b64|char|string|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|void|error)\\b",
+                    "match": "\\b(bool|b8|b16|b32|b64|char|string|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|error|typeid|rawptr)\\b",
                     "name": "storage.type.primitive.nifty"
-                },
-                {
-                    "name": "keyword.other.inline.nifty",
-                    "match": "\\b(inline|no_inline|maybe_inline)\\b"
                 },
                 {
                     "name": "keyword.other.signal_slot.nifty",
@@ -136,7 +128,7 @@
                 },
                 {
                     "name": "keyword.other.included",
-                    "match": "(assert|make|append|len|cap)\\s*\\("
+                    "match": "(assert|panic)\\s*\\("
                 }
             ]
 		},

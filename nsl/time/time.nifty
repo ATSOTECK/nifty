@@ -18,9 +18,9 @@
  |    misrepresented as being the original software.
  | 3. This notice may not be removed or altered from any source distribution.
  |
- -/
+-/
  
- type Month enum {
+type Month enum {
     January = 1,
     February,
     March,
@@ -33,9 +33,9 @@
     October,
     November,
     December,
- }
- 
- type Day enum {
+}
+
+type Day enum {
     Sunday = 1,
     Monday,
     Tuesday,
@@ -43,4 +43,4 @@
     Thursday,
     Friday,
     Saturday
- }
+}

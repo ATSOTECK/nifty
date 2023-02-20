@@ -225,7 +225,7 @@ x ::= 12
 // [TYPES]
 
 // Basic Types:
-char // same as s32 defaults to '\0'
+char // same as u32 defaults to '\0'
 int // same as s32 defaults to 0
 uint // same as u32 defaults to 0
 float // same as f32 defaults to 0.f
@@ -240,9 +240,14 @@ s8 s16 s32 s64 s128
 
 //defaults to 0.0
 f16 f32 f64
+f128 // Not available on all platforms
 
 //defaults to ""
 string
+
+typeid // runtime identifier for a type
+
+rawptr // Like void* in c
 
 // Strings will be fully supported via the standard library, the string type is very basic.
 // Strings (nsl.string) will be included by default since they are so common. (Maybe?)
@@ -442,14 +447,6 @@ fn otherFunc() {
 // If a function is defined with the same name as a built-in function and is in scope then
 // the package must be specified.
 
-package main
-using "sample" // Includes a function called 'make'.
-
-fn main() {
-    arr := nsl::make([]int, 0, 100)
-    exampleSample := sample::make(/- ... -/)
-}
-
 // In general it is a good idea to avoid using function names that are built in.
 // Should using a built-in function name in a function cause a warning?
 
@@ -637,12 +634,15 @@ if (err != null) {
 }
 // Do more things
 
-// Functions can be inlined with the 'inline' keyword.
-inline fn smallFastFn() { /- ... -/ }
-// Or explicetly not inlined with the 'no_inline' keyword.
-no_inline fn bigSlowFn() { /- ... -/ }
+// Functions can be inlined with the 'inline' attribute.
+#[inline]
+fn smallFastFn() { /- ... -/ }
+// Or explicetly not inlined with the 'noInline' attribute.
+#[noInline]
+fn bigSlowFn() { /- ... -/ }
 // Let the compiler decide if it should be inlined or not. This is the default, but can be explicetly stated.
-maybe_inline fn someOtherFn() { /- ... -/ }
+#[maybeInline]
+fn someOtherFn() { /- ... -/ }
 
 // Functions can have one or more attribues.
 #[attribName, attribName2(value)]
@@ -659,8 +659,7 @@ fn reallyBadFunc() { /- ... -/ }
 #[keep, maybeUnused]
 fn bla() { /- ... -/ }
 
-// optional_ok allows skipping the last return value which must be a bool.
-
+// optionalOk allows skipping the last return value which must be a bool.
 #[optionalOk]
 md get(key: string): int, bool {
     // Code here ...
@@ -691,6 +690,9 @@ warning(msg: string)
 static // Like static in c/c++.
 requireTargetFeature(feature: string)
 noReturn
+inline
+noInline
+maybeInline
 traceVars(names: ..string) // Prints the values of the variables listed every time they change.
                            // This is meant for debugging and will be relatively slow.
 
@@ -725,13 +727,11 @@ for (i := 0; i < 10; ++i) {
 for (0 ..= 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
 for (0 ..= 10 step 2) { /- ... -/ }
+for (val i in 0 ..< 10)
 for (val i in 0 ..= 10 step 2) { /- ... -/ }
 for (val str in strings) { /- ... -/ }
 for (val str, index in strings) { /- ... -/ }
 for (let str in strings) { /- ... -/ }
-for (val [key, value] in map) { /- ... -/ }
-for (val [key, value, index] in map) { /- ... -/ }
-// or
 for (val key, value in map) { /- ... -/ }
 for (val key, value, index in map) { /- ... -/ }
 
@@ -967,13 +967,11 @@ Hello world
 let arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
 arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
 arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
+arr := [1, 2, 3, 4, 5] // Array of 5 integers where the length and type are inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
+arr := [5]int{5, 6} // Array of 5 integers initialized to [5, 6, 0, 0, 0] or should this not compile?
 let arr: []int // Valid, dynamic, not static.
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
-// Should static arrays be able to infer type?
-arr := ["one", "two", "etc"]
-// is the same as
-arr := []string{"one", "two", "etc"}
 
 // Arrays are 0 indexed.
 arr := []int{1, 2, 3, 4, 5}
@@ -993,28 +991,39 @@ x := arr[y] // Runtime error.
 }
 
 // To get the length of an array use the included len() function.
-assert(len(arr) == 5) // true
+assert(arr.len() == 5) // true
 // Static arrays can't have their length changed.
 
-// Dynamic arrays are made with the included make() function.
+// Dynamic arrays are made as follows.
 
-arr := make([]int) // Dynamic array with length 0 and capacity 0
-arr := make([]int, 5) // Dynamic array with length 5 and capacity 5 auto initialized to [0, 0, 0, 0, 0]
-arr := make([]int, 0, 5) // Dynamic array with length 0 and capacity 5 auto initialized to []
+let arr: []int // Dynamic array with length 0 and size 0
+let arr: [5;]int // Dynamic array with length 5 and size 5 auto initialized to [0, 0, 0, 0, 0]
+let arr: [0;5]int // Dynamic array with length 0 and size 5 auto initialized to []
+arr := []int{} // Dynamic array with length 0 and size 0
 
-// To get the capacity of an array use the included cap() function.
-assert(cap(arr) == 5) // true
+// To get the capacity (size - length) of an array use the included cap() function.
+assert(arr.cap() == 5) // true
+// To get the size of an array use the included size() function.
+assert(arr.size() == 5) // true
 
 // Dynamic arrays are bounds checked as well. Can be disabled with #noBoundsCheck as well.
 arr[5] = 6 // Runtime error.
 
 // To append to an array use the included append() function.
-append(&arr, 4) // [5, 5, 5, 5, 5, 4]
+arr.append(4) // [5, 5, 5, 5, 5, 4]
 // Multiple values can be appended at once.
-append(&arr, 6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
+arr.append(6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
+arr.prepend(12) // [12, 5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 
-// Dynamic arrays can be deleted with the 'delete' operator.
-delete arr // [] or should it be null?
+arr.clear() // []
+
+arr := new []int // Pointer to dynamic array
+// ...
+delete arr // [] now pointer to empty array
+
+arr? := new []int
+// ...
+delete arr // null (?)
 
 // Additional array functionality can be found in the nsl.array package.
 // For instance filling an array, cheking if an array contains an element, etc...
@@ -1038,19 +1047,19 @@ array[:]
 // Slice literal.
 slice := [:]int{1, 2, 3} // Creates an array with [1, 2, 3] then creates a slice for it
 
-// Slices have length and capacity.
+// Slices have length, size and capacity.
 arr := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 slice := arr[1:5] // [1, 2, 3, 4]
 
-len(slice) // 4
-cap(slice) // 10
+slice.len() // 4
+slice.cap() // 10
 
 newSlice := slice[0:20] // Compiler error. End is out of bounds of static array.
 
-arr := make([]int, 5) // This is a dynamic array which is actually a slice as well.
+arr := [5;]int{} // This is a dynamic array which is actually a slice as well.
 slice := arr[2:50] // Runtime error. End is out of bounds.
 
-arr := make([]int, 5) // [0, 0, 0, 0, 0]
+arr := [5;]int{0} // [0, 0, 0, 0, 0]
 slice := arr[1:5] // [0, 0, 0, 0]
 
 slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
@@ -1059,7 +1068,7 @@ slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
 
 // Nifty has a built-in map type.
 
-m := make(map<string, int>) // The default value of a map is an empty map.
+m := Map<string, int>() // The default value of a map is an empty map.
 defer delete m
 m["Alice"] = 12
 fmt::println(m["Alice"]) // Prints 12
@@ -1071,11 +1080,11 @@ m[key] = value
 value = m[key]
 
 // If the keey is not in the map then the default value of the type is returned.
-m := make(map<string, int>)
+m := Map<string, int>()
 i := m["index"] // i will be 0
 
 // Checking if the key exists can be done in two ways:
-m := make(map<string, int>)
+m := Map<string, int>()
 if (i, ok := m["index"]; ok) { /- ... -/ } // i will be 0, ok will be false
 
 // or
@@ -1089,23 +1098,23 @@ if (ok) { /- ... -/ }
 
 // Maps can be initialized with map literals.
 
-m := map<string, int>{
+m := Map<string, int>{
     "Alice": 12,
     "Bob": 42
 }
 
-m := map<string, int>{} // Valid, empty map
-let m: map<string, int> // Valid, empty map
-m := make(map<string, int>) // Valid, empty map
+m := Map<string, int>{} // Valid, empty map
+let m: Map<string, int> // Valid, empty map
+m := Map<string, int>() // Valid, empty map
 
 // len() can be used to get the number of items in a map
-assert(len(m) == 2) // true
+assert(m.len() == 2) // true
 
-// To remove a key/value pair use 'delete':
-delete m[key]
+// To remove a key/value pair use the 'remove' function:
+m.remove(key)
 
 type Point struct { x, y: f64 }
-m := map<string, Point>{
+m := Map<string, Point>{
     "zero": {},
     "start": {12.f, 42.f},
     "stop": {142.f, 96.f}
@@ -1114,7 +1123,7 @@ m := map<string, Point>{
 // Because the value type is specified it is ok to not include the name of the fields.
 // Though it can be included.
 
-m := map<string, Point>{
+m := Map<string, Point>{
     "zero": Point{},
     "start": Point{12.f, 42.f},
     "stop": Point{x: 142.f, y: 96.f}
@@ -1286,7 +1295,7 @@ impl Collection
 // Constructor
 // Return type for the constructor is implicitly determined and 'this' is implicitly returned.
 md new() {
-    list = make([]int)
+    list = []int{}
 }
 
 md add(num: int) {
@@ -1323,10 +1332,10 @@ collection := new Collection{ /- ... -/ } // Type is ^Collection also.
 // To indicate that collection can be null
 let collection?: ^Collection = new Collection()
 // Or more succinctly
-let collection = new? Collection()
-collection := new? Collection()
+let collection? = new Collection()
+collection? := new Collection()
 
-collection := new Collection{list: make([]int)} // Private var can't be set here.
+collection := new Collection{list: []int{}} // Private var can't be set here.
 
 collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
@@ -1357,7 +1366,7 @@ if (collection != null) {
 // If you don't allocate the object on the heap this is not an issue.
 
 collection := Collection() // Type is Collection. Constructor is called.
-collection := Collection{list: make([]int)} // Type is Collection. Constructor is not called.
+collection := Collection{list: []int{}} // Type is Collection. Constructor is not called.
 collection.add(12) // No check needed even if '?' is used.
 
 // You may have noticed that I used both '->' and '.' when calling the 
@@ -1483,7 +1492,7 @@ impl Collection<T>
 
 // Constructor
 md new() {
-    list = make([]T)
+    list = []T{}
 }
 
 md add(num: T) {
@@ -1816,9 +1825,14 @@ someVar := OTHER_CONST_MACRO // Invalid
 #file          // replaced with the filename
 #path          // replaced with the full file path
 #line          // replaced with the line the macro is on
+#lineRaw       // usually the same as #line but if in a macro will show the line in the macro, not where it is used
 #function      // replaced with the function name the macro is in
+#package       // replaced with the name of the current package
 #os            // replaced with the OS that the compiler is running on currently
-#buildFor()    // will build the file only if #os is one of the arguments
+#buildIf()     // will build the file/block only if the argument is defined
+#buildIfAny()  // will build the file/block only if one or more of the arguments is defined
+#buildIfNot()  // will build the file/block only if none of the arguments are defined
+#buildIfAll()  // will build the file/block only if all of the arguments are defined
 #time          // replaced with the current time
 #date          // replaced with the current date
 
@@ -1911,6 +1925,8 @@ let c: type_from(b) // c is type bool
 assert(type_from(c) == bool) // true
 assert(type_of(c) == "bool") // true
 
+typeid_of()
+
 num := 42.f
 assert(size_of(num) == 4) // true
 
@@ -1962,17 +1978,31 @@ noWarn = bool
 // Disable warnings. Disabled by default.
 optimization = string 
 // Sets the optimization level. Options are none, fast, size, debug. 
-// Defaults to "none". Is set to 'debug' if debug mode is enabled.
+// Defaults to "none". This is set to 'debug' if debug mode is enabled.
 default = bool 
 // Defaults to true in the first target, otherwise false. Can only be true for one target at a time.
 noBoundsChecks = bool 
 // Disables bounds checking for the entire program. Defaults to false.
-commands = [string]
-// Shell commands than can be run.
 children = [string]
 // List of child targets that will be run when this target is complete.
 disallowNull = bool
 // If eanbled pointers will not be allowed to be null. Defaults to false.
+macroRecursionDepth = int
+// The number of nexted macros that are allowed to exist. Defaults to 2.
+executeBefore = [[string], [string]]
+// Array of paths to scripts or commands to be executed before compiling begins.
+executeAfter = [[string], [string]]
+// Array of paths to scripts or commands to be executed after compiling finishes.
+// executeBefore, and executeAfter can be set to only execute on a certain platform
+executeBefore = [["windows"], ["some/path/script.bat"]] // Will only run on windows.
+executeBefore = [["unix"], ["some/path/script.sh"]] // Will only run on unix-like systems (mac, linux, bsd).
+executeBefore = [["mac"], ["macSpecificCmd -withArg"]] // Will only run on mac.
+// The above 3 examples can all be in the same project simultaneously and will be executed in order.
+// To run on all use 'all'.
+executeAfter = [["all"], ["bla"]]
+// Valid options are mac, windows, linux, unix, bsd, freeBsd, openBsd, all.
+// Where unix is a superset of linux, mac, bsd.
+// Where bsd is a superset of freeBsd, openBsd.
 
 /-
 
@@ -2081,26 +2111,19 @@ f32
 f64
 void
 error
-inline
-no_inline
-maybe_inline
 let
 val
 const
 fn
 md
 type
-map
 emit
 signal
 slot
 
 // Built in functions
 assert
-make
-append
-len
-cap
+panic
 
 // [TODO / MAYBE]
 

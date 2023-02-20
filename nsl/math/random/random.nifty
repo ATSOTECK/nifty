@@ -18,13 +18,13 @@
  |    misrepresented as being the original software.
  | 3. This notice may not be removed or altered from any source distribution.
  |
- -/
+-/
  
  /-
   - Note this package is not meant to be used for security purposes as the outputs of these 
   - functions may be easily predictable regardless of how they are seeded.
   -/
- 
+
 package random
 
 type Random struct {
@@ -68,6 +68,7 @@ fn getSeed(): u64 {
     return _globalRand.seed
 }
 
+// Package private function to generate a pseudo-random unsigned 32 bit int.
 fn _rand(random?: ^Random = null): u32 {
     let rand: ^Random = undefined
     
@@ -105,39 +106,34 @@ fn uint128(random?: ^Random = null): u128 {
     return (a << 96) | (b << 64) | (c << 32) | d
 }
 
-// int31 is called int31 instead of int32 because the sign bit will always be 0
-// so it is 31 bits of random data. The same logic applies to the other functions
-// that appear to be named one short. This naming convention may chage to match the
-// return types.
-
 // Returns a non-negative pseudo-random 31 bit int as a 32 bit int.
-fn int31(random?: ^Random = null): s32 {
+fn int32(random?: ^Random = null): s32 {
     return cast(uint32(random) << 1 >> 1, s32) // Set the sign bit to 0 with << 1 >> 1.
 }
 
 // Returns a non-negative pseudo-random 63 bit int as a 64 bit int.
-fn int63(random?: ^Random = null): s64 {
+fn int64(random?: ^Random = null): s64 {
     return cast(uint64(random) << 1 >> 1, s64)
 }
 
 // Returns a non-negative pseudo-random 127 bit int as a 128 bit int.
-fn int127(random?: ^Random = null): s128 {
+fn int128(random?: ^Random = null): s128 {
     return cast(uint128(random) << 1 >> 1, s128)
 }
 
 // Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
-fn int31n(n: s32, random?: ^Random = null): s32 {
+fn int32n(n: s32, random?: ^Random = null): s32 {
     if (n <= 0 ) {
-        panic("Invalid argument to int31n, n must be greater than 0.")
+        panic("Invalid argument to int32n, n must be greater than 0.")
     }
     
     if (n & (n - 1) == 0) {
         // n is a power of 2, can mask.
-        return int31(r) & (n - 1)
+        return int32(r) & (n - 1)
     }
     
     max := cast((1 << 31) - 1 - (1 << 31) % cast(n, u32), s64)
-    v := int31(r)
+    v := int32(r)
     
     while (v > max) {
         v = int32(r)
@@ -147,42 +143,42 @@ fn int31n(n: s32, random?: ^Random = null): s32 {
 }
 
 // Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
-fn int63n(n: s64, random?: ^Random = null): s64 {
+fn int64n(n: s64, random?: ^Random = null): s64 {
     if (n <= 0 ) {
-        panic("Invalid argument to int63n, n must be greater than 0.")
+        panic("Invalid argument to int64n, n must be greater than 0.")
     }
     
     if (n & (n - 1) == 0) {
         // n is a power of 2, can mask.
-        return int63(r) & (n - 1)
+        return int64(r) & (n - 1)
     }
     
     max := cast((1 << 63) - 1 - (1 << 63) % cast(n, u64), s64)
-    v := int63(r)
+    v := int64(r)
     
     while (v > max) {
-        v = int63(r)
+        v = int64(r)
     }
     
     return v % n
 }
 
 // Returns a non-negative pseudo-random int in the interval [0, n). Panics if n <= 0.
-fn int127n(n: s128, random?: ^Random = null): s128 {
+fn int128n(n: s128, random?: ^Random = null): s128 {
     if (n <= 0 ) {
-        panic("Invalid argument to int127n, n must be greater than 0.")
+        panic("Invalid argument to int128n, n must be greater than 0.")
     }
     
     if (n & (n - 1) == 0) {
         // n is a power of 2, can mask.
-        return int127(r) & (n - 1)
+        return int128(r) & (n - 1)
     }
     
     max := cast((1 << 127) - 1 - (1 << 127) % cast(n, u128), s128)
-    v := int127(r)
+    v := int128(r)
     
     while (v > max) {
-        v = int127(r)
+        v = int128(r)
     }
     
     return v % n
@@ -190,7 +186,7 @@ fn int127n(n: s128, random?: ^Random = null): s128 {
 
 // Returns a non-negative pseudo-random int.
 fn integer(random?: ^Rand = null): int {
-    n := int63(random)
+    n := int64(random)
     return cast(n << 1 >> 1, int)
 }
 
@@ -201,15 +197,15 @@ fn integern(n: int, random?: ^Random = null): int {
     }
     
     if (n <= 1 << 31 - 1) {
-        return cast(int31n(cast(n, s32)), int)
+        return cast(int32n(cast(n, s32)), int)
     }
     
-    return cast(int63n(cast(n, s64)), int)
+    return cast(int64n(cast(n, s64)), int)
 }
 
 // Returns a pseudo-random number in the range [0.0, 1.0) as a 64 bit float.
 fn float64(random?: ^Random = null): f64 {
-    return cast(int63n(1 << 53, random) / (1 << 53), f64)
+    return cast(int64n(1 << 53, random) / (1 << 53), f64)
 }
 
 // Returns a pseudo-random number in the range [0.0, 1.0) as a 32 bit float.
@@ -246,11 +242,21 @@ fn doubleRange(low, high: double, random?: ^Random = null): double {
 // Overloads float64Range, float32Range, intRange, floatRange, and doubleRange.
 fn range overloads{float64Range, float32Range, intRange, floatRange, doubleRange}
 
+// TODO: ???
+fn boolean(p: f64 = 0.5f): bool {
+    if (p <= 0) {
+        return false
+    }
+    if (p >= 1) {
+        return true
+    }
+}
+
 // Returns one of the given arguments at random.
 #[min_arity(2)]
 fn choose<T>(items: ..T): T {
     #noBoundsCheck {
-        return items[int63n(0, len(items))]
+        return items[int64n(0, len(items))]
     }
 }
 
@@ -262,7 +268,7 @@ fn choice<T>(arr: []T): T {
     }
     
     #noBoundsCheck {
-        return arr[int63n(0, length)]
+        return arr[int64n(0, length)]
     }
 }
 
@@ -289,12 +295,12 @@ fn shuffle(n: int, swap: fn(i, j: int), random?: ^Random = null) {
     
     i := n - 1
     for (; i > 1 << 31 - 1 - 1; --i) {
-        j := cast(int63n(cast(i + 1, s64), random), int)
+        j := cast(int64n(cast(i + 1, s64), random), int)
         swap(i, j)
     }
     
     for (; i > 0; --i) {
-        j := cast(int31n(cast(i + 1, s32)), int)
+        j := cast(int32n(cast(i + 1, s32)), int)
         swap(i, j)
     }
 }

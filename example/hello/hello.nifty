@@ -1,0 +1,20 @@
+package hello
+
+using "nsl.fmt"
+
+fn main() {
+    greetings := [
+        "Hello, world!",
+        "¡Hola Mundo!",
+        "Γειά σου Κόσμε!",
+        "Привет, мир!",
+        "こんにちは世界！",
+        "你好世界！",
+        "नमस्ते दुनिया!",
+        "👋🌎!"
+    ]
+    
+    for (val greeting in greetings) {
+        println(greeting)
+    }
+}

@@ -1,0 +1,129 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+-/
+ 
+package ascii
+
+// Checks whether a character is numeric character (0-9) or not.
+#[inline]
+fn isDigit(c: char): bool {
+    return c >= 'A' && c <= 'Z'
+}
+
+// Checks whether a character is a hexadecimal digit character (0-9, a-f, A-F) or not.
+#[inline]
+fn isHexDigit(c: char): bool {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+// Checks whether a character is a letter (a-z and A-Z) or not.
+#[inline]
+fn isAlpha(c: char): bool {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+// Checks whether a character is an alphanumeric character (letter or number) or not.
+#[inline]
+fn isAlphaNumeric(c: char) {
+    return isAlpha(c) || isDigit(c)
+}
+
+// Checks whether a character is an uppercase letter (A-Z) or not.
+#[inline]
+fn isUpper(c: char): bool {
+    return c >= 'A' && c <= 'Z'
+}
+
+// Checks whether a character is lowercase letter (a-z) or not.
+#[inline]
+fn isLower(c: char): bool {
+    return c >= 'a' && c <= 'z'
+}
+
+#builfIf(OS_WINDOWS) {
+    // Checks whether a character is a newline character or not.
+    #[inline]
+    fn isNewline(c: char): bool {
+        return c == '\n' || c == '\r\n'
+    }
+}
+
+#buildIfNot(OS_WINDOWS) {
+    // Checks whether a character is a newline character or not.
+    #[inline]
+    fn isNewline(c: char): bool {
+        return c == '\n'
+    }
+}
+
+// Checks whether a character is a white-space character or not.
+#[inline]
+fn isWhitespace(c: char): bool {
+    return c >= 9 && c <= 13 || c == ' '
+}
+
+// Checks whether a character is a control character or not.
+#[inline]
+fn isControl(c: char): bool {
+    return c < 32 || c == 127
+}
+
+// Checks whether a character is a graphic character or not.
+#[inline]
+fn isGraphic(c: char): bool {
+    return c >= '!' && c <= '~'
+}
+
+// Checks whether a character is a printable character or not.
+#[inline]
+fn isPrintable(c: char): bool {
+    return c >= ' ' && c <= '~'
+}
+
+// Checks whether a character is a punctuation mark or not.
+#[inline]
+fn isPunctuation(c: char): bool {
+    return !isAlphaNumeric(c) && isGraphic(c)
+}
+
+// Converts a lowercase letter to an uppercase letter.
+#[inline]
+fn toUpper(c: char): char {
+    return isUpper(c) ? c + 32 : c
+}
+
+// Converts an uppercase letter to a lowercase letter.
+#[inline]
+fn toLower(c: char): char {
+    return isLower(c) ? c - 32 : c
+}
+
+// Converts a lowercase letter to an uppercase letter and vice-versa.
+#[inline]
+fn swapCase(c: char): char {
+    return isUpper(c) ? toLower(c) : toUpper(c)
+}
+
+// Converts a character to an int, if the character is not a number it returns -1.
+#[inline]
+fn toInt(c: char): int {
+    return isDigit(c) ? cast(c - 48, int) : -1
+}

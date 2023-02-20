@@ -18,8 +18,8 @@
  |    misrepresented as being the original software.
  | 3. This notice may not be removed or altered from any source distribution.
  |
- -/
- 
+-/
+
 package math
 
 TAU          ::= 6.28318530717958647692528676655900576
