@@ -1,0 +1,17 @@
+package beforeAfter
+
+using "nsl.fmt"
+
+#[static]
+fn preMain() {
+    print("hello")
+}
+
+#[static]
+fn postMain() {
+    println("world!")
+}
+
+fn main() {
+    print(" , ")
+}

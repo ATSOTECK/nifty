@@ -61,7 +61,7 @@ Locals must end with an underscore.
 
 -/
 
-// [HELLO WORLD]
+// [HELLO WORLD] ----------------------------------------------------------------------------------
 
 using "nsl.fmt"
 
@@ -71,7 +71,7 @@ fn main() {
 
 // Semicolons are optional.
 
-// [COMMENTS]
+// [COMMENTS] -------------------------------------------------------------------------------------
 
 // Single line comments use '//'.
 // This is a comment.
@@ -102,10 +102,10 @@ fn main() {
 
 // Why not just use /* */? I'm lazy, but you do you.
 
-// [VARIABLES]
+// [VARIABLES] ------------------------------------------------------------------------------------
 
 // Variables are declared with the 'let' keyword.
-let x = 12
+let x = 12 // int
 
 // The variable declaration operator can be used as well.
 x := 12 // int
@@ -136,12 +136,22 @@ val y: int // Invalid, immutable variables must have their value specified.
 
 // Variables are auto initialized in Nifty.
 let x: int
-y := x // Valid, both will be 0
+y := x // Valid, both will be type int with value 0
 
 // Variables can be explicitly uninitialized
 let x: int = undefined
 x := undefined // Invalid, no type given
 x: int = undefined // Valid
+
+// Multiple variables can be explicitly undefined with #noAutoInit
+
+#noAutoInit {
+    let x: int
+    let y: float
+    let z: string
+}
+
+// x, y, and z are all defined but uninitialized.
 
 // It is important to know that undefined is only used for declaring variables. 
 // You can't check to see if a variable is undefined.
@@ -205,7 +215,7 @@ inTable2 := getFromTable(someOtherTable, someOtherKey, &unused) // Also valid
 val unused: Value // Invalid
 
 
-// [CONSTANTS]
+// [CONSTANTS] ------------------------------------------------------------------------------------
 
 // Constants use the 'const' keyword and their value must be determined at compile time.
 const x = 12
@@ -222,7 +232,7 @@ x ::= 12
 
 // Constants can't be undefined or unused either.
 
-// [TYPES]
+// [TYPES] ----------------------------------------------------------------------------------------
 
 // Basic Types:
 char // same as u32 defaults to '\0'
@@ -304,7 +314,7 @@ p: ^int = null
 if (p) { /- ... -/ } // Invalid
 if (p != null) { /- ... -/ } // Valid
 
-// [PACKAGES]
+// [PACKAGES] -------------------------------------------------------------------------------------
 
 // All nifty programs are made of packages.
 
@@ -389,6 +399,25 @@ fn main() {
     foo::println("Yote") // Valid
 }
 
+// Specific functions and types can be used from a package as well.
+
+use { println } in "nsf.fmt"
+
+fn main() {
+    println("Hello world!")
+    fmt::print("fmt is still used!\n")
+}
+
+// This will still use the fmt package but it brings just println into the current scope.
+// This is a good alternative to the 'using' keyword as it decreases the chances of name collisions.
+
+// The 'as' keyword can still be used
+use { println } in "nsf.fmt" as F // fmt is now F
+
+use { int64, float64 } in "nsl.math.random" // Multiple can be used at once.
+
+// When importing specifics like this the 'using' keyword can not be used.
+
 // All items not starting or ending with an underscore are exported from the package.
 
 package example
@@ -443,14 +472,7 @@ fn otherFunc() {
     _x := 12 // Nothing special about _x or x_ or _x_ here.
 }
 
-// All built-in functions are in the 'nsl' package and are implicetly used in every file.
-// If a function is defined with the same name as a built-in function and is in scope then
-// the package must be specified.
-
-// In general it is a good idea to avoid using function names that are built in.
-// Should using a built-in function name in a function cause a warning?
-
-// [FUNCTIONS]
+// [FUNCTIONS] ------------------------------------------------------------------------------------
 
 // Functions are declared with the 'fn' keyword.
 
@@ -653,11 +675,19 @@ fn foo() { /- ... -/ }
 #[depreciated("DO NOT USE")]
 fn badFunc() { /- ... -/ }
 
+// With deprecatedAfter the depreciated warning will onlt be shown after the given date.
+#[deprecated("Use X instead."), deprecatedAfter("2023-10-20")] // yyyy-mm-dd
+fn eventuallyDepreciated() { /- ... -/ }
+
+// deprecatedAfter can be used on its own. The equivalent of using deprecated with no message specified.
+#[deprecatedAfter("2023-10-20")] // yyyy-mm-dd
+fn eventuallyDepreciated() { /- ... -/ }
+
 #[warning("ABANDON ALL HOPE YE WHO ENTER HERE")]
 fn reallyBadFunc() { /- ... -/ }
 
 #[keep, maybeUnused]
-fn bla() { /- ... -/ }
+fn bla(): int { /- ... -/ }
 
 // optionalOk allows skipping the last return value which must be a bool.
 #[optionalOk]
@@ -685,6 +715,7 @@ optionalOk
 minArity(argc: int)
 maxArity(argc: int)
 deprecated(msg: string = "")
+deprecatedAfter(date: string) // yyyy-mm-dd
 maybeUnused
 warning(msg: string)
 static // Like static in c/c++.
@@ -708,9 +739,9 @@ linkName(name: string)
 -/
 
 #[linkName("llvm.cos.f64")]
-fn cos64(f64): f64 undefined
+fn cosf64(f64): f64 undefined
 
-// [CONTROL FLOW]
+// [CONTROL FLOW] ---------------------------------------------------------------------------------
 
 // For loops work much like they do in c/c++
 
@@ -901,7 +932,7 @@ for (i := 0; i < 100; ++i) {
     // Stuff
 }
 
-// [RANGES]
+// [RANGES] ---------------------------------------------------------------------------------------
 
 1 ..= 5 // [1, 5] 1, 2, 3, 4, 5
 1 ..< 5 // [1, 5) 1, 2, 3, 4
@@ -915,7 +946,7 @@ if (x in range) {
 
 // Maybe? Not sure if I want a range type or not.
 
-// [DEFER]
+// [DEFER] ----------------------------------------------------------------------------------------
 
 // 'defer' defers the execution of code until the end of the current scope.
 
@@ -959,10 +990,7 @@ Hello world
 0
 -/
 
-// [ARRAYS]
-
-// Nifty has both static and dynamic arrays.
-// Static arrays work as follows.
+// [ARRAYS] ---------------------------------------------------------------------------------------
 
 let arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
 arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
@@ -970,14 +998,21 @@ arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
 arr := [1, 2, 3, 4, 5] // Array of 5 integers where the length and type are inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
 arr := [5]int{5, 6} // Array of 5 integers initialized to [5, 6, 0, 0, 0] or should this not compile?
-let arr: []int // Valid, dynamic, not static.
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
 
+let arr: []int // Array with length 0 and size 0
+arr := []int{} // Array with length 0 and size 0
+arr := []int{size: 100} // Array with length 0 and size 100 initialized to []
+arr := []int{len: 3, size: 100} // Array with length 5 and size 100 initialized to [0, 0, 0]
+arr := []int{len: 3, size: 100: init: 2} // Array with length 5 and size 100 initialized to [2, 2, 2]
+arr := []int{len: 3, size: 100: init: [1, 2, 3]} // Array with length 5 and size 100 initialized to [1, 2, 3]
+
 // Arrays are 0 indexed.
-arr := []int{1, 2, 3, 4, 5}
+arr := [1, 2, 3, 4, 5]
 x := arr[0] // x is 1
 arr[2] = 12 // [1, 2, 12, 4, 5]
-// Arrays are bounds checked at compile time and runtime.
+
+// Arrays are bounds checked at compile time (where possible) and runtime.
 x := arr[5] // Compile time error.
 arr[12] = 42 // Compile time error.
 
@@ -992,22 +1027,15 @@ x := arr[y] // Runtime error.
 
 // To get the length of an array use the included len() function.
 assert(arr.len() == 5) // true
-// Static arrays can't have their length changed.
-
-// Dynamic arrays are made as follows.
-
-let arr: []int // Dynamic array with length 0 and size 0
-let arr: [5;]int // Dynamic array with length 5 and size 5 auto initialized to [0, 0, 0, 0, 0]
-let arr: [0;5]int // Dynamic array with length 0 and size 5 auto initialized to []
-arr := []int{} // Dynamic array with length 0 and size 0
-
 // To get the capacity (size - length) of an array use the included cap() function.
 assert(arr.cap() == 5) // true
 // To get the size of an array use the included size() function.
 assert(arr.size() == 5) // true
 
-// Dynamic arrays are bounds checked as well. Can be disabled with #noBoundsCheck as well.
-arr[5] = 6 // Runtime error.
+arr := []int{len: 5, size: 100, init: 12} // [12, 12, 12, 12, 12]
+assert(arr.len() == 5) // true
+assert(arr.size() == 100) // true
+assert(arr.cap() == 95) // true
 
 // To append to an array use the included append() function.
 arr.append(4) // [5, 5, 5, 5, 5, 4]
@@ -1025,17 +1053,24 @@ arr? := new []int
 // ...
 delete arr // null (?)
 
-// Additional array functionality can be found in the nsl.array package.
-// For instance filling an array, cheking if an array contains an element, etc...
+// Arrays can be multidimensional.
+let arr: [][]int // 2D array of int
+arr := {
+    {1, 2, 3, 4},
+    {5, 6, 7, 8}
+}
 
-// [SLICES]
+arr[1][2] // 7
+arr[0] // [1, 2, 3, 4]
+
+// [SLICES] ---------------------------------------------------------------------------------------
 
 // Slices are like arrays but can be more accurately thought of as a view into the array.
 // A slice is created by specifying the start index and the end index.
 
 array[low : high]
 
-array := []int{1, 2, 3, 4, 5, 6, 7}
+array := [1, 2, 3, 4, 5, 6, 7]
 arr := array[1:4] // Includes elements 1 through 3. [2, 3, 4]
 
 // The following expressions are all equivalent.
@@ -1048,23 +1083,21 @@ array[:]
 slice := [:]int{1, 2, 3} // Creates an array with [1, 2, 3] then creates a slice for it
 
 // Slices have length, size and capacity.
-arr := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+arr := [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 slice := arr[1:5] // [1, 2, 3, 4]
 
 slice.len() // 4
-slice.cap() // 10
+slice.size() // 4
+slice.cap() // 0
 
-newSlice := slice[0:20] // Compiler error. End is out of bounds of static array.
+newSlice := slice[0:20] // Compiler error. End is out of bounds of the array.
 
-arr := [5;]int{} // This is a dynamic array which is actually a slice as well.
-slice := arr[2:50] // Runtime error. End is out of bounds.
-
-arr := [5;]int{0} // [0, 0, 0, 0, 0]
+arr := [5]int{0} // [0, 0, 0, 0, 0]
 slice := arr[1:5] // [0, 0, 0, 0]
 
 slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
 
-// [MAP]
+// [MAP] ------------------------------------------------------------------------------------------
 
 // Nifty has a built-in map type.
 
@@ -1129,7 +1162,7 @@ m := Map<string, Point>{
     "stop": Point{x: 142.f, y: 96.f}
 }
 
-// [ENUMS]
+// [ENUMS] ----------------------------------------------------------------------------------------
 
 type Token enum {
     TK_STRING,
@@ -1214,7 +1247,21 @@ fmt::println("num is {name}") // Prints 'num is PI'
 num = 3.4
 name = name_of(num, Numbers) // 'name' is an empty string.
 
-// [STRUCTS]
+// using can be used on enums.
+
+type Numbers enum: f64 {
+    PI = 3.14159,
+    E = 2.71828,
+}
+
+// ...
+
+using Numbers // Bring Numbers enumerations into the current scope.
+
+num := PI // Valid
+e := Numbers.E // Unlike with packages the name can still be used with using.
+
+// [STRUCTS] --------------------------------------------------------------------------------------
 
 type Point struct {
     x: int
@@ -1278,7 +1325,7 @@ type Person struct {
     createdAt: time::Time `json:"created_at"`
 }
 
-// [OOP]
+// [OOP] ------------------------------------------------------------------------------------------
 
 // For methods the md keyword is used so that if the impl keyword is missed by a 
 // programmer or a programmer jumps to the middle of the file it is obvious that
@@ -1294,8 +1341,8 @@ impl Collection
 
 // Constructor
 // Return type for the constructor is implicitly determined and 'this' is implicitly returned.
-md new() {
-    list = []int{}
+md new(size := 0) {
+    list = []int{size: size}
 }
 
 md add(num: int) {
@@ -1335,14 +1382,14 @@ let collection?: ^Collection = new Collection()
 let collection? = new Collection()
 collection? := new Collection()
 
-collection := new Collection{list: []int{}} // Private var can't be set here.
+collection := new Collection{list: []int{}} // Private variables can't be set here.
 
 collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
 add(collection, 12) // Invalid
 
 // The calling object is implicetly passed in as 'this'.
-// Because of this it is important to note that the object calling the function can be null.
+// Because of this it is important to note that the object calling the function can be null. (???)
 
 collection = null
 collection->add(12) // The function add will not be called. This will panic.???
@@ -1375,13 +1422,15 @@ collection.add(12) // No check needed even if '?' is used.
 // distinguish the two.
 
 // Optionally an interface can be used for improved readability and to force an implementation
-// to implement the functions in the interface.
+// to implement the functions/variables in the interface.
 
 type Collection interface {
-    new() // Return type for the constructor is implicitly determined.
+    new(int) // Return type for the constructor is implicitly determined.
     add(int) // Argument name is optional.
     average(): float
     _calculateAverage(): void // Using void is optional.
+    list: []int
+    _average: float
 }
 
 // Note that using the fn or md keywords is optional here. 
@@ -1391,7 +1440,7 @@ type Collection interface {
 
 // Behaviors are a a way to define shared behavior. To indicate that an implementation does a
 // certain behavior the 'does' keyword is used. Implementations can do one or more behaviors
-// unlike 'interface' which only applied to the specified struct.
+// unlike 'interface' which is only applied to the specified struct.
 
 // If an implementation does a behavior then all the functions in the behavior must be 
 // implemented or there will be a compiler error. If an implementation does multiple behaviors
@@ -1469,7 +1518,19 @@ endimpl
 
 impl SomeStruct // Compiler error.
 
-// [GENERICS]
+// To print a custom type implement the str() function.
+
+type Color struct { r, g, b: u8 }
+
+impl Color
+
+md str(): string {
+    return `{${r}, ${g}, ${b}}`
+}
+
+endimpl
+
+// [GENERICS] -------------------------------------------------------------------------------------
 
 fn add<T>(a, b: T): T {
     return a + b
@@ -1491,8 +1552,8 @@ type Collection<T> struct {
 impl Collection<T>
 
 // Constructor
-md new() {
-    list = []T{}
+md new(size := 0) {
+    list = []T{size: size}
 }
 
 md add(num: T) {
@@ -1600,16 +1661,15 @@ fn add<T: int | float | double>(a, b: T) { /- ... -/ }
 fn add<T: IFD>(a, b: T) { /- ... -/ }
 fn add<T: #decimal>(a, b: T) { /- ... -/ }
 
-// 'void' can't be used as a type for generics.
+// Type 'void' can not be used as a type for generics.
 type Thing<T> struct { /- ... -/ }
 let thing: Thing<void> // Invalid
 impl Thing<void> // Invalid
 
 
-
 // TODO: How to make a generic function only take non nullable pointers?
 
-// [POINTERS]
+// [POINTERS] -------------------------------------------------------------------------------------
 
 // Pointers in nifty use the Pascal syntax.
 // For types '^' is on the left and indicates it is a pointer type.
@@ -1682,7 +1742,7 @@ if (p == null) {
     p = &x
 }
 
-// [FUNCTION POINTERS]
+// [FUNCTION POINTERS] ----------------------------------------------------------------------------
 
 fn addFn(a, b: int): int {
     return a + b
@@ -1698,7 +1758,7 @@ type AddFn as fn(int, int): int
 fn add(a, b: int): int { /- ... -/ }
 type AddFn as type_from(add) // Also works
 
-// [MEMORY]
+// [MEMORY] ---------------------------------------------------------------------------------------
 
 // Custom allocators can be used with the 'new' keyword.
 
@@ -1707,7 +1767,7 @@ ptr := new:CustomAlloc int
 // To create a custom allocator you must use constimpl and at a minimum have an alloc() function
 // and a free() function.
 
-type CustomAlloc struct {} // The struct doesn't need any fields.
+type CustomAlloc struct {} // The struct doesn't (technically) need any fields.
 
 constimpl CustomAlloc
 
@@ -1716,7 +1776,7 @@ md free()  { /- ... -/ }
 
 endimpl
 
-// [OPTIONAL]
+// [OPTIONAL] -------------------------------------------------------------------------------------
 
 // Nifty has a built-in optional type that can be used. Optional, Value, Empty are used by default.
 // The idea is to have a way to have a variable with no value without crashing or panicking in any
@@ -1790,7 +1850,7 @@ md isEmpty(): bool  // Returns true if it is Empty.
 md clear() // Set to Empty.
 md set(value: T) // Set the value of the optional.
 
-// [MACROS]
+// [MACROS] ---------------------------------------------------------------------------------------
 
 // Macros 
 
@@ -1848,11 +1908,16 @@ someVar := OTHER_CONST_MACRO // Invalid
 #decimal           // used by generics, see the section on generics for details
 #integer           // used by generics, see the section on generics for details
 
-#noBoundsCheck
+#noBoundsCheck     // does not check bounds
+#noAutoInit        // does not auto init variables
 
-#embedBytes(path: string, limit: u64 = 0)  // Loads a file up to limit bytes and returns its contents as a []u8
-#embedString(path: string, limit: u64 = 0) // Loads a file up to limit bytes and returns its contents as a string
+#embedBytes(path: string, limit: u64 = 0, compress: string = "")  // Loads a file up to limit bytes and returns its contents as a []u8
+#embedString(path: string, limit: u64 = 0, compress: string = "") // Loads a file up to limit bytes and returns its contents as a string
+// If compress is set then it will compress the data using the given method. The only option is zlib, more will be added later.
 // If limit is 0 for either then there is no limit (until you run out of RAM that is).
+
+// #embedBytes and #embedString only embed in the binary on release builds. This is done to speed up
+// compile times during development. If not a release build it will be loaded at runtime.
 
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
@@ -1870,8 +1935,9 @@ println(str) // hello.txt contents
 
 #error(msg: string) // Causes the compiler to error with the given message.
 #warn(msg: string) // Causes the compiler to emit a warning with the given message.
+#info(msg: string) // Prints the message to stdout.
 
-// [SIGNALS AND SLOTS]
+// [SIGNALS AND SLOTS] ----------------------------------------------------------------------------
 
 // Instead of callbacks signals and slots can be used in Nifty. When a signal is emitted the
 // corresponding slot or slots are called. This system is type safe so the signature of the signal
@@ -1915,7 +1981,7 @@ emit valueChanged(changedVal)
 emit emitterFn()
 
 
-// [MISC]
+// [MISC] -----------------------------------------------------------------------------------------
 
 b := false
 assert(type_from(b) == bool) // true
@@ -1948,7 +2014,7 @@ fn updatePointers(restrict ptrA, ptrB, value: ^int) { /- ... -/ }
 // It is important to note that if the function is formed like this 'restrict' only applies to ptrA.
 fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -/ } // Better
 
-// [BUILDING] [CONFIG]
+// [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
 // Each build file can have multiple targets.
@@ -2003,6 +2069,9 @@ executeAfter = [["all"], ["bla"]]
 // Valid options are mac, windows, linux, unix, bsd, freeBsd, openBsd, all.
 // Where unix is a superset of linux, mac, bsd.
 // Where bsd is a superset of freeBsd, openBsd.
+deprecatedAfterWarnWithin = int
+// If deprecatedAfter is used on a function this will start emitting a warning x number of days before
+// the date given to deprecatedAfter that the function will be depreciated soon.
 
 /-
 
@@ -2039,7 +2108,7 @@ nifty build build
 
 -/
 
-// [KEYWORDS]
+// [KEYWORDS] -------------------------------------------------------------------------------------
 
 if
 else
@@ -2125,7 +2194,7 @@ slot
 assert
 panic
 
-// [TODO / MAYBE]
+// [TODO / MAYBE] ---------------------------------------------------------------------------------
 
 /-
 
@@ -2133,10 +2202,10 @@ If there is a question mark after that means I'm not sure if I want to add that
 to the language. Otherwise it is something I want in the language I just haven't
 written it into the spec yet.
 
-goroutines (?)
+coroutines (?)
 compiletime code execution (JIT) (?)
 macros
-user annotations
+user attributes
 custom memory allocators
 matrix data type (?)
 complex number data type (?)
