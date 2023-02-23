@@ -103,7 +103,7 @@
                     "name": "keyword.other.package.nifty"
                 },
                 {
-                    "match": "\\b(use|using|as)\\b",
+                    "match": "\\b(use|using|as|extern)\\b",
                     "name": "keyword.other.use.nifty"
                 },
                 {
@@ -389,8 +389,11 @@
         "macros": {
             "patterns": [
                 {
-                    "match": "#(\\[+[A-Za-z_][A-Za-z0-9_]*)",
+                    "match": "#([A-Za-z_][A-Za-z0-9_]*)",
                     "captures": {
+                        "0": {
+                            "name": "support.function.macro.nifty"
+                        },
                         "1": {
                             "name": "support.function.macro.nifty"
                         }

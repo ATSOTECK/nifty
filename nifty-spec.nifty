@@ -14,6 +14,8 @@
 // [ENUMS]
 // [STRUCTS]
 // [OOP]
+// [BEHAVIORS]
+// [OPERATOR OVERLOADING]
 // [GENERICS]
 // [POINTERS]
 // [FUNCTION POINTERS]
@@ -70,6 +72,7 @@ fn main() {
 }
 
 // Semicolons are optional.
+// Semicolons may become required if it proves too difficult to make them optional.
 
 // [COMMENTS] -------------------------------------------------------------------------------------
 
@@ -536,6 +539,14 @@ fn add(a := 10, b := 10, c: int): int {
 fn yeet(): void {
     fmt::println("Yeet")
 }
+
+// Function argument names can be used.
+fn someFunc(start, stop: int) { /- ... -/ }
+
+someFunc(start: 0, stop: 100) // Named arguments must still be in the order they were defined in.
+someFunc(stop: 100, start: 0) // Invalid
+someFunc(start: 0, 100) // Valid, the order is preserved so the compiler knows 100 is stop.
+someFunc(theStart: 0, theStop: 100) // Invalid, names must match the prototype definitions.
 
 // All function arguments are immutable.
 fn someFunc(x: int) {
@@ -1316,6 +1327,7 @@ type Packed struct {
 /- Built-in struct attributes
 packed
 align(alignment: int)
+noAutoInit
 -/
 
 type Person struct {
@@ -1438,6 +1450,8 @@ type Collection interface {
 // If an implementation is missing one or more of those functions it will cause a compiler error.
 // The above interface only applies to implementation of the 'Collection' struct.
 
+// [BEHAVIORS] ------------------------------------------------------------------------------------
+
 // Behaviors are a a way to define shared behavior. To indicate that an implementation does a
 // certain behavior the 'does' keyword is used. Implementations can do one or more behaviors
 // unlike 'interface' which is only applied to the specified struct.
@@ -1455,6 +1469,7 @@ type Circle struct { r: f64 }
 type Geometry behavior {
     area(): f64
     perim(): f64
+    kind: string
 }
 
 type Arc behavior {
@@ -1489,6 +1504,52 @@ md partialArea(percent: f64): f64 {
 
 endimpl
 
+rect := Rect{100, 100, "rect"}
+circle := Circle{10, "circle"}
+
+fmt::println(rect.kind) // Because Rect does Geometry it "inherits" the kind variable. 
+// I use the word inherits here but that is not entirly correct. The kind variable gets added to
+// the end of the implementing struct in the order the behaviors were listed at compile time.
+
+// Behaviors can be used as parameters to define a function that can take many types that all share
+// that behavior.
+
+fn printArea(shape: does Geometry) {
+    fmt::println(shape.area())
+}
+
+// printArea accepts any type that does Geometry.
+
+// This is the same as the above.
+fn printArea<T: Geometry>(shape: T) {
+    fmt::println(shape.area())
+}
+
+// This function is fine and allows for shape1 and shape2 to be different types.
+fn printAreas(shape1, shape2: does Geometry) { /- ... -/ }
+fn printAreas<T: Geometry, U: Geometry>(shape1: T, shape2: U) { /- ... -/ } // Same as above.
+
+// To require that shape1, and shape2 be the same type
+fn printAreas<T: Geometry>(shape1, shape2: T) { /- ... -/ }
+
+// Multiple behaviors can be required.
+fn printAreaAndShape(shape: does Geometry & fmt::Printable) {
+    fmt::println(shape.area())
+    fmt::println(shape)
+}
+
+fn printAreaAndShape<T: Geometry & fmt::Printable>(shape: T) { /- ... -/ }
+
+// Behaviors can be combined into new behviors via type intersections.
+
+type PrintableGeometry as Geometry & fmt::Printable
+
+impl Rect does PrintableGeometry
+// ...
+endimpl
+
+// Type intersections can only be used with behaviors.
+
 // A struct can be implemented multiple times. So for instance a struct could exist in a library
 // and you could extend it in you own code.
 
@@ -1518,17 +1579,59 @@ endimpl
 
 impl SomeStruct // Compiler error.
 
-// To print a custom type implement the str() function.
+// To print a custom type do the fmt::Printable behavior.
 
 type Color struct { r, g, b: u8 }
 
-impl Color
+impl Color does fmt::Printable
 
 md str(): string {
     return `{${r}, ${g}, ${b}}`
 }
 
 endimpl
+
+color := Color{51, 153, 255}
+fmt::println("The color is ${color}.")
+
+// [OPERATOR OVERLOADING] -------------------------------------------------------------------------
+
+// Operator overloading is done in struct implementations via attributes.
+
+type Point struct { x, y: f64 }
+
+impl Point
+
+#[overloads("+")]
+md addPoints(other: Point): Point {
+    return Point{x + other.x, y + other.y}
+}
+
+#[overloads("+")]
+md addScalar(scalar: f64): Point {
+    return Point{x + scalar, y + scalar}
+}
+
+endimpl
+
+// The following operators are overloadable:
+// +, -, *, /, <<, >>, !, [], [:], +=, -=, *=, /=, ==, !=, >, <, >=, <=, =, ++, --, in
+// Unary +, -, and ++, -- are special cases.
+
+#[overloads("+unary")] // +point
+#[overloads("-unary")] // -point
+
+#[overloads("++postfix")] // point++
+#[overloads("++prefix")] // ++point
+
+#[overloads("--postfix")] // point--
+#[overloads("--prefix")] // --point
+
+// What if you wanted to do
+5.f + point // Invalid
+
+// Because operator overloads are implemented on structs the struct object must be on the left.
+point + 5.f // Valid
 
 // [GENERICS] -------------------------------------------------------------------------------------
 
@@ -1666,8 +1769,7 @@ type Thing<T> struct { /- ... -/ }
 let thing: Thing<void> // Invalid
 impl Thing<void> // Invalid
 
-
-// TODO: How to make a generic function only take non nullable pointers?
+// Generics can use type intersections with behaviors. See the behaviors section for info.
 
 // [POINTERS] -------------------------------------------------------------------------------------
 
@@ -1692,6 +1794,11 @@ let ptr?: ^int // ptr is null
 // To return a nullable pointer '?' is used as well.
 fn returnsNullable(): ?^int, bool { /- ... -/ }
 
+// To indicate a nullable pointer in a callback definition:
+fn callsCallback(callback: fn(?^int): int)
+// Or the name of the argument can be used.
+fn callsCallback(callback: fn(arg?: ^int): int)
+
 // If a function takes a pointer type then ^ is used on the left of the variable
 // to visually indicate that.
 
@@ -1707,7 +1814,7 @@ someFunc(y) // Invalid
 // This is not dereferencing y or doing anything other than passing y.
 // This is just so the programmer can quickly see this function is taking
 // a pointer and that y could potentially be modified by the function.
-// TODO: Is this annoying?
+// TODO: Is this more annoying than it's worth?
 // TODO: Maybe this can be optional and forced by a compiler flag?
 
 // Nifty does not have pointer arithmetic.
@@ -1880,10 +1987,14 @@ someVar := OTHER_CONST_MACRO // Invalid
 
 // TODO
 
+
+
 // Built in macros
 
 #file          // replaced with the filename
+#fileRaw       // usually the same as #file but if in a macro will show the filename the macro is in, not where it is used
 #path          // replaced with the full file path
+#pathRaw       // usually the same as #path but if in a macro will show the path the macro is in, not where it is used
 #line          // replaced with the line the macro is on
 #lineRaw       // usually the same as #line but if in a macro will show the line in the macro, not where it is used
 #function      // replaced with the function name the macro is in
@@ -2014,6 +2125,30 @@ fn updatePointers(restrict ptrA, ptrB, value: ^int) { /- ... -/ }
 // It is important to note that if the function is formed like this 'restrict' only applies to ptrA.
 fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -/ } // Better
 
+// If you need to use existing c code you can use the 'extern' keyword.
+
+use extern "libc.lib" as libc // Because c libraries don't have packages 'as' must be used to give the library a name.
+
+// To tell nifty what is being used you must define everything with extern and the library name.
+
+// Let nifty know what is in the libc package.
+extern libc {
+    type size_t as uint
+    
+    EOF ::= -1
+    stderr?: ^FILE
+    
+    fn fclose(file?: ^FILE): int undefined
+    fn fflush(file?: ^FILE): int undefined
+    
+    // The underscore at the front of the function doesn't mean anything here. 
+    // Everything in extern packages is public.
+    #buildIf(OS_WINDOWS) { fn _aligned_malloc(size, alignment: size_t): rawptr undefined }
+    #buildIfNot(OS_WINDOWS) { fn aligned_alloc(alignment, size: size_t): rawptr undefined }
+}
+
+res := libc::fflush(^file)
+
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
@@ -2071,7 +2206,7 @@ executeAfter = [["all"], ["bla"]]
 // Where bsd is a superset of freeBsd, openBsd.
 deprecatedAfterWarnWithin = int
 // If deprecatedAfter is used on a function this will start emitting a warning x number of days before
-// the date given to deprecatedAfter that the function will be depreciated soon.
+// the date given to deprecatedAfter that the function will be depreciated soon. Disabled if <= 0. Defaults to 0.
 
 /-
 
@@ -2150,6 +2285,7 @@ package
 use
 using
 as
+extern
 behavior
 does
 struct
@@ -2209,10 +2345,7 @@ user attributes
 custom memory allocators
 matrix data type (?)
 complex number data type (?)
-foreign keyword (use foreign)
 static
-operator overloading (?)
-rawptr (void* in c) (?)
 error handling (panic)
 
 -/

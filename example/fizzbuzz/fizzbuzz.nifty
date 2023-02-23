@@ -1,0 +1,22 @@
+package fizzbuzz
+
+using "nsl.fmt"
+
+fn fizzbuzz(start, stop: int) {
+    for (val i in start ..= stop) {
+        if (i % 3 == 0 && i % 5 == 0) {
+            println("Fizzbuzz")
+        } elif (i % 3 == 0) {
+            println("Fizz")
+        } elif (i % 5 == 0) {
+            println("Buzz")
+        }
+    }
+}
+
+fn main() {
+    fizzbuzz(0, 100)
+    
+    // Include argument names for readability.
+    fizzbuzz(start: 100, stop: 200)
+}
