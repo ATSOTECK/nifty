@@ -1,7 +1,0 @@
-/-
-
-package is like a scope and contains functions and variables.
-When the package keyword is it checks the package manager and if it doesn't exist it create the package.
-
-
--/

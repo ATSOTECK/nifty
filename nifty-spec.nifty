@@ -21,12 +21,15 @@
 // [FUNCTION POINTERS]
 // [MEMORY]
 // [OPTIONAL]
+// [RESULT]
+// [ERROR HANDLING]
 // [MACROS]
 // [SIGNALS AND SLOTS]
+// [ORM]
 // [MISC]
 // [BUILDING] [CONFIG]
 // [KEYWORDS]
-// [TODO / MAYBE]
+// [TODO / IDEAS]
 
 // Nifty is a new systems programming language in development.
 // This file is an overview of the language and (basically) everything in here is
@@ -35,6 +38,10 @@
 // The extension is in the highlighting/vscode folder and you can copy and paste
 // it into you vscode extensions folder to install it. You will have to restart
 // vscode for it to go into effect.
+
+// This file is meant to describe the nifty programming languiage and will have little to no
+// information on the nsl (Nifty Standard Library). That will be described later in other
+// files and will likely be an evolving spec.
 
 /-
 
@@ -119,6 +126,7 @@ y := 12.d // f64
 // The types are inferred but can be specified.
 let x: int = 12
 x: int = 12
+let y: f64 = 10 // Valid
 
 // If no value is specified the type must be specified
 let x // Invalid
@@ -167,7 +175,7 @@ x := 12
 x = undefined // Invalid
 
 buf: u32 = undefined
-bufNum := buf // Invalid (???)
+bufNum := buf // Invalid buf has not been set (???)
 
 // Immutable variables can not be set to undefined.
 val y: int = undefined // Invalid, immutable variables must have their value specified.
@@ -185,38 +193,34 @@ fn someFunc() {
     }
 }
 
+a, err := someFunc1() // returns int, Error
+b, err := someFunc2() // returns f32, Error
+
+// The above is valid. It might look like err is being redefined but it is not. Because err is the
+// same type for both functions it is not being redefined, it is just being set the the output.
+
+err := someFunc3() // returns Error
+// The above is invalid because err is being redefined.
+err = someFunc3() // Valid
+
 // Variables can also be unused.
-// Lets say you have a function getFromTable that returns true if the key is in the
-// table, false otherwise, and takes a pointer to a Value that's where the value gets
-// set if it is in the table. But you don't care about the value in the table  you
-// just want to know if it is there and there is no other way provided by the library.
-// This is a contrived example because nifty supports multiple returns.
 
-let value: Value = undefined
-inTable := getFromTable(someTable, someKey, &value)
-// This will give an error that 'val' isn't being used.
+// Lets say you have a function that returns two ints.
+fn returnsTwoInts(): int, int { /- ... -/ }
 
-let unused: Value = undefined
-inTable := getFromTable(someTable, someKey, &unused)
-// 'unused' is a special variable name that lets the compiler know the variable is
-// unused. In the case 'getFromTable' will be able to set the variable from inside
-// the function and then the unused variable will be immediatly freed and can be
-// used again.
+// But you only care about the 2nd one.
+unused, y := returnsTwoInts()
 
-let unused: Value = undefined
-inTable := getFromTable(someTable, someKey, &unused)
+// Because unused is a reserved identifier it can be redefined
+unused := someOtherFunc()
 
-let unused: Value = undefined // Because 'unused' is a special variable name it can be redefined.
-inTable2 := getFromTable(someOtherTable, someOtherKey, &unused)
+// unused can't be constant.
+unused ::= anotherFunc() // Invalid
 
-// If it will be used with the same type it doesn't have to be redefined.
-let unused: Value = undefined
-inTable := getFromTable(someTable, someKey, &unused)
-inTable2 := getFromTable(someOtherTable, someOtherKey, &unused) // Also valid
-
-// unused can't be immutable.
-val unused: Value // Invalid
-
+//unused is not a real variable, and thus doesn't have a value.
+x := unused // Invalid
+fmt::println(unused) // Invalid
+type_of(unused) // Invalid
 
 // [CONSTANTS] ------------------------------------------------------------------------------------
 
@@ -252,42 +256,36 @@ u8 u16 u32 u64 u128
 s8 s16 s32 s64 s128
 
 //defaults to 0.0
-f16 f32 f64
-f128 // Not available on all platforms
+f16 f32 f64 f128
 
 //defaults to ""
 string
 
 typeid // runtime identifier for a type
 
-rawptr // Like void* in c
-
-// Strings will be fully supported via the standard library, the string type is very basic.
-// Strings (nsl.string) will be included by default since they are so common. (Maybe?)
+rawptr // Like void* in c, used for compatibility with existing c code.
 
 // Custom types can be created as follows:
 
 type Custom as int
+let var: Custom
+assert(type_of(var) == "Custom") // True
 
 // Casting uses the 'cast' operator.
-
 x: s8 = 100
 y := cast(x, s32) // cast(var, type)
 
 // To cast between two types of the same size you can uuse the 'recast' operator.
-
 let x: f32 = 12.0
 y := recast(x, u32)
 
 // This is similar to the following pointer cast manipulation:
-
 let x: f32 = 12.0
 y := cast(^u32, &x)^
 
 // Though recast doesn't require taking the address of the value which is not always possible.
 
 // There is a third casting operator called 'auto_cast'.
-
 x := 12.f
 y := 19
 // ...
@@ -313,7 +311,7 @@ b := true
 if (b) { /- ... -/ } // Valid
 if (b == true) { /- ... -/ } // Valid, but like why?
 
-p: ^int = null
+p?: ^int = null
 if (p) { /- ... -/ } // Invalid
 if (p != null) { /- ... -/ } // Valid
 
@@ -327,7 +325,7 @@ use "nsl.fmt"
 use "nsl.math"
 
 fn main() {
-    // Do something
+    fmt::println(math::PI)
 }
 
 // If no package is specified for a file then the default 'global' package is used.
@@ -412,7 +410,7 @@ fn main() {
 }
 
 // This will still use the fmt package but it brings just println into the current scope.
-// This is a good alternative to the 'using' keyword as it decreases the chances of name collisions.
+// This can be a good alternative to the 'using' keyword as it decreases the chances of name collisions.
 
 // The 'as' keyword can still be used
 use { println } in "nsf.fmt" as F // fmt is now F
@@ -494,7 +492,7 @@ fn add(a: int, b: int): int {
 }
 
 // ...and multiple return types
-fn openFile(name: string): File, error {
+fn openFile(name: string): File, Error {
     // do stuff
 }
 
@@ -534,7 +532,7 @@ fn add(a := 10, b := 10, c: int): int {
 
 // If a function returns something the type must be specified in the function definition.
 // A function can be explicitly marked as not having a return. This is purely for the programmers
-// convenience, there is no difference for the compiler. 
+// convenience, there is no difference to the compiler. 
 
 fn yeet(): void {
     fmt::println("Yeet")
@@ -565,7 +563,7 @@ fn someFunc(x: ^int) {
     newX^ = 12
 }
 
-let x: ^int
+let x: ^int = new int
 x^ = 2
 someFunc(^x) // See section on pointers for an explination.
 // x is now 12
@@ -638,11 +636,11 @@ fn pow(x: float, y: float): float { /- ... -/ }
 fn pow(x: double, y: double): double { /- ... -/ }
 
 // Sometimes you want to guarantee the return variable is handled.
-// keep can be used to force the return variable to be used.
-// Very similar to [[nodiscard]] in c++.
+// useReturn can be used to force the return variable to be used.
+// Equivalent to [[nodiscard]] in c++.
 
-#[keep]
-fn returnsError(): error {
+#[useReturn]
+fn returnsError(): Error {
     // do stuff
 }
 
@@ -657,15 +655,14 @@ err := returnsError() // Invalid, err isn't being used.
 // Do more things
 
 // Do something
-unused := returnsError() // Invalid, can't use unused.
-// Do more things
-
-// Do something
 err := returnsError() // Valid
-if (err != null) {
+if (err.occured()) {
     // Handle error.
 }
 // Do more things
+
+// unused can be used to ignore return values from functions marked with useReturn.
+unused := returnsError() // Valid
 
 // Functions can be inlined with the 'inline' attribute.
 #[inline]
@@ -679,6 +676,7 @@ fn someOtherFn() { /- ... -/ }
 
 // Functions can have one or more attribues.
 #[attribName, attribName2(value)]
+fn bar() { /- ... -/ }
 
 #[depreciated("Function 'foo' is depreciated, use 'bar' instead.")]
 fn foo() { /- ... -/ }
@@ -697,7 +695,7 @@ fn eventuallyDepreciated() { /- ... -/ }
 #[warning("ABANDON ALL HOPE YE WHO ENTER HERE")]
 fn reallyBadFunc() { /- ... -/ }
 
-#[keep, maybeUnused]
+#[useReturn, maybeUnused]
 fn bla(): int { /- ... -/ }
 
 // optionalOk allows skipping the last return value which must be a bool.
@@ -715,13 +713,21 @@ md get(key: string): int, bool {
 var := container.get("thing") // Valid
 
 // Custom attributes can be used as well as attributes provided by the compiler.
-// For instance
+// For instance routing for a webserver backend.
 
-// TODO
+#[route("/user/:id"), method("get")]
+fn getUserForId(id: string): User! {
+    return // Return code here.
+}
+
+// See the result section for information on what User! means.
+
+// In the web package it would be able to look at the attributes attached to this function using
+// reflection and be able to do what it needs to do.
 
 // Built-in function attributes.
 /- 
-keep
+useReturn
 optionalOk
 minArity(argc: int)
 maxArity(argc: int)
@@ -732,6 +738,7 @@ warning(msg: string)
 static // Like static in c/c++.
 requireTargetFeature(feature: string)
 noReturn
+asmReturn // Indicates that the function returns via inline assembly instead of a return statement.
 inline
 noInline
 maybeInline
@@ -1221,9 +1228,9 @@ type EvensForSomeReason enum {
 }
 
 type Permission enum {
-    read = 1 << #jot, // 00000001
-    write,            // 00000010
-    delete,           // 00000100
+    Read = 1 << #jot, // 00000001
+    Write,            // 00000010
+    Delete,           // 00000100
 }
 
 type MemSize enum {
@@ -1356,6 +1363,9 @@ impl Collection
 md new(size := 0) {
     list = []int{size: size}
 }
+
+// Optional destructor, called when the struct is freed. Takes no arguments, return nothing.
+md free() { /- ... -/ }
 
 md add(num: int) {
     append(list, num)
@@ -1510,6 +1520,7 @@ circle := Circle{10, "circle"}
 fmt::println(rect.kind) // Because Rect does Geometry it "inherits" the kind variable. 
 // I use the word inherits here but that is not entirly correct. The kind variable gets added to
 // the end of the implementing struct in the order the behaviors were listed at compile time.
+// Or should it be at the beginning?
 
 // Behaviors can be used as parameters to define a function that can take many types that all share
 // that behavior.
@@ -1579,7 +1590,7 @@ endimpl
 
 impl SomeStruct // Compiler error.
 
-// To print a custom type do the fmt::Printable behavior.
+// To print a custom type use the fmt::Printable behavior.
 
 type Color struct { r, g, b: u8 }
 
@@ -1751,7 +1762,7 @@ type Vec3<T: #integer> struct { /- ... -/ }
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
 // enough to merit three dedicated keywords.
 
-// Like combined typed 'number' and 'decimal' only work with generics.
+// Like combined typed 'number', 'decimal', and #integer only work with generics.
 let num: #number = 12 // Invalid
 
 // The union types work for impl  or functions as well
@@ -1818,12 +1829,14 @@ someFunc(y) // Invalid
 // TODO: Maybe this can be optional and forced by a compiler flag?
 
 // Nifty does not have pointer arithmetic.
+let p: ^int = someFunc()
+p++ // Invalid
 
 let p?: ^f64
 // ...
 p^ // Causes a panic if p is still null.
 
-// If the compiler knows that a value is null when it is being dereferenced
+// If the compiler knows that a value is null or undefined when it is being dereferenced
 // it will not compile.
 
 let p?: ^f64
@@ -1871,12 +1884,13 @@ type AddFn as type_from(add) // Also works
 
 ptr := new:CustomAlloc int
 
-// To create a custom allocator you must use constimpl and at a minimum have an alloc() function
-// and a free() function.
+// To create a custom allocator you must use constimpl and use the mem::Allocator behavior.
+
+use "nsl.mem"
 
 type CustomAlloc struct {} // The struct doesn't (technically) need any fields.
 
-constimpl CustomAlloc
+constimpl CustomAlloc does mem::Allocator
 
 md alloc() { /- ... -/ }
 md free()  { /- ... -/ }
@@ -1885,7 +1899,7 @@ endimpl
 
 // [OPTIONAL] -------------------------------------------------------------------------------------
 
-// Nifty has a built-in optional type that can be used. Optional, Value, Empty are used by default.
+// Nifty has an optional type that can be used. Optional, is used by default.
 // The idea is to have a way to have a variable with no value without crashing or panicking in any
 // situation. Optional can only cause a panic if the programmer explicitly wants to panic.
 
@@ -1898,23 +1912,23 @@ fn someFunc(): Optional<string> {
     return Empty // Return doen't have a value.
 }
 
-const result = someFunc()
-str := result.valueOr("yeet") // str will be yeet if result has no value, otherwise it is the contained value.
+val opt = someFunc()
+str := opt.valueElse("yeet") // str will be yeet if opt has no value, otherwise it is the contained value.
 
-str := when (result) {
-    Value: result.value() // The value() function can only be used in a when statement in the 'Value' case.
-    Empty: "yeet"
-}
-// Both the Value and Empty cases must be handled in a when statement.
+// Or
+str := someFunc().valueElse("yeet")
 
-let str: string
-when (result) {
-    Value: str = result.value()
-    Empty: fmt::println('Empty')
+// Another way to handle optionals is via else.
+str := someFunc() else { "yeet" }
+
+// There can be more than one statement in the block. If that is the case then return must be used.
+str := someFunc() else {
+    fmt::println("someFunc() was empty, defaulting to yeet.")
+    return "yeet"
 }
 
 // Instead of writing out Optional a question mark can be used instead.
-fn someFunc(): string? { /- ... -/ } // Same as above.
+fn someFunc(): string? { /- ... -/ } // Same as fn someFunc(): Optional<string>
 
 // Optionals can be in function arguments too.
 fn anotherFunc(arg1: string?, arg2: string, arg3: string?): int
@@ -1946,16 +1960,97 @@ opt.set(nullable) // Invalid. This pointer could be null so it can't be in an op
 fn returnsNothing(): void? // Invalid
 
 // Included functions.
-md value<T>(): T // Can only be used in a when statement in the 'Value' case.
-md valueOr<T>(other: T): T // If the optional is Empty then other is returned. The other value can't be null.
-md valueOrElse<T>(func fn: T ): T // If the optional is Empty then other is returned.
-md valueOrDefault<T>(): T // If the optional is Empty then the default value for the type is returned.
-md valueOrPanic(msg: string): T // Panics with the given message if the optional is Empty, otherwise returns the value.
+md valueElse<T>(other: T): T // If the optional is Empty then other is returned. The other value can't be nullable.
+md valueElseFn<T>(other fn(): T ): T // If the optional is Empty then other is returned.
+md valueElseDefault<T>(): T // If the optional is Empty then the default value for the type is returned.
+md valueElsePanic(msg: string): T // Panics with the given message if the optional is Empty, otherwise returns the value.
 
 md hasValue(): bool // Returns true if it has a value.
 md isEmpty(): bool  // Returns true if it is Empty.
 md clear() // Set to Empty.
 md set(value: T) // Set the value of the optional.
+
+// [RESULT] ---------------------------------------------------------------------------------------
+
+// Results are a lot like optionals, except that results either have a value or an error.
+
+fn someFunc(): Result<string> {
+    if (someCondition) {
+        return "a string"
+    }
+    
+    return Error("this is an error")
+}
+
+// Like optionals, results have a syntax shortcut.
+
+fn someFunc(): string! { /- ... -/ } // Same as above.
+
+result := someFunc()
+str := result.valueElsePanic(result.err())
+
+str := someFunc() else {
+    panic(error.msg()) // error is automatically defined in the else block
+}
+
+// If error is already defined or you just want to use a different name you can.
+str := someFunc() else (e: Error) {
+    panic(e)
+}
+
+str := someFunc() else { "yeet" } // Ignore the error.
+
+// Included functions.
+md valueElse<T>(other: T): T // If the result has an rror then other is returned. The other value can't be nullable.
+md valueElseFn<T>(other fn(): T ): T // If the result has an error then the result of the provided function is returned.
+md valueElseDefault<T>(): T // If the result has an error then the default value for the type is returned.
+md valueElsePanic(msg: string): T // Panics with the given message if the result has an error, otherwise returns the value.
+
+md hasValue(): bool // Returns true if it has a value.
+md hasError(): bool  // Returns true if it has an error.
+md clear() // Clears the value/error.
+md setValue(value: T) // Set the value of the optional.
+md setError(err: does Errorable) // Set the value of the optional.
+
+// [ERROR HANDLING] -------------------------------------------------------------------------------
+
+// panic() will cause the program to exit when it is called.
+panic("Some error!")
+// The messagfe gets printed just before the program exits.
+
+// panic is an oveloaded function that is always available.
+fn panic overloads { panicMsg, panicErrorable }
+
+// assert will panic with an optional message if the given statement is false.
+assert(true == false) // Will panic.
+assert(true == false, "True is not false!") // Will panic with the given message.
+// Like panic assert is always available.
+
+// There are multiple ways to handle errors in nifty.
+
+// One way is the comma ok idiom.
+fn someFunc(): int, bool { /- ... -/ }
+idx, ok := someFunc()
+if (!ok) {
+    // Some error
+}
+
+// Or
+if (idx, ok := someFunc(); !ok) {
+    // Some error
+}
+
+// Errors can also be returned.
+fn someFunc(): int, Error { /- ... -/ }
+idx, err := someFunc()
+// Returning an Error will always be a valid object, so check if an error actually occured.
+if (err.occured()) {
+    panic(err)
+}
+
+// Rather than returning T, Error it is preferable to return Result<T>.
+fn someFunc(): int! { /- ... -/ }
+idx := someFunc() else { panic(error) }
 
 // [MACROS] ---------------------------------------------------------------------------------------
 
@@ -2022,14 +2117,6 @@ someVar := OTHER_CONST_MACRO // Invalid
 #noBoundsCheck     // does not check bounds
 #noAutoInit        // does not auto init variables
 
-#embedBytes(path: string, limit: u64 = 0, compress: string = "")  // Loads a file up to limit bytes and returns its contents as a []u8
-#embedString(path: string, limit: u64 = 0, compress: string = "") // Loads a file up to limit bytes and returns its contents as a string
-// If compress is set then it will compress the data using the given method. The only option is zlib, more will be added later.
-// If limit is 0 for either then there is no limit (until you run out of RAM that is).
-
-// #embedBytes and #embedString only embed in the binary on release builds. This is done to speed up
-// compile times during development. If not a release build it will be loaded at runtime.
-
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
 #OS_WINDOWS
@@ -2037,6 +2124,21 @@ someVar := OTHER_CONST_MACRO // Invalid
 #OS_FREE_BSD
 #OS_OPEN_BSD
 #OS_NONE
+
+#ARCH_ARM64
+#ARCH_AMD64
+#ARCH_X86_64
+#ARCH_X86
+
+// More to be added as support is expanded.
+
+#embedBytes(path: string, limit: u64 = 0, compress: string = "")  // Loads a file up to limit bytes and returns its contents as a []u8
+#embedString(path: string, limit: u64 = 0, compress: string = "") // Loads a file up to limit bytes and returns its contents as a string
+// If compress is set then it will compress the data using the given method. The only option is zlib, more will be added later.
+// If limit is 0 for either then there is no limit (until you run out of RAM that is).
+
+// #embedBytes and #embedString only embed in the binary on release builds. This is done to speed up
+// compile times during development. If not a release build it will be loaded at runtime.
 
 const RAND = #embedBytes("/dev/urandom") // Will crash the compiler, possibly your computer.
 const ARR = #embedBytes("/dev/urandom", 128) // Type is [N]u8 where N is the number of elements determined at compile time.
@@ -2070,7 +2172,7 @@ println(str) // hello.txt contents
 signal valueChanged(newVal: int)
 
 // Slots can return a type as they are otherwise normal functions. However in many cases the return
-// value will be discarded. Because of this the #[keep] attribute can't be used with slots.
+// value will be discarded. Because of this the #[useReturn] attribute can't be used with slots.
 slot fn setValue(newVal: int) {
     someVal = newVal
 }
@@ -2090,6 +2192,49 @@ emit valueChanged(changedVal)
 #connect_md_fn(^emitter, Emitter::method, receiverFn)
 
 emit emitterFn()
+
+// [ORM] ------------------------------------------------------------------------------------------
+
+// The ORM is Called Norm (Nifty Object Relational Mapping).
+// One syntax for allSQL dialects. Queries are made within nifty. This allows for compile time checks
+// as well as automatic sanitization. Improved readability. This feature is a stretch goal and would
+// likely be one of the last parts of the language to be worked on.
+
+#[normTable("people")]
+type Person struct {
+    id:        int        `norm: "primaryKey, autoIncrement"`
+    name:      string     `norm: "notNull"`
+    userName:  string     `norm: "notNull, unique"`
+    address:   string
+    dob:       time::Date `norm: "notNull"` // yyyy-mm-dd
+    createdAt: time::Time
+    updatedAt: time::Time
+}
+
+use "nsl.fmt"
+use "nsl.sqlite"
+
+db := sqlite::connect("the.db")  // Error handling skipped here for simplicity.
+
+#sql(db) {
+    create table Person
+}
+
+person := Person{ name: "Alice Bob", userName: "alice_bob42", dob: "1990-10-20" }
+
+#sql(db) {
+    insert person into Person
+}
+
+alice := #sql(db) {
+    select from Person where name == "Alice Bob" limit 1
+}
+
+fmt::Println(alice.name)
+
+#sql(db) {
+    update Person set name = "Samantha Bobert" where id == alice.id
+}
 
 
 // [MISC] -----------------------------------------------------------------------------------------
@@ -2148,6 +2293,19 @@ extern libc {
 }
 
 res := libc::fflush(^file)
+
+// asm will be experimental at first.
+
+#[asmReturn]
+fn power2(num, power: int): int {
+    asm {
+        mov eax, num   // First arg
+        mov ecx, power // Second arg
+        shl eax, cl    // eax = eax * (2 ** cl)
+    }
+    
+    // Return value is stored in eax, so no return statement.
+}
 
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
@@ -2243,6 +2401,14 @@ nifty build build
 
 -/
 
+/-
+
+Nifty will also eventually have two standard tools. A nifty LSP (Language Server Protocol) called Dandy
+and a code formatting tool called Neato. Neato will be configurable to run everytime a file in a wathced
+directory is updated.
+
+-/
+
 // [KEYWORDS] -------------------------------------------------------------------------------------
 
 if
@@ -2315,7 +2481,6 @@ f16
 f32
 f64
 void
-error
 let
 val
 const
@@ -2330,7 +2495,7 @@ slot
 assert
 panic
 
-// [TODO / MAYBE] ---------------------------------------------------------------------------------
+// [TODO / IDEAS] ---------------------------------------------------------------------------------
 
 /-
 
@@ -2346,6 +2511,35 @@ custom memory allocators
 matrix data type (?)
 complex number data type (?)
 static
-error handling (panic)
+unique pointer (?)
+shared pointer (?)
+fat pointer (?)
+autofree, compiler inserts delete statements to reduce memory leaks (?)
+time traveling debugger (?)
+built in shell scripting mode
+translate c code to nifty (extra feature)
+c backend
 
 -/
+
+fn takePtr(ptr: ^int) { /- ... -/ }
+
+ptr: ^int = undefined
+takePtr(^ptr)
+
+// Can the compiler know if ptr will be used or initialized in takePrt()?
+// If it is being used without being initialized it should not compile otherwise that will be a crash.
+
+// Maybe there could be a function attribute to let the compiler know it will be initializing pointers
+// before it uses them?
+
+#[initPtr("ptr1")]
+fn takePtrs(ptr1, ptr2: ^int) { /- ... -/ }
+
+// ptr1 is initialized in this function while ptr2 is expected to be initialized beforehand.
+// without #[initPtr()]
+
+ptr: ^int = undefined
+takePtr(^ptr) // Invalid
+
+// Should be a compiler error.
