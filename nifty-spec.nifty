@@ -23,6 +23,7 @@
 // [OPTIONAL]
 // [RESULT]
 // [ERROR HANDLING]
+// [TESTS]
 // [MACROS]
 // [SIGNALS AND SLOTS]
 // [ORM]
@@ -31,7 +32,11 @@
 // [KEYWORDS]
 // [TODO / IDEAS]
 
-// Nifty is a new systems programming language in development.
+// Nifty is a new systems programming language in development. Nifty aims to be a (relatively) safe
+// usable, readable, fast programming language that can use existing c code.
+
+// Nifty is not an OOP language nor does nifty aim for complete safety.
+
 // This file is an overview of the language and (basically) everything in here is
 // subject to change. I am open to suggestions and if anything is unclear let me
 // know. This file is much easier to read in vscode with the nifty extension.
@@ -303,6 +308,12 @@ z: f64 = x / y // Invalid
 z: f64 = cast(x, f64) / cast(y, f64) // Valid
 z: f64 = cast(x / y, f64) // Valid, but probably not what you want.
 
+// Implicit upcasting is allowed though.
+x: f16 = 1.f
+y: f32 = x
+z: f64 = y
+
+
 x := 12
 if (x) { /- ... -/ } // Invalid
 if (x != 0) { /- ... -/ } // Valid
@@ -314,6 +325,16 @@ if (b == true) { /- ... -/ } // Valid, but like why?
 p?: ^int = null
 if (p) { /- ... -/ } // Invalid
 if (p != null) { /- ... -/ } // Valid
+
+// Nifty supports hex, octal, and binary numbers
+x := 0xff // or 0xFF
+y := 0q72 // octal uses q because using o is less readable
+z := 0b1011011
+
+// Numbers can also have underscores for better readability.
+x := 1_000_000
+y := 0xFF_AA_12
+z := 0xBAD_F00D
 
 // [PACKAGES] -------------------------------------------------------------------------------------
 
@@ -1008,22 +1029,54 @@ Hello world
 0
 -/
 
+// Nifty has a second type of defer, defer_err. defer_err only runs if the function returns an error.
+// This can only be used in function the returns a Result. This is because if the function returns
+// an Errorable then it would always be called because the function would always have to return an
+// Errorable. In that case defer should be used. defer_err is run in a FILO fashion as well.
+
+fn someFunc(str: string): ^Value! {
+    someVar := new Value(str)
+    defer_err delete someVar
+    
+    if (someVar->count() < 10) {
+        return Error("count() is less than 10!") // defer_err is run here.
+    }
+    
+    if (someOtherCondition) {
+        return Error("Some other condition was met!") // defer_err is run here.
+    }
+    
+    // defer_err is not run here.
+    return someVar
+}
+
+// See the Result section for an explanation on ^Value!.
+
 // [ARRAYS] ---------------------------------------------------------------------------------------
 
+// Static arrays
 let arr: [5]int // Array of 5 integers, auto initialized to [0, 0, 0, 0, 0]
 arr := [5]int{1, 2, 3, 4, 5} // Array of 5 integers initialized to [1, 2, 3, 4, 5]
-arr := []int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
+arr := [?]int{1, 2, 3, 4, 5} // Array of 5 integers where the length is inferred.
 arr := [1, 2, 3, 4, 5] // Array of 5 integers where the length and type are inferred.
 arr := [5]int{5} // Array of 5 integers initialized to [5, 5, 5, 5, 5]
 arr := [5]int{5, 6} // Array of 5 integers initialized to [5, 6, 0, 0, 0] or should this not compile?
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
 
+// Dynamic arrays
 let arr: []int // Array with length 0 and size 0
 arr := []int{} // Array with length 0 and size 0
 arr := []int{size: 100} // Array with length 0 and size 100 initialized to []
 arr := []int{len: 3, size: 100} // Array with length 5 and size 100 initialized to [0, 0, 0]
-arr := []int{len: 3, size: 100: init: 2} // Array with length 5 and size 100 initialized to [2, 2, 2]
-arr := []int{len: 3, size: 100: init: [1, 2, 3]} // Array with length 5 and size 100 initialized to [1, 2, 3]
+arr := []int{len: 3, size: 100, init: 2} // Array with length 5 and size 100 initialized to [2, 2, 2]
+arr := []int{len: 3, size: 100, init: [1, 2, 3]} // Array with length 5 and size 100 initialized to [1, 2, 3]
+arr := []int{init: [1, 2, 3]} // Array with length 3 and size 3 initialized to [1, 2, 3]
+
+// Note that static arrays all have their size specified (or use ?) inside [], or are directly set via [].
+// Dynamic arrays always have [] left blank. Dynamic arrays are also set differently.
+arr := []int{1, 2, 3} // Invalid. Dynamic arrays can't be set like this.
+arr: []int = [1, 2, 3] // Valid, dynamic.
+arr: [?]int = [1, 2, 3] // Valid, static.
 
 // Arrays are 0 indexed.
 arr := [1, 2, 3, 4, 5]
@@ -1607,6 +1660,9 @@ fmt::println("The color is ${color}.")
 
 // [OPERATOR OVERLOADING] -------------------------------------------------------------------------
 
+// Still haven't decided if nifty will have operator overloading. But if it does this is how it 
+// will work.
+
 // Operator overloading is done in struct implementations via attributes.
 
 type Point struct { x, y: f64 }
@@ -1795,6 +1851,16 @@ p = &x // p now points to x
 y := p^ // y is 12
 p^ = 42 // x is 42
 
+
+// Pointers to compiletime/runtime constants are constant as well.
+const z = 12
+ptr := &z
+ptr^ = 42 // Invalid
+
+val z = getInt()
+ptr := &z
+ptr^ = 42 // Invalid
+
 // By default pointers can't be null.
 let ptr: ^int = null // Invalid
 
@@ -1861,6 +1927,24 @@ p ??= &x
 if (p == null) {
     p = &x
 }
+
+let ptrptr: ^^int = undefined // Invalid. 
+
+// For multiple indirection multi-value pointers are used.
+let values = [1, 2, 3, 4, 5]
+let valuesPtr: [^]Value = &valuesArr
+
+assert(valuesPtr[0] == 1) // True
+assert((valuesPtr + 3)[0] == 4) // True
+valuesPtr++
+assert(valuesPtr[0] == 2) // True
+
+// Bounds checking applies to multi-value pointers as well.
+valuesPtr += 10 // Invalid
+valuesPtr[10] // Invalid
+
+valuesPtr^ = 10 // Invalid
+valuesPtr[0] = 10 // Valid
 
 // [FUNCTION POINTERS] ----------------------------------------------------------------------------
 
@@ -2052,6 +2136,40 @@ if (err.occured()) {
 fn someFunc(): int! { /- ... -/ }
 idx := someFunc() else { panic(error) }
 
+// [TESTS] ----------------------------------------------------------------------------------------
+
+// Nifty has built-in testing.
+
+#test("name of the test") {
+    // code
+}
+
+#test("basic while test") {
+    x := 0
+    while (x <= 100) {
+        ++x
+    }
+    
+    expect(x == 100) // expect() is built-in to test files.
+}
+
+// To skip a test prefix the test name with "skip:".
+#test("skip:this will be skipped") {
+    expect(true == true)
+}
+
+// Tests have to be written in a test file. Test files have the format of *.test.nifty
+
+// To run the tests
+// nifty test
+// Will run all the test files.
+
+// To run a specific test file
+// nifty test while.test.nifty
+
+// To run a specific test in a specific file
+// nifty test while.test.nifty "basic while test"
+
 // [MACROS] ---------------------------------------------------------------------------------------
 
 // Macros 
@@ -2116,6 +2234,11 @@ someVar := OTHER_CONST_MACRO // Invalid
 
 #noBoundsCheck     // does not check bounds
 #noAutoInit        // does not auto init variables
+
+#strictIEEE        // ignores IEEE breaking optimizations for the code block. If an algorith relies
+                   // on IEEE correctness then this should be used while the optimizations can be 
+                   // used in the rest of the code. Some optimizations may still happen anyway as
+                   // they can be a thread level optimization (e.g. flush to zero).
 
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
@@ -2307,6 +2430,16 @@ fn power2(num, power: int): int {
     // Return value is stored in eax, so no return statement.
 }
 
+// Wrapping operators
+
+// Integers are not allowed to overflow by default. But sometimes overflow is acceptable. In those
+// cases wrapping operators can be used.
+@+, @-, @*, @/, @+=, @-=, @*=, @/=, @++, @--
+
+x : u8 = 255
+x @+= 1
+assert(x == 0)
+
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
 // The build file is done with TOML. The default build file name is 'nifty.toml'.
@@ -2365,6 +2498,19 @@ executeAfter = [["all"], ["bla"]]
 deprecatedAfterWarnWithin = int
 // If deprecatedAfter is used on a function this will start emitting a warning x number of days before
 // the date given to deprecatedAfter that the function will be depreciated soon. Disabled if <= 0. Defaults to 0.
+fastMath = bool
+// Like -ffast-math in GCC, False by default. Enabled with optimization="fast".
+finiteMathOnly = bool
+// Disabled by default. Enabled with optimization="fast", or fastMath=true
+associativeMath = bool
+// Disabled by default. Enabled with optimization="fast", or fastMath=true
+unsafeMathOptimization = bool
+// Disabled by default. Enabled with optimization="fast", or fastMath=true
+
+// Options that are enabled by other options such as finiteMathOnly can overwrite those options.
+optimization="fast"
+finiteMathOnly=false // All the other optiomizations from "fast" are still enabled.
+
 
 /-
 
@@ -2504,7 +2650,7 @@ to the language. Otherwise it is something I want in the language I just haven't
 written it into the spec yet.
 
 coroutines (?)
-compiletime code execution (JIT) (?)
+compiletime code execution (JIT)
 macros
 user attributes
 custom memory allocators
@@ -2518,7 +2664,13 @@ autofree, compiler inserts delete statements to reduce memory leaks (?)
 time traveling debugger (?)
 built in shell scripting mode
 translate c code to nifty (extra feature)
-c backend
+c backend (?)
+compatibility with c ABI (for X system)
+undefined behavior for unsigned integer overflow
+build artifact caching
+unreachable (?)
+unions
+thread local vars
 
 -/
 
@@ -2543,3 +2695,23 @@ ptr: ^int = undefined
 takePtr(^ptr) // Invalid
 
 // Should be a compiler error.
+
+// Include c code and use it. 
+
+use extern "raylib.h" as raylib
+
+fn main() {
+    screenWidth  ::= 1024
+    screenHeight ::= 600
+    
+    raylib::InitWindow(screenWidth, screenHeight, "basic raylib window")
+    defer raylib::CloseWindow()
+    
+    until (raylib::WindowShouldClose()) {
+        raylib::BeginDrawing()
+        defer raylib::EndDrawing()
+        
+        raylib::ClearBackground(ray::RAYWHITE)
+        raylib::DrawText("Hello, world!", 100, 100, 20, raylib::BLACK)
+    }
+}
