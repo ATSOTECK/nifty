@@ -123,10 +123,6 @@
                     "match": "\\b(signal|slot|emit)\\b"
                 },
                 {
-                    "name": "keyword.other.static.nifty",
-                    "match": "\\b(static)\\b"
-                },
-                {
                     "name": "keyword.other.included",
                     "match": "(assert|panic)\\s*\\("
                 }

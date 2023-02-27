@@ -227,6 +227,13 @@ x := unused // Invalid
 fmt::println(unused) // Invalid
 type_of(unused) // Invalid
 
+// Variables can have attribues.
+#[static]
+y := 42 // static variable
+
+#[threadStatic]
+x := 12 // thread static variable
+
 // [CONSTANTS] ------------------------------------------------------------------------------------
 
 // Constants use the 'const' keyword and their value must be determined at compile time.
@@ -335,6 +342,64 @@ z := 0b1011011
 x := 1_000_000
 y := 0xFF_AA_12
 z := 0xBAD_F00D
+
+// Nifty has union types.
+
+type Value as bool | s32 | f128 | string
+
+// When using union types like this the default value is the default for the first type in the
+// union.
+
+let value: Value
+assert(type_from(value) == bool) // True
+assert(value == false) // True
+
+let value: Value = undefined // Valid
+assert(type_from(value) == bool) // True
+
+assert(size_of(Value) == 16) // True
+
+v: Value = 12
+assert(type_of(v) == "s32") // True
+assert(type_from(v) == s32) // True
+
+when (type_from(v)) {
+    bool: v = !v
+    s32: v = 42
+    f128: v = 123.456
+    string: v = "yeet"
+}
+
+// Note that when using when with type_from -> and else: can't be used. All types in the union
+// type must be cases in the when. Only the types in the union type can be used. It is better to
+// use type_from instead of type_of with when as type_of returns a string an the compiler won't
+// know if all the types and only the correct types are being used.
+
+v = "yote" // v is type string now.
+assert(type_of(v) == "string") // True
+assert(type_from(v) == string) // True
+
+let aFloat: f128
+aFloat = v // Error (could potentially be caught a compiletime).
+
+if (type_from(v) == f128) {
+    aFloat = v
+}
+
+aFloat = v else {} // The same as the above if statement.
+
+aFloat = v else {
+    fmt::println("value is not f128")
+}
+
+aFloat = v else {
+    fmt::println("value is not f128, setting to 0")
+    return 0
+}
+
+aFloat = type_from(v) == f128 ? v : 0 // Another psossible way to handle it.
+
+// Union types can not have arrays as a type in the union. (?)
 
 // [PACKAGES] -------------------------------------------------------------------------------------
 
@@ -684,6 +749,10 @@ if (err.occured()) {
 
 // unused can be used to ignore return values from functions marked with useReturn.
 unused := returnsError() // Valid
+
+// Should unused be allowed to work with error (or Result) returns? Probably? Not all errors are
+// important. Maybe a warning could be emitted if unused is used on functions that return an error
+// (or Result).
 
 // Functions can be inlined with the 'inline' attribute.
 #[inline]
@@ -1790,9 +1859,6 @@ fn sub<T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
 
 type IFD as int | float | double
 
-// Union types like this can only be used with generics.
-let num: IFD = 12 // Invalid
-
 // The above struct and functions could be re-writen like:
 
 type IFD as int | float | double
@@ -1818,7 +1884,7 @@ type Vec3<T: #integer> struct { /- ... -/ }
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
 // enough to merit three dedicated keywords.
 
-// Like combined typed 'number', 'decimal', and #integer only work with generics.
+// These conveniences (#number, #decimal, and #integer) only work with generics.
 let num: #number = 12 // Invalid
 
 // The union types work for impl  or functions as well
@@ -2172,15 +2238,14 @@ idx := someFunc() else { panic(error) }
 
 // [MACROS] ---------------------------------------------------------------------------------------
 
-// Macros 
-
-// There are multiple types of macros that can be defined.
+// Nifty has a limited subset of macros mainly meant for compiletime decisions.
 
 #define SOME_CONST_MACRO
+// SOME_CONST_MACRO is defined but doesn't have a value.
 
-#if SOME_CONST_MACRO {
+#buildIf(SOME_CONST_MACRO) {
     // Code to comile if SOME_CONST_MACRO is defined (not a scope)
-} else {
+} #else {
     // Code to compile if SOME_CONST_MACRO is not defined (not a scope)
 }
 
@@ -2191,34 +2256,44 @@ idx := someFunc() else { panic(error) }
 
 #set OTHER_CONST_MACRO 12
 
-#if OTHER_CONST_MACRO == 12 { /- ... -/ }
-
 // Macro values can be used by variables as well.
 someVar := #OTHER_CONST_MACRO
 // When macro values are used outside of other macros they must start with a '#'.
 someVar := OTHER_CONST_MACRO // Invalid
 
-// TODO
+#buildIfTrue(OTHER_CONST_MACRO == 12) {
+    // ...
+}
 
+// I've decided to not allow user defined macro functions for simplicity. Macros can easily be
+// abused and make code VERY hard to read. This could change in the future as macros can be very
+// powerful if done correctly.
 
+// Macros can't be set to other macros.
+#set THIRD_CONST_MACRO OTHER_CONST_MACRO // Invalid
 
 // Built in macros
 
-#file          // replaced with the filename
-#fileRaw       // usually the same as #file but if in a macro will show the filename the macro is in, not where it is used
-#path          // replaced with the full file path
-#pathRaw       // usually the same as #path but if in a macro will show the path the macro is in, not where it is used
-#line          // replaced with the line the macro is on
-#lineRaw       // usually the same as #line but if in a macro will show the line in the macro, not where it is used
-#function      // replaced with the function name the macro is in
-#package       // replaced with the name of the current package
-#os            // replaced with the OS that the compiler is running on currently
-#buildIf()     // will build the file/block only if the argument is defined
-#buildIfAny()  // will build the file/block only if one or more of the arguments is defined
-#buildIfNot()  // will build the file/block only if none of the arguments are defined
-#buildIfAll()  // will build the file/block only if all of the arguments are defined
-#time          // replaced with the current time
-#date          // replaced with the current date
+#file           // replaced with the filename
+// #fileRaw        // usually the same as #file but if in a macro will show the filename the macro is in, not where it is used
+#path           // replaced with the full file path
+// #pathRaw        // usually the same as #path but if in a macro will show the path the macro is in, not where it is used
+#line           // replaced with the line the macro is on
+// #lineRaw        // usually the same as #line but if in a macro will show the line in the macro, not where it is used
+#function       // replaced with the function name the macro is in
+#package        // replaced with the name of the current package
+#os             // replaced with the OS that the compiler is running on currently
+#buildIf()      // will build the file/block only if the argument is defined
+#buildIfAny()   // will build the file/block only if one or more of the arguments is defined
+#buildIfNot()   // will build the file/block only if none of the arguments are defined
+#buildIfAll()   // will build the file/block only if all of the arguments are defined
+#buildIfTrue()  // will build the file/block onlyif all of the arguments evaluate to true
+#buildIfFalse() // will build the file/block onlyif all of the arguments evaluate to false
+#time           // replaced with the current time
+#date           // replaced with the current date
+
+// The raw macros are commented out because they are currently unnecessary. But if I decide to
+// allow user defined function macros they will be useful to have so they stay on the list for now.
 
 #niftyVersion      // replaced with the version of the nifty compiler
 #niftyVersionMajor //
@@ -2434,11 +2509,21 @@ fn power2(num, power: int): int {
 
 // Integers are not allowed to overflow by default. But sometimes overflow is acceptable. In those
 // cases wrapping operators can be used.
-@+, @-, @*, @/, @+=, @-=, @*=, @/=, @++, @--
+%+, %-, %*, %/, %+=, %-=, %*=, %/=, %++, %--
 
 x : u8 = 255
 x @+= 1
 assert(x == 0)
+
+// Saturating operators
+
+// Integer overflow is undefined behavior so it is not allowed. Saturating operators will not cause
+// integer overflow. Instead they will be clamped to the minimum/maximum of the type.
+@+, @-, @*, @/, @<<, @+=, @-=, @*=, @/=, @<<=, @++, @--
+
+x := math::MAX_INT
+x %+= 1
+assert(x == math::MAX_INT) // true
 
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
@@ -2498,6 +2583,8 @@ executeAfter = [["all"], ["bla"]]
 deprecatedAfterWarnWithin = int
 // If deprecatedAfter is used on a function this will start emitting a warning x number of days before
 // the date given to deprecatedAfter that the function will be depreciated soon. Disabled if <= 0. Defaults to 0.
+noUnusedOnErrorReturn = bool
+// Don't allow unused to be used on functions that return errors or results. Disabled by default.
 fastMath = bool
 // Like -ffast-math in GCC, False by default. Enabled with optimization="fast".
 finiteMathOnly = bool
@@ -2575,6 +2662,7 @@ endimpl
 in
 asm
 defer
+defer_err
 restrict
 goto
 cast
@@ -2651,26 +2739,22 @@ written it into the spec yet.
 
 coroutines (?)
 compiletime code execution (JIT)
-macros
 user attributes
 custom memory allocators
 matrix data type (?)
 complex number data type (?)
-static
 unique pointer (?)
 shared pointer (?)
 fat pointer (?)
 autofree, compiler inserts delete statements to reduce memory leaks (?)
 time traveling debugger (?)
-built in shell scripting mode
+built-in shell scripting mode
 translate c code to nifty (extra feature)
 c backend (?)
 compatibility with c ABI (for X system)
 undefined behavior for unsigned integer overflow
 build artifact caching
 unreachable (?)
-unions
-thread local vars
 
 -/
 
