@@ -32,7 +32,7 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|constimpl|endimpl|in|asm|defer|defer_err|restrict|goto)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|constimpl|endimpl|in|asm|defer|defer_err|restrict|goto|try)\\b"
                 },
                 {
                     "name": "keyword.intrinsics.nifty",
@@ -115,7 +115,7 @@
                     "match": "\\b(struct|enum|interface)\\b"
                 },
                 {
-                    "match": "\\b(bool|b8|b16|b32|b64|char|string|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|typeid|rawptr)\\b",
+                    "match": "\\b(bool|b8|b16|b32|b64|char|string|cstring|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|typeid|rawptr)\\b",
                     "name": "storage.type.primitive.nifty"
                 },
                 {
@@ -243,6 +243,11 @@
                             "match": "(?x)\\\\ (\n\\\\\t\t\t |\n[abefnprtv'\"?]   |\n[0-3]\\d{,2}\t |\n[4-7]\\d?\t\t|\nx[a-fA-F0-9]{,2} |\nu[a-fA-F0-9]{,4} |\nU[a-fA-F0-9]{,8} )"
                         }
                     ]
+                },
+                {
+                    "name": "string.quoted.raw.nifty",
+                    "begin": "`",
+                    "end": "`"
                 }
             ]
 		},
