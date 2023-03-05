@@ -1,0 +1,6 @@
+project = "binarytrees"
+
+[release]
+outputName = "binarytrees"
+entryPoint = "binarytrees.nifty"
+optimization = "fast"

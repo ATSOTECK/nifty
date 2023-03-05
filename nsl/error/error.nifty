@@ -20,27 +20,44 @@
  |
 -/
 
-package hello
+package error
 
-using "nsl.fmt"
-
-fn main() {
-    greetings := [
-        "Hello, world!",
-        "¡Hola Mundo!",
-        "Გამარჯობა მსოფლიო!",
-        "Γειά σου Κόσμε!",
-        "Halló heimur!",
-        "Привіт Світ!",
-        "こんにちは世界！",
-        "你好世界！",
-        "नमस्ते दुनिया!",
-        "안녕, 세상!",
-        "مرحبا بالعالم!",
-        "👋🌎!"
-    ]
-    
-    for (val greeting in greetings) {
-        println(greeting)
-    }
+type Error struct {
+    _msg: string
+    _code: int
+    _hasError: bool
 }
+
+impl Error does Errorable
+
+md new(message := "", code := 0) {
+    if (message.isEmpty() && code == 0) {
+        return
+    }
+    
+    _msg = message
+    _code = code
+    _hasError = true
+}
+
+md msg(): string {
+    if (_msg.isEmpty() && _code != 0) {
+        return "${_code}"
+    }
+    
+    return _msg;
+}
+ 
+md code(): int {
+    if (!_msg.isEmpty() && _code == 0) {
+        return -1;
+    }
+    
+    return _code;
+}
+
+md occured(): bool {
+    return _hasError
+}
+
+endimpl

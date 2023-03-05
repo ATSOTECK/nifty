@@ -20,27 +20,72 @@
  |
 -/
 
-package hello
+package optional
 
-using "nsl.fmt"
-
-fn main() {
-    greetings := [
-        "Hello, world!",
-        "¡Hola Mundo!",
-        "Გამარჯობა მსოფლიო!",
-        "Γειά σου Κόσμε!",
-        "Halló heimur!",
-        "Привіт Світ!",
-        "こんにちは世界！",
-        "你好世界！",
-        "नमस्ते दुनिया!",
-        "안녕, 세상!",
-        "مرحبا بالعالم!",
-        "👋🌎!"
-    ]
-    
-    for (val greeting in greetings) {
-        println(greeting)
-    }
+type Optional<T> struct {
+    _value: T = undefined
+    _hasValue: bool
 }
+
+impl Optional<T>
+
+md new(empty: bool, value: T = undefined) {
+    if (empty) {
+        return
+    }
+    
+    _value = value
+    _hasValue = true
+}
+
+md hasValue(): bool {
+    return _hasValue
+}
+
+md isEmpty(): bool {
+    return !_hasValue
+}
+
+md clear() {
+    _hasValue = false
+    // TODO: Check type and delete _value?
+}
+
+md set(value: T) {
+    _value = value
+    _hasValue = true
+}
+
+md valueElse(other: T): T {
+    if (!_hasValue) {
+        return other
+    }
+    
+    return _value
+}
+
+md valueElseFn(other: fn(): T): T {
+    if (!_hasValue) {
+        return other()
+    }
+    
+    return _value
+}
+
+md valueElseDefault(): T {
+    if (!_hasValue) {
+        return T()
+    }
+    
+    return _value
+}
+
+md valueElsePanic(msg: string): T {
+    if (!_hasValue) {
+        panic(msg)
+    }
+    
+    return _value
+}
+
+endimpl

@@ -1,0 +1,43 @@
+package main
+
+use "nsl.fmt"
+use "nsl.reflection"
+
+type Foo struct {
+    x: int    #[attribute1]
+    y: string #[json("y_field")]
+    z: bool
+}
+
+fn main() {
+    if := typeid_of(Foo)
+    names      := reflection::structFieldNames(id)
+    types      := reflection::structFieldTypes(id)
+    attributes := reflection::structFieldAttibutes(id)
+    
+    assert(names.len() == types.len() && names.len() == attributes.len())
+    
+    fmt::println("type Foo struct {")
+    for (val attrib, i in attributes) {
+        let name, type_ := name[i], types[i]
+        
+        if (!attrib.isEmpty()) {
+            fmt::println("\t${name}: ${type_} #[${attrib}]")
+        } else {
+            fmt::println("\t${name}: ${type_}")
+        }
+    }
+    fmt::println("}")
+    
+    for (val attrib, i in attributes) {
+        if (value, ok := reflection::structAttributeLookup(attrib, "json"); ok) {
+            fmt::prinln("json: ${names[i]} -> ${value}")
+        }
+        
+        // Or if it returns an optional:
+        value := reflection::structAttributeLookup(attrib, "json") else { "" }
+        if (!value.isEmpty()) {
+            fmt::prinln("json: ${names[i]} -> ${value}")
+        }
+    }
+}

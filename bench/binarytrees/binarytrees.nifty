@@ -1,0 +1,61 @@
+package binarytrees
+
+using "nsl.fmt"
+
+type Node struct { left, right: ^Node }
+
+fn check(node?: ^Node): int {
+    if (node->left != null) {
+        ret += check(node->left)
+    }
+    if (node->right != null) {
+        ret += check(node->right)
+    }
+    
+    return ret
+}
+
+fn create(n: int): ^Node {
+    if (n == 0) {
+        return new Node{}
+    }
+    return new Node{left: create(n - 1), right: create(n - 1)}
+}
+
+fn deleteTree(tree?: ^Node) {
+    if (tree->left != null) {
+        deleteTree(tree->left)
+    }
+    if (tree->right != null) {
+        deleteTree(tree->right)
+    }
+    delete tree
+}
+
+fn main() {
+    minDepth ::= 4
+    maxDepth ::= 18
+    stretchDepth := maxDepth + 1
+    
+    stretchTree := create(stretchDepth)
+    println("stretch tree of depth ${stretchDepth}\tcheck: ${check(stretchTree)}")
+    deleteTree(stretchTree)
+    
+    longLivedTree := create(maxDepth)
+    defer deleteTree(longLivedTree)
+    
+    for (depth := minDepth; depth <= maxDepth; depth += 2) {
+        iterations ::= 1 << cast(maxDepth - depth + minDepth, u8)
+        let sum: u64
+        
+        for (0 ..< iterations) {
+            tree := create(depth)
+            sum += cast(check(tree), u64)
+            deleteTree(tree)
+        }
+        
+        println("${iterations}\ttrees of depth ${depth}\tcheck: ${sum}")
+    }
+    
+    println("long lived tree of depth ${maxDepth}\tcheck: ${check(longLivedTree)}")
+}
