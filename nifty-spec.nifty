@@ -26,6 +26,7 @@
 // [RESULT]
 // [ERROR HANDLING]
 // [TESTS]
+// [IMPLICIT CONTEXTS]
 // [MACROS]
 // [SIGNALS AND SLOTS]
 // [ORM]
@@ -34,8 +35,8 @@
 // [KEYWORDS]
 // [TODO / IDEAS]
 
-// Nifty is a new systems programming language in development. Nifty aims to be a (relatively) safe
-// usable, readable, fast programming language that can use existing c code.
+// Nifty is a new systems programming language in development. Nifty aims to be a (relatively) simple
+// usable, readable, and fast programming language that can use existing c code.
 
 // Nifty is not an OOP language nor does nifty aim for complete safety.
 
@@ -262,6 +263,8 @@ uint // same as u32 defaults to 0
 float // same as f32 defaults to 0.f
 double // same as f64 defaults to 0.d
 
+uintptr // defaults to 0
+
 // defaults to false
 bool b8 b16 b32 b64
 
@@ -310,7 +313,7 @@ y = auto_cast(x)
 
 // auto_cast is convienient but potentially unsafe.
 
-y = cast(type_from(y), x) // Like auto_cast
+y = cast(x, type_from(y)) // Like auto_cast
 
 // Types in nifty are not implicitly converted.
 
@@ -331,7 +334,7 @@ if (x != 0) { /- ... -/ } // Valid
 
 b := true
 if (b) { /- ... -/ } // Valid
-if (b == true) { /- ... -/ } // Valid, but like why?
+if (b == true) { /- ... -/ } // Valid,
 
 p: ^int? = null
 if (p) { /- ... -/ } // Invalid 
@@ -349,7 +352,9 @@ z := 0xBAD_F00D
 
 // Nifty has raw strings, to use raw string use back ticks.
 
-str := `this\is\a\raw\string`
+str := `this\is\'a\raw\string`
+
+// "here strings" could be nice but they are hard to make work with the syntax highlighting.
 
 // [PACKAGES] -------------------------------------------------------------------------------------
 
@@ -497,7 +502,7 @@ type LocalStruct_ struct {
 let _someVar_: string
 // Then what will happen? In this case the compiler will default to the most private case.
 // So _someVar_ will be a local variable (private to the file).
-// It is not recommended to start and end with an underscore though and this will generate
+// It is not recommended to start and end with an underscore though and this may generate
 // a warning.
 
 // Underscores can be used in variable names in other contexts with no warnings, though it isn't
@@ -567,8 +572,8 @@ fn add(a := 10, b := 10, c: int): int {
 }
 
 // If a function returns something the type must be specified in the function definition.
-// A function can be explicitly marked as not having a return. This is purely for the programmers
-// convenience, there is no difference to the compiler. 
+// A function can be explicitly marked as not having a return value. This is purely for the
+// programmers convenience, there is no difference to the compiler. 
 
 fn yeet(): void {
     fmt::println("Yeet")
@@ -641,7 +646,7 @@ sum(2, 2) // Valid
 // Arguments can't come after a variadic argument.
 fn counts(cnts: ..int, type: string) // Invalid
 
-// Nifty has function overloading, but it works differently compared to languges like c/c++.
+// Nifty has function overloading, but it works differently compared to languges like c++.
 // Instead of two functions having the same name but different arguments the functions have
 // different names and are explicetly overloaded. For instance if you had a pow function for
 // int, float, and double it might look like this:
@@ -706,7 +711,7 @@ unused := returnsError() // Valid
 
 // Functions can have preconditions or postconditions.
 // Preconditions use the require attribute.
-#[require {x > 0 && x < 1_000} ensure {x > 0}]
+#[require {x > 0 && x < 1_000} ensure {return > 0}]
 fn someFunc(x: int): int {
     return x * 10
 }
@@ -765,7 +770,7 @@ fn example(n: int): int {
 
 // Because someFunc() can never return 0.
 
-// For functions that take pointers paramater attributes can be used to control the dataflow.
+// For functions that take pointers, paramater attributes can be used to control the dataflow.
 #[in("a"), inout("b"), out("c")]
 fn takesPtrs(a, b, c: ^int) { /- ... -/ }
 
@@ -786,6 +791,15 @@ fn bigSlowFn() { /- ... -/ }
 // Let the compiler decide if it should be inlined or not. This is the default, but can be explicetly stated.
 #[maybeInline]
 fn someOtherFn() { /- ... -/ }
+
+// Function calls can also be inlined.
+fn someFunc(): int { /- ... -/ }
+
+fn otherFunc() {
+    x := #[inline] someFunc()
+}
+
+// someFunc() is inlined in otherFunc()
 
 // Functions can have one or more attribues.
 #[attribName, attribName2(value)]
@@ -855,8 +869,12 @@ asmReturn // Indicates that the function returns via inline assembly instead of 
 inline
 noInline
 maybeInline
+noContext
 traceVars(names: ..string) // Prints the values of the variables listed every time they change.
                            // This is meant for debugging and will be relatively slow.
+
+signal
+slot
 
 // Called at the end of the callers scope.
 deferredIn(function: fn) // Receives the same paramaters as the called function.
@@ -864,7 +882,7 @@ deferredOut(function: fn) // Receives the results of the called function.
 deferredInOut(function: fn) // Receives both the input and output of the called function.
 deferredNone(function: fn) // Receives no input.
 These can be useful but are not always recommended as they can make it not obvious why a function
-is being called without further investigation.
+is being called without further investigation. May get rid of these.
 
 linkName(name: string)
 
@@ -903,6 +921,12 @@ for (let str in strings) { /- ... -/ }
 for (val key, value in map) { /- ... -/ }
 for (val key, value, index in map) { /- ... -/ }
 
+for (10 ..< 0) { /- ... -/ } // Does nothing
+
+// To go backwards over a range use <
+for < (10 ..< 0) { /- ... -/ }
+for < (val str in strings) { /- ... -/ }
+
 // While loops work like they do in c/c++.
 
 while (condition == true) {
@@ -923,7 +947,8 @@ do {
     // Something
 } until (condition == true)
 
-// When statements are much like switch statements in c/c++.
+// When statements are much like switch statements in c/c++ except they only need one dedicated
+// keyword.
 
 x := 2
 when (x) {
@@ -980,10 +1005,21 @@ when (str) {
     else: fmt::println("???")
 }
 
-// In general 'else' is required with when statements. 
-// The exception is with enums where the values the variable can be are 
-// limited and it is possible to capture all options. 
-// See the enums section for an example of this.
+// Each case in a when statement has its own scope. Curly braces can be used but are not required.
+
+str := "one"
+when (str) {
+    "one":
+        x := 1
+        fmt::prinln(x)
+    "two":
+        x := 2
+        fmt::prinln(x)
+    else: fmt::prinln("???")
+}
+
+// When statements don't always need to have an else: but it is a good idea to have them.
+// else: works a bit differently if using when on an enum. See the enums section for an explanation.
 
 // If statements. Work how they do in c/c++ with the addition of elif.
 
@@ -1078,7 +1114,7 @@ count := {
     for (i: u32 = 0; i < 10; ++i) {
         sum += 1
     }
-    <- sum
+    <- sum // The <- "returns" sum.
 }
 
 // Sometimes it's impracticle or not possible to initialize/set a variable in one line. Using
@@ -1118,6 +1154,8 @@ x := 12
 if (x in range) {
     // Do something
 }
+
+fmt::println(range.low, ", ", range.high) // 0, 10
 
 // Maybe? Not sure if I want a range type or not.
 
@@ -1301,9 +1339,11 @@ slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
 
 // [MAP] ------------------------------------------------------------------------------------------
 
-// Nifty has a built-in map type.
+// Nifty has a built-in map type. I think this should just be in the nsl instead of built-in.
+// This should also return Optional<T> instead of T, bool.
+// TODO: Rewrite this for nsl eventually.
 
-m := Map<string, int>() // The default value of a map is an empty map.
+m := map<string, int>() // The default value of a map is an empty map.
 defer delete m
 m["Alice"] = 12
 fmt::println(m["Alice"]) // Prints 12
@@ -1315,11 +1355,11 @@ m[key] = value
 value = m[key]
 
 // If the keey is not in the map then the default value of the type is returned.
-m := Map<string, int>()
+m := map<string, int>()
 i := m["index"] // i will be 0
 
 // Checking if the key exists can be done in two ways:
-m := Map<string, int>()
+m := map<string, int>()
 if (i, ok := m["index"]; ok) { /- ... -/ } // i will be 0, ok will be false
 
 // or
@@ -1333,14 +1373,14 @@ if (ok) { /- ... -/ }
 
 // Maps can be initialized with map literals.
 
-m := Map<string, int>{
+m := map<string, int>{
     "Alice": 12,
     "Bob": 42
 }
 
-m := Map<string, int>{} // Valid, empty map
-let m: Map<string, int> // Valid, empty map
-m := Map<string, int>() // Valid, empty map
+m := map<string, int>{} // Valid, empty map
+let m: map<string, int> // Valid, empty map
+m := map<string, int>() // Valid, empty map
 
 // len() can be used to get the number of items in a map
 assert(m.len() == 2) // true
@@ -1349,7 +1389,7 @@ assert(m.len() == 2) // true
 m.remove(key)
 
 type Point struct { x, y: f64 }
-m := Map<string, Point>{
+m := map<string, Point>{
     "zero": {},
     "start": {12.f, 42.f},
     "stop": {142.f, 96.f}
@@ -1358,7 +1398,7 @@ m := Map<string, Point>{
 // Because the value type is specified it is ok to not include the name of the fields.
 // Though it can be included.
 
-m := Map<string, Point>{
+m := map<string, Point>{
     "zero": Point{},
     "start": Point{12.f, 42.f},
     "stop": Point{x: 142.f, y: 96.f}
@@ -1443,7 +1483,7 @@ type Animals enum: string {
 
 num := Numbers.PI
 name := name_of(num, Numbers)
-fmt::println("num is {name}") // Prints 'num is PI'
+fmt::println("num is ${name}") // Prints 'num is PI'
 
 // If the value can't be found it will return an empty string.
 num = 3.4
@@ -1462,6 +1502,34 @@ using Numbers // Bring Numbers enumerations into the current scope.
 
 num := PI // Valid
 e := Numbers.E // Unlike with packages the name can still be used with using.
+
+type Direction enum {
+    North,
+    South,
+    East,
+    West,
+}
+
+let dir: Direction = Direction.North
+
+when (dir) {
+    Direction.North: fmt::prinln("north")
+    Direction.South: fmt::prinln("south")
+    else: fmt::println("other") // Because we are using when on an enum else must be used to cover
+    // the other cases.
+}
+
+// The complete attribute can be used to force all of the options to be considered in the when.
+// else: can't be used with complete. complete can only be used with enums, otherwise it is a
+// compiler error.
+
+#[complete]
+when (dir) {
+    Direction.North: fmt::prinln("north")
+    Direction.South: fmt::prinln("south")
+    Direction.East: fmt::prinln("east")
+    Direction.West: fmt::prinln("west")
+}
 
 // [STRUCTS] --------------------------------------------------------------------------------------
 
@@ -1498,6 +1566,16 @@ type Point3D struct {
     z: f64 = undefined
 }
 
+// Default values can be blocked when declaring the variable.
+
+type Point struct {
+    x: int = 12
+    y: int = 42
+}
+
+let p: Point = undefined
+x := p.x // Undefined behavior, x can be anything.
+
 // If fields in a struct are of the same type then they can be on the same line.
 
 type Point3D struct { x, y, z: f64 }
@@ -1507,6 +1585,14 @@ point := Point3D{y: 12.f, Z: 42.f} // Valid
 type Point3D struct { x, y, z: f64 = 100.f }
 type Point3D struct { x, y, z: f64 = undefined }
 
+// Struct pointer ownership
+
+// Adding @ to the end of a pointer type type indicates that the object pointed to is owned by the
+// struct and should be deleted when the struct is deleted.
+
+type Node struct { left, right: ^Node@ } // left and right are automatically deleted when the
+                                         // struct object is deleted.
+
 // Structs can also have attributes.
 
 #[packed] // Will not add padding
@@ -1515,10 +1601,16 @@ type Packed struct {
     y: s16
 }
 
+// Preconditions can be stated. Where possible this will be checked at compile time. In debug mode
+// asster statements will be inserted to verify the precondition.
+
 #[require {min <= max}]
 type Range struct { min, max: int }
 
 range := Range{2, 1} // Invalid
+
+range := Range{x, y}
+assert(range.min <= range.max) // Added if in debug mode.
 
 /- Built-in struct attributes
 packed
@@ -1528,19 +1620,23 @@ noAutoInit
 require {code}
 -/
 
+// Attributes can be applied to struct fields as well.
+
 type Person struct {
-    id:        int        `json:"id",norm:"index"`
-    name:      string     `json:"name"`
-    holding:   []string   `json:"holding",omitempty`
-    createdAt: time::Time `json:"created_at"`
+    id:        int        #[json("id"), norm("index")]
+    name:      string     #[json("name")]
+    holding:   []string   #[json("holding"), omitempty]
+    createdAt: time::Time #[json("created_at")]
 }
 
 // [OOP] ------------------------------------------------------------------------------------------
 
+// Nifty doesn't have true OOP but I didn't know what else to call this section ¯\_(ツ)_/¯ OOP lite?
+
 // For methods the md keyword is used so that if the impl keyword is missed by a 
 // programmer or a programmer jumps to the middle of the file it is obvious that
 // these are methods and not ordinary functions. The fn keyword can be used as 
-// well. The md keyword can't be used outside an impl.
+// well if preferred. The md keyword can't be used outside an impl.
 
 type Collection struct {
     list: []int
@@ -1549,14 +1645,16 @@ type Collection struct {
 
 impl Collection
 
-// Constructor
-// Return type for the constructor is implicitly determined and 'this' is implicitly returned.
-md new(size := 0) {
+// Optional constructor.
+md constructor(size := 0) {
     list = []int{size: size}
 }
 
+// Unlike c++ a struct can only have one constructor. The constructor does not return anything.
+// Nifty does not have default constructors/destructors.
+
 // Optional destructor, called when the struct is freed. Takes no arguments, return nothing.
-md free() { /- ... -/ }
+md destructor() { /- ... -/ }
 
 md add(num: int) {
     append(list, num)
@@ -1574,7 +1672,7 @@ md _calculateAverage() {
         total += num
 	}
 
-	average = cast(total, f32) / cast(len(list), f32)
+	average = cast(total, f32) / cast(list.len(), f32)
 }
 
 endimpl
@@ -1584,10 +1682,14 @@ endimpl Collection
 // This is just to improve readability in files with multiple struct implementations.
 // This does not allow for impl nesting.
 
-collection := new Collection() // Type is ^Collection. Calls constructor.
+collection := new Collection() // Type is ^Collection. Calls constructor. 
+                               // If the struct does not have a constructor this will be a compiler
+                               // error. It should be ovious if the constructor is being called.
 collection := new Collection{ /- ... -/ } // Type is ^Collection also. 
 // This does not call the constructor and the fields in the struct are set to their defaults.
 // The values can be specified.
+collection := new Collection // Invalid
+collection := new Collection{} // Valid
 
 // To make collection an optional pointer:
 let collection: ^Collection? = new Collection()
@@ -1612,8 +1714,11 @@ if (collection != null) {
 
 // If you don't allocate the object on the heap this is not an issue.
 
-collection := Collection() // Type is Collection. Constructor is called.
+collection := Collection() // Type is Collection. Constructor is called. If the struct doesn't have
+                           // a constructor this will be a compiler error.
 collection := Collection{list: []int{}} // Type is Collection. Constructor is not called.
+collection := Collection // Invalid
+collection := Collection{} // Valid
 collection.add(12)
 
 // You may have noticed that I used both '->' and '.' when calling the 
@@ -1636,7 +1741,9 @@ endimpl
 
 // Somewhere in your code:
 
-impl SomeStruct
+use "some_lib"
+
+impl some_lib::SomeStruct
 // Your code ...
 endimpl
 
@@ -1648,7 +1755,10 @@ endimpl
 
 // Your code ...
 
-impl SomeStruct // Compiler error.
+impl some_lib::SomeStruct // Compiler error.
+
+// Multiple constimpl can be used in a single file. With generics there are cases where it may make
+// sence to have seperate implementations for different types.
 
 // To print a struct type use the fmt::Printable behavior.
 
@@ -1669,7 +1779,7 @@ fmt::println("The color is ${color}.")
 // to implement the functions/variables in the interface.
 
 type Collection interface {
-    new(int) // Return type for the constructor is implicitly determined.
+    constructor(int) // Return type for the constructor is implicitly determined.
     add(int) // Argument name is optional.
     average(): float
     _calculateAverage(): void // Using void is optional.
@@ -1682,6 +1792,8 @@ type Collection interface {
 // If an implementation is missing one or more of those functions it will cause a compiler error.
 // The above interface only applies to implementation of the 'Collection' struct.
 
+// Might get rid of interface. It's not very useful.
+
 // [BEHAVIORS] ------------------------------------------------------------------------------------
 
 // Behaviors are a a way to define shared behavior. To indicate that an implementation does a
@@ -1691,7 +1803,8 @@ type Collection interface {
 // If an implementation does a behavior then all the functions in the behavior must be 
 // implemented or there will be a compiler error. If an implementation does multiple behaviors
 // with conflicting function names then there will be a compiler error. If a behavior and an
-// interface have conflicting function names there will be a compiler error.
+// impl have conflicting function names there will be a compiler error. Or should it require 
+// prefixing with the BehaviorName.
 
 use "nsl.math"
 
@@ -1773,6 +1886,18 @@ fn printAreaAndShape(shape: does Geometry & fmt::Printable) {
 
 fn printAreaAndShape<T: Geometry & fmt::Printable>(shape: T) { /- ... -/ }
 
+// This works for structs as well.
+type Shape struct {
+    geometry: does Geometry
+    otherVar: int
+}
+
+// Is the same as:
+type Shape<T: Geometry> struct {
+    geometry: T
+    otherVar: int
+}
+
 // Behaviors can be combined into new behviors via type intersections.
 
 type PrintableGeometry as Geometry & fmt::Printable
@@ -1782,6 +1907,8 @@ impl Rect does PrintableGeometry
 endimpl
 
 // Type intersections can only be used with behaviors.
+// It is fine if intersecting bahaviors have functions with the same signatures. If they have the
+// same name but the arguments or the return type differs then it will be a compiler error.
 
 // Behaviors can have overridable function implementations
 
@@ -1853,7 +1980,7 @@ md addPoints(other: Point): Point {
 }
 
 #[overloads("+")]
-md addScalar(scalar: f64): Point {
+md addf64(scalar: f64): Point {
     return Point{x + scalar, y + scalar}
 }
 
@@ -1962,8 +2089,7 @@ type Collection<T> struct {
 
 impl Collection<T>
 
-// Constructor
-md new(size := 0) {
+md constructor(size := 0) {
     list = []T{size: size}
 }
 
@@ -2034,11 +2160,7 @@ type IFD as int | float | double
 // The above struct and functions could be re-writen like:
 
 type IFD as int | float | double
-type Vec3<T: IFD> struct {
-    x: T
-    y: T
-    z: T
-}
+type Vec3<T: IFD> struct { x, y, z: T }
 
 fn add<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
 fn sub<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
@@ -2101,7 +2223,7 @@ ptr^ = 42 // Invalid
 
 // Nifty does not have pointer arithmetic.
 let p: ^int = someFunc()
-p++ // Invalid
+p++ // Invalid, this is supported via multi-value pointers.
 
 // If the compiler knows that a value is null when it is being dereferenced is will not compile.
 let p: ^f64
@@ -2152,7 +2274,7 @@ takesPtr(^ptr) // Valid
 
 
 // Optional pointers can be used for increased safety. Optional pointers must be unwrapped to be
-// used. This avoids accidentally trying to use a null pointer or an already freed pointer.
+// dereferenced. This avoids accidentally trying to use a null pointer or an already freed pointer.
 let ptr: ^int? = null // Valid
 let ptr: ^int? // ptr has no value, is null
 x := 12
@@ -2197,7 +2319,7 @@ if (p == null) {
 
 let ptrptr: ^^int = undefined // Invalid. 
 
-// For multiple indirection multi-value pointers are used.
+// For multiple indirection/pointer arithmetic multi-value pointers are used.
 let values = [1, 2, 3, 4, 5]
 let valuesPtr: [^]Value = &valuesArr
 
@@ -2206,7 +2328,7 @@ assert((valuesPtr + 3)[0] == 4) // True
 valuesPtr++
 assert(valuesPtr[0] == 2) // True
 
-// Bounds checking applies to multi-value pointers as well.
+// Bounds checking applies to multi-value pointers as well. #noBoundsCheck can be used too.
 valuesPtr += 10 // Invalid
 valuesPtr[10] // Invalid
 
@@ -2234,7 +2356,7 @@ type AddFn as type_from(add) // Also works
 // Nifty is a manual memory management based language. Meaning that programmers must manage their
 // own memory. Similar to c/c++. 
 
-// Allocate memory for a Person type and point person to that memory.
+// Allocate memory for a Person type and point person to that memory and wrap it in an optional.
 person? := new Person()
 if (person != null) {
     person->doAThing()
@@ -2243,7 +2365,7 @@ if (person != null) {
 
 assert(person == null) // True
 
-// Pointers are automatically set to null after being deleted.
+// Pointers/optionals are automatically set to null after being deleted.
 
 person2 := new Person()
 person2->doAThing()
@@ -2282,12 +2404,8 @@ delete ptr // Invalid
 delete:customAlloc ptr // Valid
 
 // To free all memory from an allocator mem::deleteAll can be used.
-
-mem::deleteAll<CustomAlloc>()
-
-// To reallocate use mem::realloc()
-
-ptr = mem::realloc<CustomAlloc>(ptr, 32)
+// To reallocate use mem::realloc.
+// The specifics of these will be worked out later.
 
 // [OPTIONAL] -------------------------------------------------------------------------------------
 
@@ -2346,6 +2464,15 @@ opt? := SomeStruct{id: "12"}
 // Is the same as
 let opt: SomeStruct? = SomeStruct{id: "12"}
 
+let x: int? // x is null
+let y: int
+
+if (x != null) {
+    y = x
+}
+
+y = x else { 12 }
+
 // Optionals can't be of type 'void'.
 fn returnsNothing(): void? // Invalid
 
@@ -2398,8 +2525,8 @@ str := someFunc() else {
     <- "error :("
 }
 
+// This pattern:
 str := someFunc() else { return error }
-
 // Is the same as: 
 str := try someFunc()
 // This is not try as in try catch. try evaluates the Result and if it has an error it returns the
@@ -2453,16 +2580,24 @@ if (err.occured()) {
     panic(err)
 }
 
+// Or similarly a pointer to an error can be returned.
+fn someFunc(): int, ^Error { /- ... -/ }
+idx, err := someFunc()
+if (err != null) {
+    panic(^err)
+}
+
 // Rather than returning T, Error it is preferable to return Result<T>.
 fn someFunc(): int! { /- ... -/ }
 idx := someFunc() else { panic(error) }
 
 // [TESTS] ----------------------------------------------------------------------------------------
 
-// Nifty has built-in testing.
+// Nifty has built-in testing. Test files are not compiled into the executable in neither debug nor
+// release modes.
 
 #test("name of the test") {
-    // code
+    // code here
 }
 
 #test("basic while test") {
@@ -2471,15 +2606,16 @@ idx := someFunc() else { panic(error) }
         ++x
     }
     
-    expect(x == 100) // expect() is like assert and is built-in to test files.
-    // Unlike assert it will not panic on failure, it will just cause that test to fail and return
-    // early from the test.
+    expectEq(x, 100)
 }
 
 // To skip a test prefix the test name with "skip:".
 #test("skip:this will be skipped") {
-    expect(true == true)
+    expect(true)
 }
+
+// expect(), expectEq() is like assert and is built-in to test files. Unlike assert it will not
+// panic on failure, it will just cause that test to fail and return early from the test.
 
 // Tests have to be written in a test file. Test files have the format of *.test.nifty
 
@@ -2490,12 +2626,53 @@ idx := someFunc() else { panic(error) }
 // To run a specific test file
 // nifty test while.test.nifty
 
-// To run a specific test in a specific file
+// To run a specific test in a specific test file
 // nifty test while.test.nifty "basic while test"
+
+// [IMPLICIT CONTEXTS] ----------------------------------------------------------------------------
+
+// Every scope in nifty has its own implicit context that gets passed to every nifty function,
+// unluess #[noContext] is used. The context can be used to modifty how existing libraries allocate
+// memory or do logging.
+
+fn someFunc() {
+    context.userIndex = 123 {
+        context.allocator = someCustomAllocator
+        context.userIndex = 456
+        otherFunc()
+    }
+    
+    assert(context.userIndex == 123) // True
+}
+
+fn otherFunc() {
+    ptr := new int{12} // When called from someFunc() this uses someCustomAllocator.
+    prinln(x^)
+    delete x // When called from someFunc() this uses someCustomAllocator.
+    
+    assert(context.userIndex == 456) // True when called from someFunc().
+}
+
+// Contexts could also be used for thread safe memory management as each thread would have a
+// different context.
+
+// The context struct will look something like this:
+
+type Context struct {
+    allocator: does Allocator
+    allocatorTmp: does Allocator
+    assertionFailure: fn(prefix, msg: string, loc: SourceLocation)
+    logger: does Logger
+    
+    userData: rawptr
+    userIndex: int
+    
+    internal: rawptr #[compilerOnly]
+}
 
 // [MACROS] ---------------------------------------------------------------------------------------
 
-// Nifty has a limited subset of macros mainly meant for compiletime decisions.
+// Nifty has an intentionally very limited subset of macros mainly meant for compiletime decisions.
 
 #define SOME_CONST_MACRO
 // SOME_CONST_MACRO is defined but doesn't have a value.
@@ -2543,6 +2720,9 @@ someVar := OTHER_CONST_MACRO // Invalid
 // #pathRaw        // usually the same as #path but if in a macro will show the path the macro is in, not where it is used
 #line           // replaced with the line the macro is on
 // #lineRaw        // usually the same as #line but if in a macro will show the line in the macro, not where it is used
+#location()     // replaced with the location of the given function/variable/struct/other. If no argument is given then
+                // the current location is used. The location is a struct with the filename, path, and line.
+#callerLocation // replaced with a struct containing the calling function's location
 #function       // replaced with the function name the macro is in
 #package        // replaced with the name of the current package
 #os             // replaced with the OS that the compiler is running on currently
@@ -2552,8 +2732,8 @@ someVar := OTHER_CONST_MACRO // Invalid
 #buildIfAll()   // will build the file/block only if all of the arguments are defined
 #buildIfTrue()  // will build the file/block onlyif all of the arguments evaluate to true
 #buildIfFalse() // will build the file/block onlyif all of the arguments evaluate to false
-#time           // replaced with the current time
-#date           // replaced with the current date
+#time           // replaced with the current time HH:MM:SS
+#date           // replaced with the current date yyyy-mm-dd
 
 // The raw macros are commented out because they are currently unnecessary. But if I decide to
 // allow user defined function macros they will be useful to have so they stay on the list for now.
@@ -2576,7 +2756,8 @@ someVar := OTHER_CONST_MACRO // Invalid
 #strictIEEE        // ignores IEEE breaking optimizations for the code block. If an algorith relies
                    // on IEEE correctness then this should be used while the optimizations can be 
                    // used in the rest of the code. Some optimizations may still happen anyway as
-                   // they can be a thread level optimization (e.g. flush to zero).
+                   // they can be a thread level optimization (e.g. flush to zero). If that is the
+                   // case for you then glhf.
 
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
@@ -2619,7 +2800,7 @@ println(str) // hello.txt contents
 // receive the signal. If a signal is emitted all the corresponding slot will reveive it.
 // Signals and slots can either be standalone functions or methods implemented on a struct. The
 // two different types can be mixed. For instance a function can emit a signal that is recieved by
-// a slot method. Signals do not have implementations and thus do not use the fn or md keywords.
+// a slot method. Signals do not have implementations and thus must use undefined for the body.
 // Slots on the other hand do have implementations so the fn or md keyword is required. This means
 // that slots can be called like any normal function or method. One signal can be connected to many
 // slots and vice versa. Signals can even be connected to other signals. When this is the case when
@@ -2627,14 +2808,17 @@ println(str) // hello.txt contents
 // or slots are connected togther they are executed in the order they were connected.
 // Signals and slots can be slower than just using callbacks because there are runtime checks that
 // happen in the background to make sure the calls to any objects are safe. However in almost all
-// cases the convenience and flexability is woth the overhead.
+// cases the convenience and flexability is worth the overhead.
 
 // Signals must never return a type, they must be void.
-signal valueChanged(newVal: int)
+#[signal]
+fn valueChanged(newVal: int) undefined
 
 // Slots can return a type as they are otherwise normal functions. However in many cases the return
 // value will be discarded. Because of this the #[useReturn] attribute can't be used with slots.
-slot fn setValue(newVal: int) {
+// A warning will be emitted if a slot returns something.
+#[slot]
+fn setValue(newVal: int) {
     someVal = newVal
 }
 
@@ -2657,17 +2841,17 @@ emit emitterFn()
 // [ORM] ------------------------------------------------------------------------------------------
 
 // The ORM is Called Norm (Nifty Object Relational Mapping).
-// One syntax for allSQL dialects. Queries are made within nifty. This allows for compile time checks
-// as well as automatic sanitization. Improved readability. This feature is a stretch goal and would
-// likely be one of the last parts of the language to be worked on.
+// One syntax for all SQL dialects. Queries are made within nifty. This allows for compile time
+// checks as well as automatic sanitization, and improved readability. This feature is a stretch
+// goal and would likely be one of the last parts of the language to be worked on.
 
 #[normTable("people")]
 type Person struct {
-    id:        int        `norm: "primaryKey, autoIncrement"`
-    name:      string     `norm: "notNull"`
-    userName:  string     `norm: "notNull, unique"`
+    id:        int        #[norm("primaryKey, autoIncrement")]
+    name:      string     #[norm("notNull")]
+    userName:  string     #[norm("notNull, unique")]
     address:   string
-    dob:       time::Date `norm: "notNull"` // yyyy-mm-dd
+    dob:       time::Date #[norm("notNull")] // yyyy-mm-dd
     createdAt: time::Time
     updatedAt: time::Time
 }
@@ -2710,7 +2894,14 @@ let c: type_from(b) // c is type bool
 assert(type_from(c) == bool) // true
 assert(type_of(c) == "bool") // true
 
-typeid_of()
+a := typeid_of(bool)
+x := 12
+b := typeid_of(type_from(x))
+
+type_of() // Returns string
+type_from() // Returns type
+typeid_of() // Returns typeid
+typeinfo_of() // Returns TypeInfo struct (?)
 
 num := 42.f
 assert(size_of(num) == 4) // true
@@ -2735,7 +2926,9 @@ fn updatePointers(restrict ptrA, restrict ptrB, restrict value: ^int) { /- ... -
 
 // If you need to use existing c code you can use the 'extern' keyword.
 
-use extern "libc.lib" as libc // Because c libraries don't have packages 'as' must be used to give the library a name.
+package libc
+use extern "libc.lib" as libc // Because c libraries don't have packages 'as' must be used to give
+                              // the library a name. Can be the same as the package name.
 
 // To tell nifty what is being used you must define everything with extern and the library name.
 
@@ -2753,6 +2946,7 @@ extern libc {
     // Everything in extern packages is public.
     #buildIf(OS_WINDOWS) { fn _aligned_malloc(size, alignment: size_t): rawptr undefined }
     #buildIfNot(OS_WINDOWS) { fn aligned_alloc(alignment, size: size_t): rawptr undefined }
+    // extern functions do not have a context passed to them.
 }
 
 res := libc::fflush(^file)
@@ -2761,7 +2955,7 @@ res := libc::fflush(^file)
 
 #[asmReturn]
 fn power2(num, power: int): int {
-    asm {
+    #asm {
         mov eax, num   // First arg
         mov ecx, power // Second arg
         shl eax, cl    // eax = eax * (2 ** cl)
@@ -2787,7 +2981,7 @@ assert(x == 0)
 @+, @-, @*, @/, @<<, @+=, @-=, @*=, @/=, @<<=, @++, @--
 
 x := math::MAX_INT
-x %+= 1
+x @+= 1
 assert(x == math::MAX_INT) // true
 
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
@@ -2902,7 +3096,7 @@ nifty build build
 /-
 
 Nifty will also eventually have two standard tools. A nifty LSP (Language Server Protocol) called Dandy
-and a code formatting tool called Neato. Neato will be configurable to run everytime a file in a wathced
+and a code formatting tool called Neato. Neato will be configurable to run everytime a file in a watched
 directory is updated.
 
 -/
@@ -2925,9 +3119,9 @@ impl
 constimpl
 endimpl
 in
-asm
 defer
 defer_err
+try
 restrict
 goto
 cast
@@ -2935,6 +3129,8 @@ recast
 auto_cast
 type_of
 type_from
+typeid_of
+typeinfo_of
 size_of
 name_of
 align_of
@@ -2955,31 +3151,17 @@ behavior
 does
 struct
 enum
-bool
-b8
-b16
-b32
-b64
+bool b8 b16 b32 b64
 char
-string
-int
-uint
-float
-double
-s8
-s16
-s32
-s64
-s128
-u8
-u16
-u32
-u64
-u128
-f16
-f32
-f64
+string cstring
+int uint
+float double
+s8 s16 s32 s64 s128
+u8 u16 u32 u64 u128
+f16 f32 f64
 void
+typeid
+rawptr
 let
 val
 const
@@ -2987,12 +3169,10 @@ fn
 md
 type
 emit
-signal
-slot
 
 // Built in functions
-assert
-panic
+assert()
+panic()
 
 // [TODO / IDEAS] ---------------------------------------------------------------------------------
 
@@ -3002,17 +3182,24 @@ If there is a question mark after that means I'm not sure if I want to add that
 to the language. Otherwise it is something I want in the language I just haven't
 written it into the spec yet.
 
+SOA data types
+complex types (?)
+quaternion types (?)
+explicit little/big endian types (?)
+matrix type (?)
+map type (?)
+
 coroutines/channels (?)
-compiletime code execution (JIT)
-user attributes
-custom memory allocators
+compiletime code execution with #run (JIT)
+insert code from a string or code at compiletime with #insert
+#expand to turn functions into macros (?)
+#memoise()
+get access to AST at compiletime
+user attributes (possibly explaned in nsl)
 matrix data type (?)
 complex number data type (?)
-unique pointer (?)
-shared pointer (?)
-autofree, compiler inserts free/delete statements to reduce memory leaks (?)
 time traveling debugger (?)
-built-in shell scripting mode
+built-in shell scripting mode (?)
 translate c code to nifty (extra feature)
 c backend (?)
 compatibility with c ABI (for X system)
@@ -3021,39 +3208,19 @@ build artifact caching
 unreachable (?)
 something like NORM for graphql (?)
 
+build system done in nifty instead of a toml project file, build.nifty
+
 -/
-
-fn takePtr(ptr: ^int) { /- ... -/ }
-
-ptr: ^int = undefined
-takePtr(^ptr)
-
-// Can the compiler know if ptr will be used or initialized in takePrt()?
-// If it is being used without being initialized it should not compile otherwise that will be a crash.
-
-// Maybe there could be a function attribute to let the compiler know it will be initializing pointers
-// before it uses them?
-
-#[initPtr("ptr1")]
-fn takePtrs(ptr1, ptr2: ^int) { /- ... -/ }
-
-// ptr1 is initialized in this function while ptr2 is expected to be initialized beforehand.
-// without #[initPtr()]
-
-ptr: ^int = undefined
-takePtr(^ptr) // Invalid
-
-// Should be a compiler error.
 
 // Include c code and use it. 
 
 use extern "raylib.h" as raylib
 
 fn main() {
-    screenWidth  ::= 1024
-    screenHeight ::= 600
+    SCREEN_WIDTH  ::= 1024
+    SCREEN_HEIGHT ::= 600
     
-    raylib::InitWindow(screenWidth, screenHeight, "basic raylib window")
+    raylib::InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "basic raylib window")
     defer raylib::CloseWindow()
     
     until (raylib::WindowShouldClose()) {
@@ -3064,39 +3231,3 @@ fn main() {
         raylib::DrawText("Hello, world!", 100, 100, 20, raylib::BLACK)
     }
 }
-
-// ------------------- Optional pointer thoughts
-
-fn someFunc(foo: ^Foo) { /- ... -/ }
-
-let foo: ^Foo? = null // foo is type Optional<^Foo>
-
-foo = new Foo()
-
-if (foo) {
-    someFunc(^foo) // foo is type ^Foo
-    foo->doAThing()
-    delete foo // pointer foo memory is freed, optional foo is set to null
-}
-
-// foo is type Optional<^Foo>
-assert(foo == null) // True
-assert(foo.isNull() == true) // True, note the optionals are not pointers so the dot is used.
-
-// -------------------
-
-let ptr: ^int? = null
-
-assert(ptr == null) // True
-
-x := 1
-ptr = &x
-
-if (ptr) {
-    assert(ptr^ == 1) // True
-    delete ptr
-}
-
-assert(ptr == null) // True
-assert(ptr.hasValue() == false) // True
-

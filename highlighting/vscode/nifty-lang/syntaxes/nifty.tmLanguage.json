@@ -32,11 +32,11 @@
 			"patterns": [
                 {
                     "name": "keyword.control.nifty",
-                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|constimpl|endimpl|in|asm|defer|defer_err|restrict|goto|try)\\b"
+                    "match": "\\b(if|else|elif|while|until|do|for|step|return|when|break|continue|impl|constimpl|endimpl|in|defer|defer_err|restrict|goto|try)\\b"
                 },
                 {
                     "name": "keyword.intrinsics.nifty",
-                    "match": "\\b(cast|recast|auto_cast|type_of|typeid_of|type_from|size_of|name_of|align_of)\\b"
+                    "match": "\\b(cast|recast|auto_cast|type_of|typeid_of|typeinfo_of|type_from|size_of|name_of|align_of)\\b"
                 },
                 {
                     "name": "keyword.operator.new",
@@ -115,12 +115,12 @@
                     "match": "\\b(struct|enum|interface)\\b"
                 },
                 {
-                    "match": "\\b(bool|b8|b16|b32|b64|char|string|cstring|int|uint|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|typeid|rawptr)\\b",
+                    "match": "\\b(bool|b8|b16|b32|b64|char|string|cstring|int|uint|uintptr|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|typeid|rawptr)\\b",
                     "name": "storage.type.primitive.nifty"
                 },
                 {
                     "name": "keyword.other.signal_slot.nifty",
-                    "match": "\\b(signal|slot|emit)\\b"
+                    "match": "\\b(emit)\\b"
                 },
                 {
                     "name": "keyword.other.included",
