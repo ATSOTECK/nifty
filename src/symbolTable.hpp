@@ -62,7 +62,7 @@ public:
     SymbolTable();
     SymbolTable(SymbolTable *container);
 
-    keep bool contains(const String &name, SymbolKind kind) const;
+    [[nodiscard]] bool contains(const String &name, SymbolKind kind) const;
     bool add(const Symbol &symbol);
 
 

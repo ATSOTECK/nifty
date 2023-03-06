@@ -20,47 +20,31 @@
  *
  */
 
-#ifndef __NIFTY_LEXER_HPP__
-#define __NIFTY_LEXER_HPP__
+#include "buildConfig.hpp"
 
-#include "token.hpp"
-
-#include <vector>
-
-class Lexer {
-public:
-    explicit Lexer(String path);
-
-    [[nodiscard]] Token nextToken();
-    [[nodiscard]] int line() const;
-    [[nodiscard]] int linePos() const;
-    [[nodiscard]] String filename() const;
-    [[nodiscard]] String path() const;
-
-private:
-    [[nodiscard]] Token next();
-    void genTokens();
-
-    void eat();
-    void eat(uint8 amount);
-    void eatLine();
-    void eatBlock();
-    void eatWhiteSpace();
-
-    [[nodiscard]] char32 peek(uint8 count = 1) const;
-
-    void warn(const String &warning) const;
-
-    std::vector<Token> _tokens;
-    int _idx;
-    String _path;
-    String _filename;
-    String _code;
-    int _pos;
-    int _linePos;
-    int _line;
-    int _currentChar;
-};
-
-
-#endif //__NIFTY_LEXER_HPP__
+BuildConfig getDefaultBuildConfig() {
+    BuildConfig config{
+        .targetName = "NiftyDefaultTarget",
+        .outputName = "NiftyDefaultOutput",
+        .entryPoint = "main",
+        .noEntryPoint = false,
+        .noDepreciated = false,
+        .noGoto = true,
+        .debug = false,
+        .defines{},
+        .errorOnWarn = false,
+        .noWarn = false,
+        .optimization = "none",
+        .isDefault = false,
+        .noBoundsCheck = false,
+        .children{},
+        .disallowNull = false,
+        .macroRecursionDepth = 2,
+        .executeBeforePlatforms{},
+        .executeBeforeCmds{},
+        .executeAfterPlatforms{},
+        .executeAfterCmds{},
+        .deprecatedAfterWarnWithin = 0,
+    };
+    return config;
+}

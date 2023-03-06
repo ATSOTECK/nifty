@@ -44,20 +44,20 @@ public:
     String(double n);
     ~String() noexcept;
 
-    keep int64 length() const;
-    keep int64 size() const;
+    [[nodiscard]] int64 length() const;
+    [[nodiscard]] int64 size() const;
 
     void clear();
-    keep bool empty() const;
+    [[nodiscard]] bool empty() const;
 
-    keep int64 indexOf(char32 cp) const;
-    keep int64 indexOf(const String &str) const;
-    keep int64 indexOfNext(char32 cp, int64 startFrom) const;
-    keep int64 indexOfNext(const String &str, int64 startFrom) const;
-    keep int64 indexOfLast(char32 cp) const;
-    keep int64 indexOfLast(const String &str) const;
-    keep bool contains(char32 cp) const;
-    keep bool contains(const String &str) const;
+    [[nodiscard]] int64 indexOf(char32 cp) const;
+    [[nodiscard]] int64 indexOf(const String &str) const;
+    [[nodiscard]] int64 indexOfNext(char32 cp, int64 startFrom) const;
+    [[nodiscard]] int64 indexOfNext(const String &str, int64 startFrom) const;
+    [[nodiscard]] int64 indexOfLast(char32 cp) const;
+    [[nodiscard]] int64 indexOfLast(const String &str) const;
+    [[nodiscard]] bool contains(char32 cp) const;
+    [[nodiscard]] bool contains(const String &str) const;
 
     static bool isNumber(char32 cp);
     static bool isHexNumber(char32 cp);
@@ -69,25 +69,25 @@ public:
     static bool isWhitespace(char32 cp);
     static bool isNewline(char32 cp);
 
-    keep bool startsWith(const String &str, bool ignoreWhitespace = false) const;
-    keep bool endsWith(const String &str, bool ignoreWhitespace = false) const;
+    [[nodiscard]] bool startsWith(const String &str, bool ignoreWhitespace = false) const;
+    [[nodiscard]] bool endsWith(const String &str, bool ignoreWhitespace = false) const;
 
-    keep String stringAfter(int64 index) const;
-    keep String stringBefore(int64 index) const;
+    [[nodiscard]] String stringAfter(int64 index) const;
+    [[nodiscard]] String stringBefore(int64 index) const;
 
-    keep String stringAfterLast(char32 cp) const;
-    keep String stringAfterLast(char32 cp0, char32 cp1) const;
+    [[nodiscard]] String stringAfterLast(char32 cp) const;
+    [[nodiscard]] String stringAfterLast(char32 cp0, char32 cp1) const;
     //This is NOT the same as (stringAfterLast(cp0) || stringAfterLast(cp1)).
     //Same for the following functions.
 
-    keep String stringAfterFirst(char32 cp) const;
-    keep String stringAfterFirst(char32 cp0, char32 cp1) const;
+    [[nodiscard]] String stringAfterFirst(char32 cp) const;
+    [[nodiscard]] String stringAfterFirst(char32 cp0, char32 cp1) const;
 
-    keep String stringBeforeFirst(char32 cp) const;
-    keep String stringBeforeFirst(char32 cp0, char32 cp1) const;
+    [[nodiscard]] String stringBeforeFirst(char32 cp) const;
+    [[nodiscard]] String stringBeforeFirst(char32 cp0, char32 cp1) const;
 
-    keep String stringBeforeLast(char32 cp) const;
-    keep String stringBeforeLast(char32 cp0, char32 cp1) const;
+    [[nodiscard]] String stringBeforeLast(char32 cp) const;
+    [[nodiscard]] String stringBeforeLast(char32 cp0, char32 cp1) const;
 
     void erase(int64 index, int64 count = 1);
 
@@ -105,28 +105,28 @@ public:
     void replace(int64 index, int64 len, const String &str);
     bool replace(const String &findStr, const String &replaceStr);
 
-    keep String substring(int64 index, int64 len = 0) const;
-    keep String substr(int64 begin, int64 end) const;
+    [[nodiscard]] String substring(int64 index, int64 len = 0) const;
+    [[nodiscard]] String substr(int64 begin, int64 end) const;
 
     ///Only works with ASCII.
-    keep String toUpper() const;
-    keep String toLower() const;
-    keep String swapCase() const;
-    keep String reverse() const;
+    [[nodiscard]] String toUpper() const;
+    [[nodiscard]] String toLower() const;
+    [[nodiscard]] String swapCase() const;
+    [[nodiscard]] String reverse() const;
 
-    keep char *c_str() const;
-    keep std::string stdString() const;
+    [[nodiscard]] char *c_str() const;
+    [[nodiscard]] std::string stdString() const;
 
-    keep int toInt(int base = Dec) const;
-    keep float toFloat() const;
-    keep double toDouble() const;
+    [[nodiscard]] int toInt(int base = Dec) const;
+    [[nodiscard]] float toFloat() const;
+    [[nodiscard]] double toDouble() const;
 
     void reserve(int64 size);
     void resize(int64 size);
 
-    keep int64 offsetForCharIndex(int64 index) const;
-    keep char raw(int64 index) const;
-    keep int32 codepoint(int64 index) const;
+    [[nodiscard]] int64 offsetForCharIndex(int64 index) const;
+    [[nodiscard]] char raw(int64 index) const;
+    [[nodiscard]] int32 codepoint(int64 index) const;
     static int32 codepointFor(const String &str);
     static String stringFrom(char32 cp);
 

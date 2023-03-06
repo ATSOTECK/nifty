@@ -31,6 +31,7 @@ enum Tokens {
     TK_UNKNOWN = 0,
 
     TK_FN,
+    TK_MD,
     TK_STATIC,
 
     TK_IF,
@@ -42,17 +43,17 @@ enum Tokens {
     TK_STEP,
     TK_AS,
     TK_CAST,
+    TK_RECAST,
+    TK_AUTOCAST,
     TK_STRUCT,
     TK_IMPL,
+    TK_CONSTIMPL,
     TK_END_IMPL,
     TK_DOES,
     TK_BEHAVIOR,
     TK_ENUM,
     TK_UNION,
-
-    TK_PUBLIC, // Is this needed?
-    TK_PRIVATE, // Is this needed?
-    TK_READ_ONLY, // Is this needed?
+    TK_INTERFACE,
 
     TK_DEFER,
     TK_RESTRICT,
@@ -60,29 +61,22 @@ enum Tokens {
 
     TK_TYPE,
     TK_FOR,
-    TK_FOREVER, // Not sure if I'll keep this.
     TK_WHILE,
     TK_UNTIL,
     TK_WHEN,
-    TK_REPEAT, // Could this be a macro?
     TK_GOTO,
     TK_BREAK,
     TK_CONTINUE,
     TK_RETURN,
 
     TK_ASM,
-    TK_INLINE,
-    TK_NOINLINE,
 
     TK_TRUE,
     TK_FALSE,
 
-    TK_GLOBAL,
-    TK_LOCAL,
     TK_LET, // mutable
     TK_VAL, // immutable
     TK_CONST, // immutable, compile time
-    TK_LATEINIT,
     TK_NEW,
     TK_DELETE,
     TK_THIS,
@@ -103,6 +97,10 @@ enum Tokens {
     TK_STRING_TYPE,
     TK_CHAR_TYPE,
     TK_BOOL,
+    TK_B8,
+    TK_B16,
+    TK_B32,
+    TK_B64,
     TK_U8,
     TK_U16,
     TK_U32,
@@ -117,10 +115,15 @@ enum Tokens {
     TK_USIZE,
     TK_VOID,
     TK_ERROR,
+    TK_MAP,
 
     TK_NULL,
     TK_UNDEFINED,
     TK_UNUSED,
+
+    TK_EMIT,
+    TK_SIGNAL,
+    TK_SLOT,
 
     TK_OPERATOR,
 

@@ -147,6 +147,101 @@ void build(const char *arg) {
     parser.parse();
 }
 
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/Host.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/IR/LegacyPassManager.h>
+
+#include "buildConfig.hpp"
+
+int main() {
+    let context = new llvm::LLVMContext();
+    llvm::IRBuilder<> builder(*context);
+    let mod = std::make_unique<llvm::Module>("test", *context);
+
+    let s32 = builder.getInt32Ty();
+    let prototype = llvm::FunctionType::get(s32, false);
+    let mainFn = llvm::Function::Create(prototype, llvm::Function::ExternalLinkage, "main", mod.get());
+    let body = llvm::BasicBlock::Create(*context, "body", mainFn);
+    builder.SetInsertPoint(body);
+
+    let s8p = builder.getInt8PtrTy();
+    let printfPrototype = llvm::FunctionType::get(s8p, true);
+    let printfFn = llvm::Function::Create(printfPrototype, llvm::Function::ExternalLinkage, "printf", mod.get());
+
+    let str = builder.CreateGlobalStringPtr(llvm::StringRef("hello world!\n"), "hello", 0, mod.get());
+    builder.CreateCall(printfFn, { str });
+
+    let ret = llvm::ConstantInt::get(s32, 0);
+    builder.CreateRet(ret);
+/*
+    let engine = llvm::EngineBuilder(std::move(mod)).setEngineKind(llvm::EngineKind::Interpreter).create();
+    let mainFunc = engine->FindFunctionNamed(llvm::StringRef("main"));
+    let res = engine->runFunction(mainFunc, {});
+
+    return (int)res.IntVal.getLimitedValue();
+  */
+
+    mod->print(llvm::errs(), nullptr);
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
+    let config = getDefaultBuildConfig();
+
+    let targetTriple = llvm::sys::getDefaultTargetTriple();
+    mod->setTargetTriple(targetTriple);
+
+    std::string err;
+    let target = llvm::TargetRegistry::lookupTarget(targetTriple, err);
+
+    if (!target) {
+        llvm::errs() << err;
+        return 1;
+    }
+
+    std::string CPU = "generic";
+    std::string features;
+
+    llvm::TargetOptions opt;
+    let rm = llvm::Optional<llvm::Reloc::Model>();
+    let targetMachine = target->createTargetMachine(targetTriple, CPU, features, opt, rm);
+
+    mod->setDataLayout(targetMachine->createDataLayout());
+
+    let filename = config.outputName.stdString();
+    std::error_code ec;
+    llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
+
+    if (ec) {
+        llvm::errs() << "Could not open file:" << ec.message();
+        return 1;
+    }
+
+    llvm::legacy::PassManager pass;
+    let filetype = llvm::CGFT_ObjectFile;
+
+    if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, filetype)) {
+        llvm::errs() << "targetMachine can't emit a file of this type.";
+        return 1;
+    }
+
+    pass.run(*mod);
+    dest.flush();
+
+    llvm::outs() << "Wrote " << filename << "\n";
+
+    return 0;
+}
+
+/*
 int main(int argc, char **argv) {
     std::ifstream buildFile;
     buildFile.open(NIFTY_BUILD_FILE, std::ios_base::in);
@@ -182,3 +277,4 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+ */

@@ -20,47 +20,37 @@
  *
  */
 
-#ifndef __NIFTY_LEXER_HPP__
-#define __NIFTY_LEXER_HPP__
+#ifndef NIFTY_BUILDCONFIG_HPP
+#define NIFTY_BUILDCONFIG_HPP
 
-#include "token.hpp"
+#include "util/str.hpp"
 
 #include <vector>
 
-class Lexer {
-public:
-    explicit Lexer(String path);
-
-    [[nodiscard]] Token nextToken();
-    [[nodiscard]] int line() const;
-    [[nodiscard]] int linePos() const;
-    [[nodiscard]] String filename() const;
-    [[nodiscard]] String path() const;
-
-private:
-    [[nodiscard]] Token next();
-    void genTokens();
-
-    void eat();
-    void eat(uint8 amount);
-    void eatLine();
-    void eatBlock();
-    void eatWhiteSpace();
-
-    [[nodiscard]] char32 peek(uint8 count = 1) const;
-
-    void warn(const String &warning) const;
-
-    std::vector<Token> _tokens;
-    int _idx;
-    String _path;
-    String _filename;
-    String _code;
-    int _pos;
-    int _linePos;
-    int _line;
-    int _currentChar;
+struct BuildConfig {
+    String targetName;
+    String outputName;
+    String entryPoint;
+    bool noEntryPoint;
+    bool noDepreciated;
+    bool noGoto;
+    bool debug;
+    std::vector<String> defines;
+    bool errorOnWarn;
+    bool noWarn;
+    String optimization;
+    bool isDefault;
+    bool noBoundsCheck;
+    std::vector<String> children;
+    bool disallowNull;
+    int macroRecursionDepth;
+    std::vector<String> executeBeforePlatforms;
+    std::vector<String> executeBeforeCmds;
+    std::vector<String> executeAfterPlatforms;
+    std::vector<String> executeAfterCmds;
+    int deprecatedAfterWarnWithin;
 };
 
+BuildConfig getDefaultBuildConfig();
 
-#endif //__NIFTY_LEXER_HPP__
+#endif //NIFTY_BUILDCONFIG_HPP

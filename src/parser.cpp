@@ -175,7 +175,7 @@ Node *Parser::parseErr(const char *error, ...) {
     char buff[2048];
     va_list args;
     va_start(args, error);
-    vsprintf(buff, error, args);
+    vsnprintf(buff, 2048, error, args);
     va_end(args);
     std::cerr << buff << std::endl;
 
@@ -249,10 +249,9 @@ Node *Parser::parsePrimary() {
 
 void Parser::parsePackage() {
     eat(TK_IDENT, "identifier", "package");
-    std::cout << "package is now: " << _current.lexeme << std::endl;
+    std::cout << "current package is now: " << _current.lexeme << std::endl;
     _currentPackage = _current.lexeme;
     let *package = new SymbolTable();
-    _packages[_current.lexeme] = package;
     eat();
 }
 

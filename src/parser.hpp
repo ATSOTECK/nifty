@@ -34,11 +34,11 @@ class Parser {
 public:
     explicit Parser(Lexer *lex);
 
-    keep bool finishedWithErrors() const {
+    [[nodiscard]] bool finishedWithErrors() const {
         return _finishedWithErrors;
     }
 
-    keep bool foundEntrypoint() const {
+    [[nodiscard]] bool foundEntrypoint() const {
         return _foundEntrypoint;
     }
 

@@ -20,47 +20,14 @@
  *
  */
 
-#ifndef __NIFTY_LEXER_HPP__
-#define __NIFTY_LEXER_HPP__
+#ifndef NIFTY_CODEGEN_HPP
+#define NIFTY_CODEGEN_HPP
 
-#include "token.hpp"
 
-#include <vector>
-
-class Lexer {
+class Codegen {
 public:
-    explicit Lexer(String path);
-
-    [[nodiscard]] Token nextToken();
-    [[nodiscard]] int line() const;
-    [[nodiscard]] int linePos() const;
-    [[nodiscard]] String filename() const;
-    [[nodiscard]] String path() const;
-
-private:
-    [[nodiscard]] Token next();
-    void genTokens();
-
-    void eat();
-    void eat(uint8 amount);
-    void eatLine();
-    void eatBlock();
-    void eatWhiteSpace();
-
-    [[nodiscard]] char32 peek(uint8 count = 1) const;
-
-    void warn(const String &warning) const;
-
-    std::vector<Token> _tokens;
-    int _idx;
-    String _path;
-    String _filename;
-    String _code;
-    int _pos;
-    int _linePos;
-    int _line;
-    int _currentChar;
+    void initTarget();
 };
 
 
-#endif //__NIFTY_LEXER_HPP__
+#endif //NIFTY_CODEGEN_HPP
