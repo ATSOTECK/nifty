@@ -147,6 +147,7 @@ void build(const char *arg) {
     parser.parse();
 }
 
+/*
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/IR/IRBuilder.h>
@@ -178,13 +179,13 @@ int main() {
 
     let ret = llvm::ConstantInt::get(s32, 0);
     builder.CreateRet(ret);
-/*
+//
     let engine = llvm::EngineBuilder(std::move(mod)).setEngineKind(llvm::EngineKind::Interpreter).create();
     let mainFunc = engine->FindFunctionNamed(llvm::StringRef("main"));
     let res = engine->runFunction(mainFunc, {});
 
     return (int)res.IntVal.getLimitedValue();
-  */
+//
 
     mod->print(llvm::errs(), nullptr);
 
@@ -216,7 +217,7 @@ int main() {
 
     mod->setDataLayout(targetMachine->createDataLayout());
 
-    let filename = config.outputName.stdString();
+    let filename = config.objectName.stdString();
     std::error_code ec;
     llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
 
@@ -236,12 +237,15 @@ int main() {
     pass.run(*mod);
     dest.flush();
 
+    // call cc NiftyDefaultOutput -o NiftyOutExe
+
     llvm::outs() << "Wrote " << filename << "\n";
 
     return 0;
 }
 
-/*
+*/
+
 int main(int argc, char **argv) {
     std::ifstream buildFile;
     buildFile.open(NIFTY_BUILD_FILE, std::ios_base::in);
@@ -277,4 +281,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
- */

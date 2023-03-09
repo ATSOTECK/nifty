@@ -25,7 +25,8 @@
 BuildConfig getDefaultBuildConfig() {
     BuildConfig config{
         .targetName = "NiftyDefaultTarget",
-        .outputName = "NiftyDefaultOutput",
+        .exeName = "NiftyDefaultExe",
+        .objectName = "niftyObject.o",
         .entryPoint = "main",
         .noEntryPoint = false,
         .noDepreciated = false,

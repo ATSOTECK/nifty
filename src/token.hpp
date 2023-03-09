@@ -32,7 +32,6 @@ enum Tokens {
 
     TK_FN,
     TK_MD,
-    TK_STATIC,
 
     TK_IF,
     TK_IF_NOT,
@@ -52,12 +51,11 @@ enum Tokens {
     TK_DOES,
     TK_BEHAVIOR,
     TK_ENUM,
-    TK_UNION,
-    TK_INTERFACE,
+    TK_INTERFACE, // Remove?
 
     TK_DEFER,
+    TK_DEFER_ERR,
     TK_RESTRICT,
-    TK_ASSERT,
 
     TK_TYPE,
     TK_FOR,
@@ -68,8 +66,7 @@ enum Tokens {
     TK_BREAK,
     TK_CONTINUE,
     TK_RETURN,
-
-    TK_ASM,
+    TK_TRY,
 
     TK_TRUE,
     TK_FALSE,
@@ -84,17 +81,22 @@ enum Tokens {
     TK_USE,
     TK_USING,
     TK_PACKAGE,
+    TK_EXTERN,
 
-    TK_SIZEOF,
-    TK_ALIGNOF,
-    TK_TYPEOF,
-    TK_TYPEFROM,
-    TK_NAMEOF,
+    TK_SIZE_OF,
+    TK_ALIGN_OF,
+    TK_TYPE_OF,
+    TK_TYPEID_OF,
+    TK_TYPEINFO_OF,
+    TK_TYPE_FROM,
+    TK_NAME_OF,
 
     TK_INT,
+    TK_UINT,
     TK_FLOAT,
     TK_DOUBLE,
     TK_STRING_TYPE,
+    TK_CSTRING_TYPE,
     TK_CHAR_TYPE,
     TK_BOOL,
     TK_B8,
@@ -111,21 +113,19 @@ enum Tokens {
     TK_S32,
     TK_S64,
     TK_S128,
-    TK_ISIZE,
-    TK_USIZE,
+    TK_F16,
+    TK_F32,
+    TK_F64,
+    TK_F128,
     TK_VOID,
-    TK_ERROR,
-    TK_MAP,
+    TK_RAWPTR,
+    TK_TYPEID,
 
     TK_NULL,
     TK_UNDEFINED,
     TK_UNUSED,
 
     TK_EMIT,
-    TK_SIGNAL,
-    TK_SLOT,
-
-    TK_OPERATOR,
 
     TK_COLON,                   // :
     TK_COMMA,                   // ,
@@ -137,11 +137,11 @@ enum Tokens {
     TK_LBRACKET,                // [
     TK_RBRACKET,                // ]
     TK_DOT,                     // .
-    TK_IRANGE,                  // ..
-    TK_ERANGE,                  // ..<
-    TK_VARY,                    // ...
+    TK_C_RANGE,                 // ..= [a, b]
+    TK_O_RANGE,                 // ..< [a, b)
+    TK_VARY,                    // ..
     TK_LABEL,                   // ident:
-    TK_ANNOTATION,              // @
+    TK_OWNED,                   // @
     TK_MACRO,                   // #
     TK_SCOPE,                   // ::
     TK_LET_DECL,                // :=
@@ -155,11 +155,9 @@ enum Tokens {
     TK_NOTEQU,					// !=
     TK_ADD,                     // +
     TK_INC,                     // x++
-    TK_PREINC,                  // ++x
     TK_ADDEQU,                  // +=
     TK_SUB,                     // -
     TK_DEC,                     // x--
-    TK_PREDEC,                  // --x
     TK_SUBEQU,                  // -=
     TK_MUL,                     // *
     TK_MULEQU,                  // *=
@@ -167,9 +165,32 @@ enum Tokens {
     TK_DIVEQU,                  // /=
     TK_MOD,                     // %
     TK_MODEQU,                  // %=
+    TK_MODMOD,                  // %%
+    TK_MODMODEQU,               // %%=
 
-    TK_POS,                     // +x
-    TK_NEG,                     // -x
+    TK_ADD_W,                   // %+
+    TK_SUB_W,                   // %-
+    TK_MUL_W,                   // %*
+    TK_DIV_W,                   // %/
+    TK_ADDEQU_W,                // %+=
+    TK_SUBEQU_W,                // %-=
+    TK_MULEQU_W,                // %*=
+    TK_DIVEQU_W,                // %/=
+    TK_INC_W,                   // %++
+    TK_DEC_W,                   // %--
+
+    TK_ADD_S,                   // @+
+    TK_SUB_S,                   // @-
+    TK_MUL_S,                   // @*
+    TK_DIV_S,                   // @/
+    TK_ADDEQU_S,                // @+=
+    TK_SUBEQU_S,                // @-=
+    TK_MULEQU_S,                // @*=
+    TK_DIVEQU_S,                // @/=
+    TK_INC_S,                   // @++
+    TK_DEC_S,                   // @--
+    TK_LSL_S,                   // @<<
+    TK_LSLEQU_S,                // @<<=
 
     TK_GREATER,					// >
     TK_GREATEREQU,				// >=
@@ -180,19 +201,17 @@ enum Tokens {
     TK_BITNOT,                  // ~
     TK_BITAND,                  // &
     TK_BITOR,                   // |
-    TK_BITLS,                   // <<
-    TK_BITRS,                   // >>
+    TK_LSL,                     // <<
+    TK_LSR,                     // >>
     TK_XOREQU,                  // ^=
     TK_BITANDEQU,               // &=
     TK_BITOREQU,                // |=
-    TK_BITLSEQU,                // <<=
-    TK_BITRSEQU,                // >>=
+    TK_LSLEQU,                  // <<=
+    TK_LSREQU,                  // >>=
 
     TK_ADDR,                    // &x
     TK_DEREF,                   // x^
     TK_POINT,                   // ->
-    TK_PDREF,                   // ->*
-    TK_DOTREF,                  // .*
 
     TK_QMRK,                    // ?
     TK_QDOT,                    // ?.

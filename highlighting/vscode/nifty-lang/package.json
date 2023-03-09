@@ -13,7 +13,7 @@
         "languages": [{
             "id": "nifty",
             "aliases": ["Nifty", "nifty"],
-            "extensions": [".nifty"],
+            "extensions": [".nifty", ".ny"],
             "configuration": "./language-configuration.json"
         }],
         "grammars": [{

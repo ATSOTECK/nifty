@@ -38,9 +38,9 @@ std::map<String, Tokens> Token::keywords = {
 
         {"fn", TK_FN},
         {"md", TK_MD},
-        {"static", TK_STATIC},
 
         {"return", TK_RETURN},
+        {"try", TK_TRY},
         {"if", TK_IF},
         {"if!", TK_IF_NOT},
         {"else", TK_ELSE},
@@ -56,6 +56,7 @@ std::map<String, Tokens> Token::keywords = {
         {"continue", TK_CONTINUE},
         {"goto", TK_GOTO},
         {"defer", TK_DEFER},
+        {"defer_err", TK_DEFER_ERR},
         {"restrict", TK_RESTRICT},
 
         {"type", TK_TYPE},
@@ -71,27 +72,27 @@ std::map<String, Tokens> Token::keywords = {
         {"does", TK_DOES},
         {"behavior", TK_BEHAVIOR},
         {"enum", TK_ENUM},
-        {"union", TK_UNION},
         {"interface", TK_INTERFACE},
-
-        {"assert", TK_ASSERT},
-        {"operator", TK_OPERATOR},
 
         {"and", TK_AND},
         {"or", TK_OR},
         {"true", TK_TRUE},
         {"false", TK_FALSE},
 
-        {"size_of", TK_SIZEOF},
-        {"align_of", TK_ALIGNOF},
-        {"type_of", TK_TYPEOF},
-        {"type_from", TK_TYPEFROM},
-        {"name_of", TK_NAMEOF},
+        {"size_of", TK_SIZE_OF},
+        {"align_of", TK_ALIGN_OF},
+        {"type_of", TK_TYPE_OF},
+        {"typeid_of", TK_TYPEID_OF},
+        {"typeinfo_of", TK_TYPEINFO_OF},
+        {"type_from", TK_TYPE_FROM},
+        {"name_of", TK_NAME_OF},
 
         {"int", TK_INT},
+        {"uint", TK_UINT},
         {"float", TK_FLOAT},
         {"double", TK_DOUBLE},
         {"string", TK_STRING_TYPE},
+        {"cstring", TK_CSTRING_TYPE},
         {"char", TK_CHAR_TYPE},
         {"bool", TK_BOOL},
         {"b8", TK_B8},
@@ -108,24 +109,24 @@ std::map<String, Tokens> Token::keywords = {
         {"s32", TK_S32},
         {"s64", TK_S64},
         {"s128", TK_S128},
-        {"isize", TK_ISIZE},
-        {"usize", TK_USIZE},
+        {"f16", TK_F16},
+        {"f32", TK_F32},
+        {"f64", TK_F64},
+        {"f128", TK_F128},
         {"void", TK_VOID},
+        {"rawptr", TK_RAWPTR},
+        {"typeid", TK_TYPEID},
+
         {"null", TK_NULL},
         {"undefined", TK_UNDEFINED},
         {"unused", TK_UNUSED},
-        {"error", TK_ERROR},
-        {"map", TK_MAP},
 
         {"package", TK_PACKAGE},
         {"use", TK_USE},
         {"using", TK_USING},
-
-        {"asm", TK_ASM},
+        {"extern", TK_EXTERN},
 
         {"emit", TK_EMIT},
-        {"signal", TK_SIGNAL},
-        {"slot", TK_SLOT},
 };
 
 String tokenToString(const Token &t) {
@@ -151,11 +152,11 @@ String tokenToString(const Token &t) {
         case TK_LBRACKET: return fmtTTS("TK_LBRACKET", t.lexeme);
         case TK_RBRACKET: return fmtTTS("TK_RBRACKET", t.lexeme);
         case TK_DOT: return fmtTTS("TK_DOT", t.lexeme);
-        case TK_IRANGE: return fmtTTS("TK_IRANGE", t.lexeme);
-        case TK_ERANGE: return fmtTTS("TK_ERANGE", t.lexeme);
+        case TK_C_RANGE: return fmtTTS("TK_C_RANGE", t.lexeme);
+        case TK_O_RANGE: return fmtTTS("TK_O_RANGE", t.lexeme);
         case TK_VARY: return fmtTTS("TK_VARY", t.lexeme);
         case TK_LABEL: return fmtTTS("TK_LABEL", t.lexeme);
-        case TK_ANNOTATION: return fmtTTS("TK_ANNOTATION", t.lexeme);
+        case TK_OWNED: return fmtTTS("TK_OWNED", t.lexeme);
         case TK_MACRO: return fmtTTS("TK_MACRO", t.lexeme);
         case TK_SCOPE: return fmtTTS("TK_SCOPE", t.lexeme);
         case TK_LET_DECL: return fmtTTS("TK_LET_DECL", t.lexeme);
@@ -235,8 +236,6 @@ bool isTokenOp(int type) {
         case TK_DEC:
         case TK_ASSIGN:
         case TK_EQU:
-        case TK_POS:
-        case TK_NEG:
         case TK_NOT:
         case TK_NOTEQU:
         case TK_LESS:
@@ -303,8 +302,6 @@ bool isTokenOpPrePostFix(int type) {
 
 bool isTokenUnaryOp(int type) {
     switch (type) {
-        case TK_POS:
-        case TK_NEG:
         case TK_INC:
         case TK_DEC:
         case TK_NOT: {
@@ -324,8 +321,6 @@ int getTokenPrecedence(int type) {
             return 100;
         }
 
-        case TK_PREINC:
-        case TK_PREDEC:
         case TK_NOT:
         case TK_BITNOT: {
             return 90;

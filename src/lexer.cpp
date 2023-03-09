@@ -226,27 +226,22 @@ Token Lexer::next() {
             }
             case '.': {
                 if (peek() == '.') {
-                    if (peek(2) == '.') {
-                        t.type = TK_VARY;
-                        t.lexeme = "...";
-                        eat(3);
-                        return t;
-                    } else if (peek(2) == '<') {
-                        t.type = TK_ERANGE;
+                    if (peek(2) == '<') {
+                        t.type = TK_O_RANGE;
                         t.lexeme = "..<";
                         eat(3);
                         return t;
-                    } else {
-                        t.type = TK_IRANGE;
-                        t.lexeme = "..";
+                    } else if (peek(2) == '=') {
+                        t.type = TK_C_RANGE;
+                        t.lexeme = "..=";
                         eat(2);
                         return t;
+                    } else {
+                        t.type = TK_VARY;
+                        t.lexeme = "..";
+                        eat(3);
+                        return t;
                     }
-                } else if (peek() == '*') {
-                    t.type = TK_DOTREF;
-                    t.lexeme = ".*";
-                    eat(2);
-                    return t;
                 } else {
                     t.type = TK_DOT;
                     t.lexeme = cpstr(_currentChar);
@@ -255,14 +250,6 @@ Token Lexer::next() {
                 }
             }
             case '#': {
-                eat();
-
-                while (!String::isWhitespace(_currentChar) && String::isAlphanumeric(_currentChar)) {
-                    eat();
-                }
-            } break;
-                //case '€':
-            case '$': {
                 t.type = TK_MACRO;
                 eat();
 
@@ -329,13 +316,6 @@ Token Lexer::next() {
                     eat(2);
                     return t;
                 } else if (peek() == '>') {
-                    if (peek(2) == '*') {
-                        t.type = TK_PDREF;
-                        t.lexeme = "->*";
-                        eat(3);
-                        return t;
-                    }
-
                     t.type = TK_POINT;
                     t.lexeme = "->";
                     eat(2);
@@ -399,7 +379,78 @@ Token Lexer::next() {
                     t.lexeme = "%=";
                     eat(2);
                     return t;
-                } else {
+                } else if (peek() == '%') {
+                    if (peek(2) == '=') {
+                        t.type = TK_MODMODEQU;
+                        t.lexeme = "%%=",
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_MODMOD;
+                    t.lexeme = "%%";
+                    eat(2);
+                    return t;
+                } else if (peek() == '+') {
+                    if (peek(2) == '=') {
+                        t.type = TK_ADDEQU_W;
+                        t.lexeme = "%+=";
+                        eat(3);
+                        return t;
+                    } else if (peek(2) == '+') {
+                        t.type = TK_INC_W;
+                        t.lexeme = "%++";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_ADD_W;
+                    t.lexeme = "%+";
+                    eat(2);
+                    return t;
+                } else if (peek() == '-') {
+                    if (peek(2) == '=') {
+                        t.type = TK_SUBEQU_W;
+                        t.lexeme = "%-=";
+                        eat(3);
+                        return t;
+                    } else if (peek(2) == '-') {
+                        t.type = TK_DEC_W;
+                        t.lexeme = "%--";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_SUB_W;
+                    t.lexeme = "%-";
+                    eat(2);
+                    return t;
+                } else if (peek() == '*') {
+                    if (peek(2) == '=') {
+                        t.type = TK_MULEQU_W;
+                        t.lexeme = "%*=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_MUL_W;
+                    t.lexeme = "%*";
+                    eat(2);
+                    return t;
+                } else if (peek() == '/') {
+                    if (peek(2) == '=') {
+                        t.type = TK_DIVEQU_W;
+                        t.lexeme = "%/=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_DIV_W;
+                    t.lexeme = "%/";
+                    eat(2);
+                    return t;
+                }
+                else {
                     t.type = TK_MOD;
                     t.lexeme = cpstr(_currentChar);
                     eat();
@@ -433,13 +484,13 @@ Token Lexer::next() {
                     return t;
                 } if (peek() == '>') {
                     if (peek(2) == '=') {
-                        t.type = TK_BITRSEQU;
+                        t.type = TK_LSREQU;
                         t.lexeme = ">>=";
                         eat(3);
                         return t;
                     }
 
-                    t.type = TK_BITRS;
+                    t.type = TK_LSR;
                     t.lexeme = ">>";
                     eat(2);
                     return t;
@@ -458,13 +509,13 @@ Token Lexer::next() {
                     return t;
                 } if (peek() == '<') {
                     if (peek(2) == '=') {
-                        t.type = TK_BITLSEQU;
+                        t.type = TK_LSLEQU;
                         t.lexeme = "<<=";
                         eat(3);
                         return t;
                     }
 
-                    t.type = TK_BITLS;
+                    t.type = TK_LSL;
                     t.lexeme = "<<";
                     eat(2);
                     return t;

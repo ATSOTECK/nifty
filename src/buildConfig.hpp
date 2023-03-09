@@ -29,7 +29,8 @@
 
 struct BuildConfig {
     String targetName;
-    String outputName;
+    String exeName;
+    String objectName;
     String entryPoint;
     bool noEntryPoint;
     bool noDepreciated;
