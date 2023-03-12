@@ -87,7 +87,9 @@ fn main() {
 }
 
 // Semicolons are optional.
-// Semicolons may become required if it proves too difficult to make them optional.
+// Semicolons are required in some parts of the language to make parsing much easier. I might
+// require them everywhere for consistency. (Though if I do I likely wont update this file to add
+// them everywhere, just pretend they are there)
 
 // [COMMENTS] -------------------------------------------------------------------------------------
 
@@ -514,6 +516,83 @@ fn otherFunc() {
     // Stuff
     _x := 12 // Nothing special about _x or x_ or _x_ here.
 }
+
+// Sometimes you only want to expose an api for your package without exposing the implementation.
+// For that you can use the 'api' keyword. A package may have at most one api file. All functions,
+// structs, variables, etc must be public and must not start or end with an underscore. The idea is
+// to be similar to header files in c/c++.
+// These files should be named package_name.api.nifty For example the api file for the game package
+// would be game.api.nifty The api file must be in the same folder as the package for development.
+// Using a package with an api file works like using any other package.
+// Everything listed in an api file must be defined and implemented in the package.
+
+api game // The game package must be defined and implemented.
+
+use "nsl.math.matrix" // Other packages can be used to show that this package depends on it. using can be
+// used as well.
+
+// Functions must not be defined.
+fn drawText(x, y: f32, text: string, fontSize: u32, color: Color);
+fn createRobot(x, y: f32, health: int): ^Robot;
+fn doSomethingWithAMatrix(m: matrix::Matrix);
+
+// Invalid, functions can't have implementations.
+fn sayHi() {
+    fmt::println("hi")
+}
+
+// It is ok to redefine structs/enums/behaviors/types in the api file.
+struct Circle struct {
+    x, y: f32
+    r: int = 100
+}
+
+// Even though the functions are not being implemented here the impl, constimpl, and endimpl
+// keywords are used here.
+impl Circle
+    md draw(color: Color);
+endimpl
+
+// The same for generics. (Pretend Collection is defined above, it is defined in [GENERICS] though)
+impl Collection<T>
+    md constructor(size := 0);
+    md add(num: T);
+    md average(): float;
+endimpl
+
+impl Collection<int>
+    md sum(): int;
+endimpl
+
+// The use of indentation above is optional, I just think it is easier to read this way when there
+// is no implementation.
+
+type Align enum {
+    Vertical,
+    Horizontal,
+}
+
+// Variables and const may be defined or undefined. Unlike normal variable declarations variables
+// and consts must be explicetly set.
+let defaultAlignment = Align.Vertical
+let defaultFont: ^Font = undefined
+const DEFAULT_FONT_SIZE = 42
+// The values given to variables and consts do not need to match what is given in the implementation
+// of the package. This is meant for the convienience of the consumer of the api and the values
+// listed in the file are not actually used by the compiler at all.
+
+// A better option would be to set them to undefined and explain the default in a comment.
+/// Defaults to vertical
+let defaultAlignment: Align = undefined
+/// Defaults to "Comic Sans" aka the font of Champions.
+let defaultFont: ^Font = undefined
+/// Defaults to 42
+const DEFAULT_FONT_SIZE: int = undefined
+// api files are the only place where constants can be set to undefined.
+
+
+// Declaration operators can be used as well.
+isFullscreen := false
 
 // [FUNCTIONS] ------------------------------------------------------------------------------------
 
@@ -1779,24 +1858,6 @@ endimpl
 color := Color{51, 153, 255}
 fmt::println("The color is ${color}.")
 
-// Optionally an interface can be used for improved readability and to force an implementation
-// to implement the functions in the interface. Usefult to get an overview of what functions the
-// implementation will contain.
-
-type Collection interface {
-    constructor(int)
-    add(int) // Argument name is optional.
-    average(): float
-    _calculateAverage(): void // Using void is optional.
-}
-
-// Note that using the fn or md keywords is optional here. 
-
-// If an implementation is missing one or more of those functions it will cause a compiler error.
-// The above interface only applies to implementation of the 'Collection' struct.
-
-// Might get rid of interface. It's not very useful.
-
 // Not sure if next section is worth the complexity or should 'this' or 'self' just be passed 
 // implicitly if used by the function.
 
@@ -1845,8 +1906,7 @@ thing.printX()
 // [BEHAVIORS] ------------------------------------------------------------------------------------
 
 // Behaviors are a a way to define shared behavior. To indicate that an implementation does a
-// certain behavior the 'does' keyword is used. Implementations can do one or more behaviors
-// unlike 'interface' which is only applied to the specified struct.
+// certain behavior the 'does' keyword is used. Implementations can do one or more behaviors.
 
 // If an implementation does a behavior then all the functions in the behavior must be 
 // implemented or there will be a compiler error. If an implementation does multiple behaviors
@@ -1961,7 +2021,7 @@ type Drawable behavior {
     draw()
 }
 
-type Text interface {
+type Text behavior {
     draw()
 }
 
@@ -3241,6 +3301,7 @@ undefined
 true
 false
 package
+api
 use
 using
 as

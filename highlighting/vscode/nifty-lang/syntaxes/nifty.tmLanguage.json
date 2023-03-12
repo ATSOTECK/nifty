@@ -95,7 +95,7 @@
                     "name": "keyword.operator.bitwise.nifty"
                 },
                 {
-                    "match": "\\b(package)\\b",
+                    "match": "\\b(package|api)\\b",
                     "name": "keyword.other.package.nifty"
                 },
                 {
@@ -108,7 +108,7 @@
                 },
                 {
                     "name": "storage.type",
-                    "match": "\\b(struct|enum|interface)\\b"
+                    "match": "\\b(struct|enum)\\b"
                 },
                 {
                     "match": "\\b(bool|b8|b16|b32|b64|char|string|cstring|int|uint|uintptr|float|double|s8|s16|s32|s64|s128|u8|u16|u32|u64|u128|f16|f32|f64|f128|void|typeid|rawptr)\\b",
