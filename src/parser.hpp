@@ -34,46 +34,46 @@ class Parser {
 public:
     explicit Parser(Lexer *lex);
 
-    [[nodiscard]] bool finishedWithErrors() const {
+    use_fn finishedWithErrors() const -> bool {
         return _finishedWithErrors;
     }
 
-    [[nodiscard]] bool foundEntrypoint() const {
+    use_fn foundEntrypoint() const -> bool {
         return _foundEntrypoint;
     }
 
-    void firstEat();
-    void eat();
-    void eat(int type, const String &expected, const String &after);
-    void eat(uint8 amount);
+    fn firstEat();
+    fn eat() -> void;
+    fn eat(int type, const String &expected, const String &after);
+    fn eat(uint8 amount);
 
-    bool check(int type);
-    bool lookahead(int type);
-    bool match(int type);
+    use_fn check(int type) const -> bool;
+    use_fn lookahead(int type) const -> bool;
+    fn match(int type) -> bool;
 
-    Token lookaheadToken(uint8 t);
-    uint8 lookaheadTokenType(uint8 t);
+    fn lookaheadToken(uint8 t) -> Token;
+    fn lookaheadTokenType(uint8 t) -> uint8;
 
-    void errInit();
-    void warnInit();
-    void printLineWithError();
-    Node *parseError(const String &expected, const String &after);
-    Node *parseErr(const char *error, ...);
-    Node *error(const String &error, const String &token);
-    Node *error(const String &error);
-    void warning(const String &warning);
+    fn errInit();
+    fn warnInit();
+    fn printLineWithError();
+    fn parseError(const String &expected, const String &after) -> Node*;
+    fn parseErr(const char *error, ...) -> Node*;
+    fn error(const String &error, const String &token) -> Node*;
+    fn error(const String &error) -> Node*;
+    fn warning(const String &warning);
 
-    std::vector<Node *> parse();
+    fn parse() -> Nodes;
 
 private:
-    Node *parsePrimary();
-    void parsePackage();
-    Node *parseExpression();
-    Node *parseBinOpRhs(int precedence, Node *lhs);
-    Node *parseNumber();
-    Node *parseType();
-    PrototypeNode *parsePrototype(const String &name);
-    Node *parseFunction();
+    fn parsePrimary() -> Node*;
+    fn parsePackage();
+    fn parseExpression() -> Node*;
+    fn parseBinOpRhs(int precedence, Node *lhs) -> Node*;
+    fn parseNumber() -> Node*;
+    fn parseType() -> Node*;
+    fn parsePrototype(const String &name) -> PrototypeNode*;
+    fn parseFunction() -> Node*;
 
     Lexer *_lex;
     Token _lookahead;
@@ -83,7 +83,7 @@ private:
     int _lookaheadPos;
     int _pos;
 
-    std::vector<Node *> _nodes;
+    Nodes _nodes;
     String _currentPackage;
 
     bool _finishedWithErrors;

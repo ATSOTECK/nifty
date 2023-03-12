@@ -594,6 +594,84 @@ Token Lexer::next() {
                     return t;
                 }
             }
+            case '@': {
+                if (peek() == '+') {
+                    if (peek(2) == '=') {
+                        t.type = TK_ADDEQU_S;
+                        t.lexeme = "@+=";
+                        eat(3);
+                        return t;
+                    } else if (peek(2) == '+') {
+                        t.type = TK_INC_S;
+                        t.lexeme = "@++";
+                        eat(3);
+
+                        return t;
+                    }
+
+                    t.type = TK_ADD_S;
+                    t.lexeme = "@+";
+                    eat(2);
+                    return t;
+                } else if (peek() == '-') {
+                    if (peek(2) == '=') {
+                        t.type = TK_SUBEQU_S;
+                        t.lexeme = "@-=";
+                        eat(3);
+                        return t;
+                    } else if (peek(2) == '-') {
+                        t.type = TK_DEC_S;
+                        t.lexeme = "@--";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_SUB_S;
+                    t.lexeme = "@-";
+                    eat(2);
+                    return t;
+                } else if (peek() == '*') {
+                    if (peek(2) == '=') {
+                        t.type = TK_MULEQU_S;
+                        t.lexeme = "@*=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_MUL_S;
+                    t.lexeme = "@*";
+                    eat(2);
+                    return t;
+                } else if (peek() == '/') {
+                    if (peek(2) == '=') {
+                        t.type = TK_DIVEQU_S;
+                        t.lexeme = "@/=";
+                        eat(3);
+                        return t;
+                    }
+
+                    t.type = TK_DIV_S;
+                    t.lexeme = "@/";
+                    eat(2);
+                    return t;
+                } else if (peek() == '<' && peek(2) == '<') {
+                    if (peek(3) == '=') {
+                        t.type = TK_LSLEQU_S;
+                        t.lexeme = "@<<=";
+                        eat(4);
+                        return t;
+                    }
+                    t.lexeme = TK_LSL_S;
+                    t.lexeme = "@<<";
+                    eat(3);
+                    return t;
+                } else {
+                    t.type = TK_OWNED;
+                    t.lexeme = "@";
+                    eat();
+                    return t;
+                }
+            }
             default: {
                 eat();
             } break;

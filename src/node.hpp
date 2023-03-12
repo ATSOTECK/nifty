@@ -42,6 +42,7 @@ enum NodeType {
     CallNodeType,
     PrototypeNodeType,
     BlockNodeType,
+    NamedBlockNodeType,
     FunctionNodeType,
     ReturnNodeType,
     VarNodeType,
@@ -55,166 +56,113 @@ enum VarKind {
 
 struct Node {
     NodeType type;
+    Node() = delete;
 };
 
-struct TypeNode : Node {
-    explicit TypeNode(String lexeme) : Node(),
-        strType(std::move(lexeme))
-    {
-        type = TypeNodeType;
-    }
+typedef std::vector<Node*> Nodes;
 
-    String strType;
+struct VoidNode {
+    Node node;
 };
 
-struct VoidNode : Node {
-    VoidNode() : Node() {
-        type = VoidNodeType;
-    }
+struct TypeNode {
+    Node node;
+    String typeStr;
 };
 
-struct IntNode : Node {
-    IntNode(int b, String v, bool s) : Node(),
-        bits(b),
-        value(std::move(v)),
-        isSigned(s)
-    {
-        type = IntNodeType;
-    }
-
+struct IntNode {
+    Node node;
     int bits;
     String value;
     bool isSigned;
 };
 
-struct FloatNode : Node {
-    FloatNode(int b, String v) : Node(),
-        bits(b),
-        value(std::move(v))
-    {
-        type = FloatNodeType;
-    }
-
+struct FloatNode {
+    Node node;
     int bits;
     String value;
 };
 
-struct BoolNode : Node {
-    BoolNode(bool v) : Node(),
-        value(v)
-    {
-        type = BoolNodeType;
-    }
-
+struct BoolNode {
+    Node node;
+    int bits;
     bool value;
 };
 
-struct StringNode : Node {
-    StringNode(String s) : Node(),
-        str(std::move(s))
-    {
-        type = StringNodeType;
-    }
-
-    String str;
+struct StringNode {
+    Node node;
+    bool isCString;
+    String value;
 };
 
-struct CharNode : Node {
-    CharNode(char c) : Node(),
-        c(c)
-    {
-        type = CharNodeType;
-    }
-
-    char c;
+struct CharNode {
+   Node node;
+   uint32 value;
 };
 
-struct BinaryNode : Node {
-    BinaryNode(const Token &op, Node *lhs, Node *rhs) : Node(),
-        op(op),
-        lhs(lhs),
-        rhs(rhs)
-    {
-        type = BinaryNodeType;
-    }
-
+struct BinaryNode {
+    Node node;
     Token op;
-    Node *lhs;
-    Node *rhs;
+    Node *lhs, *rhs;
 };
 
-struct CallNode : Node {
-    CallNode(String calle, std::vector<Node*> args) : Node(),
-        calle(std::move(calle)),
-        args(std::move(args))
-    {
-        type = CallNodeType;
-    }
-
-    String calle;
-    std::vector<Node*> args;
+struct CallNode {
+    Node node;
+    String callee;
+    Nodes args;
 };
 
-struct PrototypeNode : Node {
-    PrototypeNode(String name, std::vector<Node*> args, std::vector<Node*> returnTypes) : Node(),
-        name(std::move(name)),
-        args(std::move(args)),
-        returnTypes(std::move(returnTypes))
-    {
-        type = PrototypeNodeType;
-    }
-
+struct PrototypeNode {
+    Node node;
     String name;
-    std::vector<Node*> args;
-    std::vector<Node*> returnTypes;
+    Nodes args;
+    Nodes returnTypes;
 };
 
-struct BlockNode : Node {
-    BlockNode() : Node() {
-        type = BlockNodeType;
-    }
-
-    std::vector<Node*> statements;
+struct BlockNode {
+    Node node;
+    Nodes statements;
 };
 
-struct FunctionNode : Node {
-    FunctionNode(PrototypeNode *proto, BlockNode *body) : Node(),
-        prototype(proto),
-        body(body)
-    {
-        type = FunctionNodeType;
-    }
+struct NamedBlockNode {
+    Node node;
+    String name;
+    Nodes statements;
+};
 
+struct FunctionNode {
+    Node node;
     PrototypeNode *prototype;
     BlockNode *body;
 };
 
-struct ReturnNode : Node {
-    ReturnNode(Node *returnStatement) : Node(),
-        returnStatement(returnStatement)
-    {
-        type = ReturnNodeType;
-    }
-
-    Node *returnStatement;
+struct ReturnNode {
+    Node node;
+    Node *statement;
 };
 
-struct VarNode : Node {
-    VarNode(String name, Node *varType, Node *value, VarKind kind, bool undefined) : Node(),
-        name(std::move(name)),
-        varType(varType),
-        value(value),
-        kind(kind),
-        undefined(undefined)
-    {
-        type = VarNodeType;
-    }
-
+struct VarNode {
+    Node node;
     String name;
-    Node *varType;
-    Node *value;
+    Node *type;
+    Node *value; // If null, then undefined.
     VarKind kind;
-    bool undefined;
 };
+
+Node *newVoid();
+Node *newType(const String &typeStr);
+Node *newInt(int bits, const String &value, bool isSigned);
+Node *newFloat(int bits, const String &value);
+Node *newBool(int bits, bool value);
+Node *newString(bool isCString, const String &value);
+Node *newChar(uint32 value);
+Node *newBinary(const Token &op, Node *lhs, Node *rhs);
+Node *newCall(const String &calle, Nodes args);
+Node *newPrototype(const String &name, Nodes args, Nodes returnTypes);
+Node *newBlock(Nodes statements);
+Node *newNamedBlock(const String &name, Nodes statements);
+Node *newFunction(PrototypeNode *prototype, BlockNode *body);
+Node *newReturn(Node *statement);
+Node *newVar(const String &name, Node *type, Node *value, VarKind kind);
 
 #endif //__NIFTY_NODE_HPP__

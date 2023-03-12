@@ -41,6 +41,8 @@
 #endif
 
 #define let auto
+#define fn auto
+#define use_fn [[nodiscard]] auto
 #define until(x) while(!(x))
 #define forever for (;;)
 
@@ -90,6 +92,7 @@ typedef uint64      uchar64;
 #define dynamicCast(x, y)	  dynamic_cast<x>(y)
 #define reinterpretCast(x, y) reinterpret_cast<x>(y)
 #define constCast(x, y)		  const_cast<x>(y)
+#define recast(x, y)          reinterpret_cast<y>(x)
 
 #define here std::cout << "here line #" << __LINE__ << " " __FILE__ << std::endl;
 #define verr(x) std::cerr << "Error: '" << x << "' on line #" << __LINE__ << " in " __FILE__ << std::endl

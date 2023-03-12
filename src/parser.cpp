@@ -36,7 +36,7 @@ Parser::Parser(Lexer *lex):
     //
 }
 
-void Parser::firstEat() {
+fn Parser::firstEat() {
     _lookahead = _lex->nextToken();
     _lookaheadLine = _lex->line();
     _lookaheadPos = _lex->linePos();
@@ -44,7 +44,7 @@ void Parser::firstEat() {
     eat();
 }
 
-void Parser::eat() {
+fn Parser::eat() -> void {
     _current = _lookahead;
     _line = _lookaheadLine;
     _pos = _lookaheadPos;
@@ -57,7 +57,7 @@ void Parser::eat() {
     db(tok);
 }
 
-void Parser::eat(int type, const String &expected, const String &after) {
+fn Parser::eat(int type, const String &expected, const String &after) {
     eat();
 
     if (_current.type == type) {
@@ -67,21 +67,21 @@ void Parser::eat(int type, const String &expected, const String &after) {
     parseError(expected, after);
 }
 
-void Parser::eat(uint8 amount) {
+fn Parser::eat(uint8 amount) {
     for (int i = 0; i < amount; ++i) {
         eat();
     }
 }
 
-bool Parser::check(int type) {
+fn Parser::check(int type) const -> bool {
     return _current.type == type;
 }
 
-bool Parser::lookahead(int type) {
+fn Parser::lookahead(int type) const -> bool {
     return _lookahead.type == type;
 }
 
-bool Parser::match(int type) {
+fn Parser::match(int type) -> bool {
     if (!check(type)) {
         return false;
     }
@@ -90,7 +90,7 @@ bool Parser::match(int type) {
     return true;
 }
 
-void Parser::errInit() {
+fn Parser::errInit() {
     _finishedWithErrors = true;
 
     std::cerr << _lex->filename() << " L" << _current.line << ",C" << _current.pos << ": ";
@@ -99,14 +99,14 @@ void Parser::errInit() {
     setCmdColor(TextColor);
 }
 
-void Parser::warnInit() {
+fn Parser::warnInit() {
     std::cerr << _lex->filename() << ":L" << _current.line << ",C" << _current.pos << ": ";
     setCmdColor(WarnColor);
     std::cerr << "Warning: ";
     setCmdColor(TextColor);
 }
 
-void Parser::printLineWithError() {
+fn Parser::printLineWithError() {
     FILE *file = fopen(_lex->path().c_str(), "r");
 
     if (file != nullptr) {
@@ -149,7 +149,7 @@ void Parser::printLineWithError() {
     }
 }
 
-Node *Parser::parseError(const String &expected, const String &after) {
+fn Parser::parseError(const String &expected, const String &after) -> Node* {
     errInit();
     std::cerr << " Expected ";
     setCmdColor(PurpleColor);
@@ -169,7 +169,7 @@ Node *Parser::parseError(const String &expected, const String &after) {
     return nullptr;
 }
 
-Node *Parser::parseErr(const char *error, ...) {
+fn Parser::parseErr(const char *error, ...) -> Node* {
     errInit();
 
     char buff[2048];
@@ -184,7 +184,7 @@ Node *Parser::parseErr(const char *error, ...) {
     return nullptr;
 }
 
-Node *Parser::error(const String &error, const String &token) {
+fn Parser::error(const String &error, const String &token) -> Node* {
     errInit();
     std::cerr << error << " \"" << token << "\"." << std::endl;
     printLineWithError();
@@ -192,7 +192,7 @@ Node *Parser::error(const String &error, const String &token) {
     return nullptr;
 }
 
-Node *Parser::error(const String &error) {
+fn Parser::error(const String &error) -> Node* {
     errInit();
     std::cerr << "on line " << _line << ": " << error << std::endl;
     printLineWithError();
@@ -200,13 +200,13 @@ Node *Parser::error(const String &error) {
     return nullptr;
 }
 
-void Parser::warning(const String &warning) {
+fn Parser::warning(const String &warning) {
     warnInit();
     std::cerr << "on line " << _line << ": " << warning << std::endl;
     printLineWithError();
 }
 
-std::vector<Node *> Parser::parse() {
+fn Parser::parse() -> Nodes {
     firstEat();
 
     while (_current.type != TK_EOF) {
@@ -222,7 +222,7 @@ std::vector<Node *> Parser::parse() {
     return _nodes;
 }
 
-Node *Parser::parsePrimary() {
+fn Parser::parsePrimary() -> Node* {
     if (_current.type == TK_EOF) {
         return nullptr;
     }
@@ -232,7 +232,7 @@ Node *Parser::parsePrimary() {
     }
 
     if (isTokenType(_current.type)) {
-        return new TypeNode(_current.lexeme);
+        return newType(_current.lexeme);
     }
     
     if (_current.type == TK_PACKAGE) {
@@ -247,7 +247,7 @@ Node *Parser::parsePrimary() {
     return nullptr;
 }
 
-void Parser::parsePackage() {
+fn Parser::parsePackage() {
     eat(TK_IDENT, "identifier", "package");
     std::cout << "current package is now: " << _current.lexeme << std::endl;
     _currentPackage = _current.lexeme;
@@ -255,7 +255,7 @@ void Parser::parsePackage() {
     eat();
 }
 
-Node *Parser::parseExpression() {
+fn Parser::parseExpression() -> Node* {
     Node *lhs = parsePrimary();
     if (lhs == nullptr) {
         return nullptr;
@@ -264,7 +264,7 @@ Node *Parser::parseExpression() {
     return parseBinOpRhs(0, lhs);
 }
 
-Node *Parser::parseBinOpRhs(int precedence, Node *lhs) {
+fn Parser::parseBinOpRhs(int precedence, Node *lhs) -> Node* {
     for (;;) {
         int tokenPrec = getTokenPrecedence(_current.type);
 
@@ -299,19 +299,19 @@ Node *Parser::parseBinOpRhs(int precedence, Node *lhs) {
         }
 
         // TODO: Fix this.
-        lhs = new BinaryNode(binOp, lhs, rhs);
+        lhs = newBinary(binOp, lhs, rhs);
     }
 }
 
-Node *Parser::parseNumber() {
+fn Parser::parseNumber() -> Node* {
     String num = _current.lexeme;
 
     eat();
 
     if (num.contains('d') || num.contains('D')) {
-        return new FloatNode(8, num);
+        return newFloat(64, num);
     } else if (num.contains('f') || num.contains('F') || num.contains('.')) {
-        return new FloatNode(4, num);
+        return newFloat(32, num);
     }
 
     bool isSigned = true;
@@ -319,10 +319,10 @@ Node *Parser::parseNumber() {
         isSigned = false;
     }
 
-    return new IntNode(4, num, isSigned);
+    return newInt(32, num, isSigned);
 }
 
-PrototypeNode *Parser::parsePrototype(const String &name) {
+fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     int arity = 0;
     std::vector<Node *> args;
     std::vector<Node *> returnTypes;
@@ -361,7 +361,7 @@ PrototypeNode *Parser::parsePrototype(const String &name) {
     eat(TK_COLON, ":", ")");
 
     if (check(TK_LBRACE)) {
-        returnTypes.push_back(new VoidNode());
+        returnTypes.push_back(newVoid());
     } else {
         do {
             //
@@ -371,7 +371,7 @@ PrototypeNode *Parser::parsePrototype(const String &name) {
     return nullptr;
 }
 
-Node *Parser::parseFunction() {
+fn Parser::parseFunction() -> Node* {
     eat(); // Eat the fn
 
     if (!check(TK_IDENT)) {

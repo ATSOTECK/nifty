@@ -209,15 +209,12 @@ enum Tokens {
     TK_LSLEQU,                  // <<=
     TK_LSREQU,                  // >>=
 
-    TK_ADDR,                    // &x
-    TK_DEREF,                   // x^
     TK_POINT,                   // ->
 
     TK_QMRK,                    // ?
     TK_QDOT,                    // ?.
     TK_NULL_COALESCE,           // ??
     TK_NULL_COALESCE_ASSIGN,    // ??=
-    TK_NULLISH_COALESCE,        // ||
     TK_NULLISH_COALESCE_ASSIGN, // ||=
 
     TK_IDENT,
