@@ -54,10 +54,6 @@
 					"name": "constant.language.boolean.nifty",
 					"match": "\\b(true|false)\\b"
 				},
-				{
-					"name": "variable.language.this.nifty",
-					"match": "\\b(this)\\b"
-				},
                 {
                     "match": "(<<|>>|~|\\^)",
                     "name": "keyword.operator.bitwise.nifty"
@@ -125,6 +121,10 @@
                 {
                     "name": "keyword.other.included",
                     "match": "(assert|panic)\\s*\\("
+                },
+                {
+                    "name":"entity.name.type.Self.nifty",
+                    "match": "(Self)"
                 }
             ]
 		},
@@ -142,7 +142,7 @@
 					}
 				},
 				{
-                    "match": "\\b(fn|md)\\s+([A-Za-z_][A-Za-z0-9_]*)\\??\\s*\\(",
+                    "match": "\\b(fn|md)\\s+(([A-Za-z_][A-Za-z0-9_]*(::))?[A-Za-z_][A-Za-z0-9_]*)\\??\\s*[\\(<\\[]",
 					"captures": {
 						"1": {
 							"name":"keyword.type.function.nifty"
@@ -151,32 +151,11 @@
 							"name":"entity.name.function.nifty"
 						},
 						"3": {
-							"patterns": [
-								{
-									"match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
-									"name": "variable.parameter.nifty"
-								}
-							]
-						}
-					}
-				},
-                {
-                    "match": "\\b(fn|md)\\s+([A-Za-z_][A-Za-z0-9_]*)\\??\\s*\\<",
-					"captures": {
-						"1": {
-							"name":"keyword.type.function.nifty"
+							"name":"entity.name.type.type.nifty"
 						},
-						"2": {
-							"name":"entity.name.function.nifty"
-						},
-						"3": {
-							"patterns": [
-								{
-									"match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b",
-									"name": "variable.parameter.nifty"
-								}
-							]
-						}
+                        "4": {
+                            "name": "punctuation.coloncolon"
+                        }
 					}
 				},
                 {
@@ -216,7 +195,11 @@
 			"patterns": [
 				{
 					"match": "([A-Za-z_][A-Za-z0-9_]*)\\(",
-					"name": "support.function.nifty"
+                    "captures": {
+                        "1": {
+                            "name": "support.function.nifty"
+                        }
+                    }
 				}
 			]
 		},
@@ -394,6 +377,17 @@
                     "captures": {
                         "0": {
                             "name": "support.function.macro.nifty"
+                        },
+                        "1": {
+                            "name": "support.function.macro.nifty"
+                        }
+                    }
+                },
+                {
+                    "match": "(#)(\\[)",
+                    "captures": {
+                        "0": {
+                            "name": "punctuation.bracket.open"
                         },
                         "1": {
                             "name": "support.function.macro.nifty"

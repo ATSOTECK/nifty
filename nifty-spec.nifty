@@ -295,7 +295,8 @@ assert(type_of(var) == "Custom") // True
 x: s8 = 100
 y := cast(x, s32) // cast(var, type)
 
-// To cast between two types of the same size you can uuse the 'recast' operator.
+// To cast between two types of the same size you can uuse the 'recast' operator. 
+// Like reinterpret_cast in c++.
 let x: f32 = 12.0
 y := recast(x, u32)
 
@@ -590,6 +591,7 @@ someFunc(theStart: 0, theStop: 100) // Invalid, names must match the prototype d
 // All function arguments are immutable.
 fn someFunc(x: int) {
     x = 12 // Invalid
+    y := &x // Invalid
 }
 
 // If you need to change the argument for some reason you must make a copy.
@@ -655,7 +657,7 @@ fn powi(x: int, y: int): int { /- ... -/ }
 fn powf(x: float, y: float): float { /- ... -/ }
 fn powd(x: double, y: double): double { /- ... -/ }
 
-fn pow overloads{powi, powf, powd}
+fn pow overloads {powi, powf, powd}
 
 // This is done to be more explicit and searchable as well as making the compiler simpler to develop.
 
@@ -708,6 +710,8 @@ unused := returnsError() // Valid
 // Should unused be allowed to work with error (or Result) returns? Probably? Not all errors are
 // important. Maybe a warning could be emitted if unused is used on functions that return an error
 // (or Result).
+
+// Should I have a keyword for this like use_fn/use_md?
 
 // Functions can have preconditions or postconditions.
 // Preconditions use the require attribute.
@@ -1776,15 +1780,14 @@ color := Color{51, 153, 255}
 fmt::println("The color is ${color}.")
 
 // Optionally an interface can be used for improved readability and to force an implementation
-// to implement the functions/variables in the interface.
+// to implement the functions in the interface. Usefult to get an overview of what functions the
+// implementation will contain.
 
 type Collection interface {
-    constructor(int) // Return type for the constructor is implicitly determined.
+    constructor(int)
     add(int) // Argument name is optional.
     average(): float
     _calculateAverage(): void // Using void is optional.
-    list: []int
-    _average: float
 }
 
 // Note that using the fn or md keywords is optional here. 
@@ -1793,6 +1796,51 @@ type Collection interface {
 // The above interface only applies to implementation of the 'Collection' struct.
 
 // Might get rid of interface. It's not very useful.
+
+// Not sure if next section is worth the complexity or should 'this' or 'self' just be passed 
+// implicitly if used by the function.
+
+// When implementing functions on a struct the structs fields are implicitly available to the
+// function body. Optionally functions implemented on a struct can have a receiver argument. The
+// receiver argument is in brackets right before the functions parentheses. The struct type name
+// can be used for the type or 'Self'.
+
+type Thing struct {
+    x: int
+}
+
+impl Thing
+
+md yeet[this: ^Self]() {
+    this->x = 12
+    x = 42 // Invalid
+}
+
+md yert[this: ^Thing]() {
+    this->x = 12
+    x = 42 // Invalid
+}
+
+md yote(newX: int) {
+    x = newX
+    this->x = newX // Invalid
+}
+
+// Pass receiver by value.
+md printX[t: Thing]() {
+    fmt::println(t.x)
+    t.x = 12 // Invalid
+}
+
+endimpl
+
+// The functions are called the same as any other.
+let thing: Thing
+thing.yeet()
+thing.yert()
+thing.yote(12)
+thing.printX()
+
 
 // [BEHAVIORS] ------------------------------------------------------------------------------------
 
@@ -1907,8 +1955,32 @@ impl Rect does PrintableGeometry
 endimpl
 
 // Type intersections can only be used with behaviors.
-// It is fine if intersecting bahaviors have functions with the same signatures. If they have the
-// same name but the arguments or the return type differs then it will be a compiler error.
+// If two behaviors have conflicting symbols then the name of the bahavior must be used.
+
+type Drawable behavior {
+    draw()
+}
+
+type Text interface {
+    draw()
+}
+
+type UiText struct {}
+
+impl UiText does Drawable, Text
+
+fn Drawable::draw() {
+    // do stuff
+}
+
+fn Text::draw() {
+    // do stuff
+}
+
+endimpl
+
+let t: UiText
+t.Drawable::draw()
 
 // Behaviors can have overridable function implementations
 
@@ -2631,18 +2703,22 @@ idx := someFunc() else { panic(error) }
 
 // [IMPLICIT CONTEXTS] ----------------------------------------------------------------------------
 
-// Every scope in nifty has its own implicit context that gets passed to every nifty function,
-// unluess #[noContext] is used. The context can be used to modifty how existing libraries allocate
-// memory or do logging.
+// Every function in nufty has an implicit context that gets passed to it, unluess #[noContext] is
+// used. The context can be used to modifty how existing libraries allocate memory or do logging.
 
 fn someFunc() {
-    context.userIndex = 123 {
-        context.allocator = someCustomAllocator
-        context.userIndex = 456
+    context->userIndex = 123
+    
+    newContext := context
+    newContext->allocator = someCustomAllocator
+    newContext->userIndex = 456
+    
+    // Push the context, pops at the end of the scope.
+    #push(newContext) {
         otherFunc()
     }
     
-    assert(context.userIndex == 123) // True
+    assert(context->userIndex == 123) // True
 }
 
 fn otherFunc() {
@@ -2650,7 +2726,19 @@ fn otherFunc() {
     prinln(x^)
     delete x // When called from someFunc() this uses someCustomAllocator.
     
-    assert(context.userIndex == 456) // True when called from someFunc().
+    assert(context->userIndex == 456) // True when called from someFunc().
+}
+
+#[noContext]
+fn noContext() {
+    fmt::println(context->userIndex) // Invalid, context is not defined anywhere.
+}
+
+// By default the context is implicitly passed in as 'context'. This can be changed with a receiver
+// argument.
+
+fn someFunc[ctx: ^NiftyContext](x: int) {
+    ctx->userIndex = x
 }
 
 // Contexts could also be used for thread safe memory management as each thread would have a
@@ -2658,7 +2746,7 @@ fn otherFunc() {
 
 // The context struct will look something like this:
 
-type Context struct {
+type NiftyContext struct {
     allocator: does Allocator
     allocatorTmp: does Allocator
     assertionFailure: fn(prefix, msg: string, loc: SourceLocation)
@@ -2759,6 +2847,8 @@ someVar := OTHER_CONST_MACRO // Invalid
                    // they can be a thread level optimization (e.g. flush to zero). If that is the
                    // case for you then glhf.
 
+#push(context: ^NiftyContext)
+
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
 #OS_WINDOWS
@@ -2791,6 +2881,8 @@ println(str) // hello.txt contents
 #error(msg: string) // Causes the compiler to error with the given message.
 #warn(msg: string) // Causes the compiler to emit a warning with the given message.
 #info(msg: string) // Prints the message to stdout.
+
+#TODO(msg: string) // Prints the message to stdout prefixed with highlighted "TODO:".
 
 // [SIGNALS AND SLOTS] ----------------------------------------------------------------------------
 
@@ -3101,6 +3193,13 @@ directory is updated.
 
 -/
 
+/-
+
+Have a command to find overloaded operators.
+nifty report overloadedOperators
+
+-/
+
 // [KEYWORDS] -------------------------------------------------------------------------------------
 
 if
@@ -3141,7 +3240,6 @@ unused
 undefined
 true
 false
-this
 package
 use
 using
