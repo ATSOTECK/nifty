@@ -39,7 +39,6 @@ enum Tokens {
     TK_ELSE,
     TK_DO,
     TK_IN,
-    TK_STEP,
     TK_AS,
     TK_CAST,
     TK_RECAST,

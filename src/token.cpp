@@ -47,7 +47,6 @@ std::map<String, Tokens> Token::keywords = {
         {"elif", TK_ELIF},
         {"do", TK_DO},
         {"in", TK_IN},
-        {"step", TK_STEP},
         {"for", TK_FOR},
         {"while", TK_WHILE},
         {"until", TK_UNTIL},

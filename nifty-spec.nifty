@@ -995,9 +995,9 @@ for (i := 0; i < 10; ++i) {
 
 for (0 ..= 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
-for (0 ..= 10 step 2) { /- ... -/ }
+for (0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
 for (val i in 0 ..< 10)
-for (val i in 0 ..= 10 step 2) { /- ... -/ }
+for (val i in 0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
 for (val str in strings) { /- ... -/ }
 for (val str, index in strings) { /- ... -/ }
 for (let str in strings) { /- ... -/ }
@@ -3269,7 +3269,6 @@ while
 until
 do
 for
-step
 return
 when
 break
