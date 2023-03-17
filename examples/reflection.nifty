@@ -1,0 +1,65 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+-/
+
+package main;
+
+use "nsl.fmt";
+use "nsl.reflection";
+
+type Foo struct {
+    x: int    #[attribute1];
+    y: string #[json("y_field")];
+    z: bool;
+}
+
+fn main() {
+    id         := typeid_of(Foo);
+    names      := reflection::structFieldNames(id);
+    types      := reflection::structFieldTypes(id);
+    attributes := reflection::structFieldAttibutes(id);
+    
+    assert(names.len() == types.len() && names.len() == attributes.len());
+    
+    fmt::println("type Foo struct {");
+    for (val attrib, i in attributes) {
+        let name, type_ := name[i], types[i];
+        
+        if (!attrib.isEmpty()) {
+            fmt::println("\t${name}: ${type_} #[${attrib}]");
+        } else {
+            fmt::println("\t${name}: ${type_}");
+        }
+    }
+    fmt::println("}");
+    
+    for (val attrib, i in attributes) {
+        if (value, ok := reflection::structAttributeLookup(attrib, "json"); ok) {
+            fmt::println("json: ${names[i]} -> ${value}");
+        }
+        
+        // Or if it returns an optional:
+        value := reflection::structAttributeLookup(attrib, "json") else { "" };
+        if (!value.isEmpty()) {
+            fmt::println("json: ${names[i]} -> ${value}");
+        }
+    }
+}

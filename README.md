@@ -15,12 +15,12 @@ Install the nifty-lang VSCode extension in the highlighting folder to make it ea
 # Directory structure:
 
 <pre>
-* bench   - Benchmark code to test the speed of compiled nifty code
-* example - Example code to get an idea of how the language works
-* inc     - 3rd party includes
-* nsl     - The Nifty Standard Library (nsl) code
-* src     - The nifty compiler code
-* tst     - Test code to verify the compiler
+* bench    - Benchmark code to test the speed of compiled nifty code
+* examples - Example code to get an idea of how the language works
+* inc      - 3rd party includes
+* nsl      - The Nifty Standard Library (nsl) code
+* src      - The nifty compiler code
+* tst      - Test code to verify the compiler
 </pre>
 
 

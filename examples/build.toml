@@ -1,0 +1,46 @@
+project = "examples"
+
+[hello]
+outputName = "hello_nifty"
+entryPoint = "hello.nifty"
+optimization = "fast"
+
+[variables]
+outputName = "variables"
+entryPoint = "variables.nifty"
+optimization = "fast"
+
+[hellos]
+outputName = "hellos"
+entryPoint = "hellos.nifty"
+optimization = "fast"
+
+[functions]
+outputName = "functions"
+entryPoint = "functions.nifty"
+optimization = "fast"
+
+[fizzbuzz]
+outputName = "fizzbuzz"
+entryPoint = "fizzbuzz.nifty"
+optimization = "fast"
+
+[loops]
+outputName = "loops"
+entryPoint = "loops.nifty"
+optimization = "fast"
+
+[structs]
+outputName = "structs"
+entryPoint = "structs.nifty"
+optimization = "fast"
+
+[operatorOverload]
+outputName = "operatorOverload"
+entryPoint = "operatorOverload.nifty"
+optimization = "fast"
+
+[reflection]
+outputName = "reflection"
+entryPoint = "reflection.nifty"
+optimization = "fast"

@@ -1,0 +1,101 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+-/
+
+package functions;
+
+using "nsl.fmt";
+use "nsl.math.random";
+
+fn addInt(x: int y: int): int {
+    return x + y;
+}
+
+fn addFloat(x, y: float): float {
+    return x + y;
+}
+
+fn addDouble(x := 0.d, y := 0.d): double {
+    return x + y;
+}
+
+fn addSaturatingInt(x: u8 = 10, y: u8 = 20): u8 {
+    return x @+ y;
+}
+
+fn add overloads {addInt, addFloat, addDouble, addSaturatingInt}
+
+fn getRandomPos(w, h: f32): f32, f32 {
+    x := random::float32Range(0, w);
+    y := random::float32Range(0, h);
+    return x, y;
+}
+
+#[minArity(2)]
+fn sum(nums: ..int): int {
+    res := 0;
+    for (val n in nums) {
+        res += n;
+    }
+    
+    return res;
+}
+
+fn printArg(n: int) {
+    // n = 12; // Uncomment and see what happens.
+    /-
+    x := &n;
+    x^ = 12; // Uncomment and see what happens.
+    -/
+    
+    // let n = 42; // Uncomment and see what happens.
+    
+    println(n);
+}
+
+// Specifying void is optional.
+fn voidFn(): void {
+    println("This is a void function.");
+}
+
+fn main() {
+    let a: u8 = 20;
+    let b: u8 = 255;
+    println(add(a, b)); // Should print 255.
+    println(addInt(2, 2));
+    
+    x, y := getRandomPos(100.f, 100.f);
+    println("(${x}, ${y})");
+    
+    // sum(); // Uncomment this line to see what happens.
+    theSum := sum(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    println(theSum);
+    
+    printArg(100);
+    voidFn();
+    
+    printArgPtr := printArg;
+    printArgPtr(42)
+    
+    let printArgPtr2: fn(int);
+    printArgPtr2 = printArg;
+    printArgPtr2(12);
+}

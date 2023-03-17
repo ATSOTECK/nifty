@@ -1,0 +1,90 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+-/
+
+package variables;
+
+using "nsl.fmt";
+
+fn returnsTwoVars(): int, int {
+    return 12, 42;
+}
+
+fn main() {
+    let a: int = 12;
+    let b = 42; // int
+    c := 19.f; // float/f32
+    
+    // Runtime consts.
+    val d: f64 = 100; //double/f64
+    val e = returnsDouble(); // double/f64
+    f ::= returns20(); // int
+    
+    // Compiletime consts.
+    const g: int = 100;
+    const h = 42;
+    i ::= 0;
+    
+    let j: int; // Deafults to 0.
+    let k: int = undefined; // Explicitly uninitialized.
+    l := k; // Valid, but undefined behavior. May warn.
+    
+    // Immutables must have their values set.
+    // val m: int; // Invalid.
+    // val n: int  = undefined; // Invalid.
+    // o ::= undefined // Invalid.
+    
+    // Variables must have a type.
+    // p := undefined; // Invalid.
+    
+    // Variables can not later be set to undefined.
+    // a = undefined // Invalid.
+    
+    // Can not check for undefined.
+    /-
+    if (a == undefined) {
+        println("undefined");
+    }
+    -/
+    
+    // Nifty does not support variable shadowing. 
+    // let a: f32 = 50.f // Invalid.
+    
+    #noAutoInit {
+        let x: int
+        let y: float
+        let z: string
+    }
+    
+    println(x, y, z); // Valid, but undefined behavior. May warn.
+    
+    q, r := returnsTwoVars();
+    unused, s := returnsTwoVars();
+    t, unused := returnsTwoVars();
+    
+    // u := unused; // Invalid.
+    
+    #[static]
+    aa := 12;
+    
+    #[threadStatic]
+    bb := 42
+}

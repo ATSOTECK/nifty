@@ -711,7 +711,7 @@ sum(4, 5, 6, 7, 8)
 #[minArity(2)]
 fn sum(nums: ..int): int {
     res := 0
-    for (n in nums) {
+    for (val n in nums) {
         res += n
     }
     
@@ -1094,11 +1094,11 @@ str := "one"
 when (str) {
     "one":
         x := 1
-        fmt::prinln(x)
+        fmt::println(x)
     "two":
         x := 2
-        fmt::prinln(x)
-    else: fmt::prinln("???")
+        fmt::println(x)
+    else: fmt::println("???")
 }
 
 // When statements don't always need to have an else: but it is a good idea to have them.
@@ -1596,8 +1596,8 @@ type Direction enum {
 let dir: Direction = Direction.North
 
 when (dir) {
-    Direction.North: fmt::prinln("north")
-    Direction.South: fmt::prinln("south")
+    Direction.North: fmt::println("north")
+    Direction.South: fmt::println("south")
     else: fmt::println("other") // Because we are using when on an enum else must be used to cover
     // the other cases.
 }
@@ -1608,10 +1608,10 @@ when (dir) {
 
 #[complete]
 when (dir) {
-    Direction.North: fmt::prinln("north")
-    Direction.South: fmt::prinln("south")
-    Direction.East: fmt::prinln("east")
-    Direction.West: fmt::prinln("west")
+    Direction.North: fmt::println("north")
+    Direction.South: fmt::println("south")
+    Direction.East: fmt::println("east")
+    Direction.West: fmt::println("west")
 }
 
 // [STRUCTS] --------------------------------------------------------------------------------------
@@ -2783,7 +2783,7 @@ fn someFunc() {
 
 fn otherFunc() {
     ptr := new int{12} // When called from someFunc() this uses someCustomAllocator.
-    prinln(x^)
+    println(x^)
     delete x // When called from someFunc() this uses someCustomAllocator.
     
     assert(context->userIndex == 456) // True when called from someFunc().
@@ -3138,7 +3138,7 @@ assert(x == math::MAX_INT) // true
 
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
-// The build file is done with TOML. The default build file name is 'nifty.toml'.
+// The build file is done with TOML. The default build file name is 'build.toml'.
 // Each build file can have multiple targets.
 
 // A common usecase for having multiple targets is having a debug build and a production build.
@@ -3221,7 +3221,7 @@ nifty build [buildFile]:[targetName] // Builds using the specified target with t
 
 nifty run // Takes the same arguments as 'nifty build' but builds and then runs the project.
 
-nifty run prod // Builds and runs using 'nifty.toml' with target 'prod'.
+nifty run prod // Builds and runs using 'build.toml' with target 'prod'.
 nifty run server:debug // Builds and runs using 'server.toml' with target 'debug'
 
 When not specifying a target the first target is used by default. Targets can optionally be marked

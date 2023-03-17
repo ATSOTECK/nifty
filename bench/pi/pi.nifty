@@ -1,38 +1,38 @@
-package pi
+package pi;
 
-use "nsl.fmt"
-use "nsl.math.random"
-use "nsl.time"
+use "nsl.fmt";
+use "nsl.math.random";
+use "nsl.time";
 
 fn estimatePi(numPoints: int): f64 {
-    let x, y, rSquared: f64
-    let withinCircle: int
+    let x, y, rSquared: f64 = undefined;
+    let withinCircle: int;
     
     for (i := 0; i < numPoints; ++i) {
-        x = random::float64()
-        y = random::float64()
+        x = random::float64();
+        y = random::float64();
         
         rSquared = x * x + y * y
         if (rSquared <= 1) {
-            ++withinCircle
+            ++withinCircle;
         }
     }
     
-    pi ::= cast(withinCircle, f64) / cast(numPoints, f64) * 4.f
-    return pi
+    pi ::= cast(withinCircle, f64) / cast(numPoints, f64) * 4.f;
+    return pi;
 }
 
 fn main() {
-    avgTime := 0.0
+    avgTime := 0.0;
     
     for (0 ..< 10) {
-        start ::= time::unixMilli()
-        pi    ::= estimatePi(10_000_000)
-        stop  ::= time::unixMilli()
-        time  ::= stop - start
-        avgTime += cast(time, f64) / 1000
-        fmt::println("pi is ${pi} took ${cast(time, f64) / 1000} seconds to compute.")
+        start ::= time::unixMilli();
+        pi    ::= estimatePi(10_000_000);
+        stop  ::= time::unixMilli();
+        time  ::= stop - start;
+        avgTime += cast(time, f64) / 1000;
+        fmt::println("pi is ${pi} took ${cast(time, f64) / 1000} seconds to compute.");
     }
     
-    fmt::println("On average pi took ${avgTime / 10} seconds to compute.")
+    fmt::println("On average pi took ${avgTime / 10} seconds to compute.");
 }

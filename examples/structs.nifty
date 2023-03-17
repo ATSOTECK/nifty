@@ -1,0 +1,129 @@
+/-
+ | Nifty - Nifty Programming Language
+ | Copyright (c) 2022 - 2023 Skyler Burwell
+ |
+ | This software is provided 'as-is', without any express or implied
+ | warranty. In no event will the authors be held liable for any damages
+ | arising from the use of this software.
+ |
+ | Permission is granted to anyone to use this software for any purpose,
+ | including commercial applications, and to alter it and redistribute it
+ | freely, subject to the following restrictions:
+ |
+ | 1. The origin of this software must not be misrepresented; you must not
+ |    claim that you wrote the original software. If you use this software
+ |    in a product, an acknowledgment in the product documentation would be
+ |    appreciated but is not required.
+ | 2. Altered source versions must be plainly marked as such, and must not be
+ |    misrepresented as being the original software.
+ | 3. This notice may not be removed or altered from any source distribution.
+ |
+-/
+
+package structs;
+
+using "nsl.fmt";
+
+// In the behavior/impl I'm using md instead of fn, this is short for method. This can only be used
+// in behavior/impl. It is optional and fn can be used instead. The idea is it can tell a programmer
+// they're in the middle of a behavior or impl without them having to scroll.
+
+type Animal behavior {
+    md speak() {
+        println("Not implemented!");
+    }
+    
+    eat();
+    
+    name: string;
+    weight: f32;
+}
+
+type Cat struct {
+    furColor: string;
+    _lives: int = 9;
+}
+
+impl Cat does Animal;
+
+md speak() {
+    println("${name} says meow!");
+}
+
+md eat() {
+    println("Eats cat food.");
+}
+
+md getLives(): int {
+    return _lives;
+}
+
+endimpl;
+
+type Dog struct {
+    breed: string;
+}
+
+impl Dog does Animal;
+
+md bark() {
+    println("Woof!");
+}
+
+md eat() {
+    println("Eats dog food.");
+}
+
+endimpl Dog; // Optional struct name used here.
+
+type Point struct {x, y: f32;}
+
+type Foo struct {
+    _x: int;
+    _y: int;
+}
+
+impl Foo;
+
+md add[foo: Foo](a, b: int) {
+    foo._x += a;
+    foo._y += b;
+}
+
+md sub[foo: ^Foo](a, b: int) {
+    foo->_x -= a;
+    foo->_y -= b;
+}
+
+md print() {
+    println(_x, _y);
+}
+
+endimpl;
+
+fn main() {
+    cat := Cat{name: "Mittens", weight: 12, furColor: "brown"};
+    dog := Dog{name: "Fido", weight: 100, breed: "Golden"};
+    
+    cat.speak();
+    dog.speak();
+    
+    cat.eat();
+    dog.eat();
+    
+    // println(cat._lives); // Uncomment this and see what happens.
+    println(cat.getLives());
+    dog.bark();
+    
+    p := point{12.f, 42.f};
+    println(p.x, p.y);
+    
+    p.x += 42
+    p.y += 12
+    println(p.x, p.y);
+    
+    let foo: Foo;
+    foo.add(12, 42);
+    foo.sub(10, 92);
+    foo.print();
+}
