@@ -49,7 +49,7 @@ struct Symbol {
     String name;
     String type;
     SymbolKind kind;
-	bool isNullable;
+	bool isNull;
     bool isConst;
     int line;
     int linePos;

@@ -36,7 +36,7 @@ Parser::Parser(Lexer *lex):
     //
 }
 
-fn Parser::firstEat() {
+fn Parser::firstEat() -> void {
     _lookahead = _lex->nextToken();
     _lookaheadLine = _lex->line();
     _lookaheadPos = _lex->linePos();
@@ -57,17 +57,44 @@ fn Parser::eat() -> void {
     db(tok);
 }
 
-fn Parser::eat(int type, const String &expected, const String &after) {
-    eat();
-
-    if (_current.type == type) {
+fn Parser::expectAfter(int type, const String &expected, const String &after) -> void {
+    if (_lookahead.type != type) {
+        parseError(expected, after);
         return;
     }
 
-    parseError(expected, after);
+    eat();
 }
 
-fn Parser::eat(uint8 amount) {
+fn Parser::expect(int type, const String &expected) -> void {
+    if (_lookahead.type != type) {
+        parseError(expected);
+        return;
+    }
+
+    eat();
+}
+
+fn Parser::eatSemicolon() -> void {
+    if (_current.type == TK_SEMICOLON) {
+        eat();
+        return;
+    }
+
+    errInit();
+    std::cerr << " Expected ";
+    setCmdColor(PurpleColor);
+    std::cerr << "';'";
+    setCmdColor(TextColor);
+    std::cerr << " after ";
+    setCmdColor(PurpleColor);
+    std::cerr << "'" << _current.lexeme << "'.";
+    setCmdColor(TextColor);
+    std::cerr << std::endl;
+    printLineWithError();
+}
+
+fn Parser::eat(uint8 amount) -> void {
     for (int i = 0; i < amount; ++i) {
         eat();
     }
@@ -90,7 +117,7 @@ fn Parser::match(int type) -> bool {
     return true;
 }
 
-fn Parser::errInit() {
+fn Parser::errInit() -> void {
     _finishedWithErrors = true;
 
     std::cerr << _lex->filename() << " L" << _current.line << ",C" << _current.pos << ": ";
@@ -99,14 +126,14 @@ fn Parser::errInit() {
     setCmdColor(TextColor);
 }
 
-fn Parser::warnInit() {
+fn Parser::warnInit() -> void {
     std::cerr << _lex->filename() << ":L" << _current.line << ",C" << _current.pos << ": ";
     setCmdColor(WarnColor);
     std::cerr << "Warning: ";
     setCmdColor(TextColor);
 }
 
-fn Parser::printLineWithError() {
+fn Parser::printLineWithError() -> void {
     FILE *file = fopen(_lex->path().c_str(), "r");
 
     if (file != nullptr) {
@@ -157,16 +184,36 @@ fn Parser::parseError(const String &expected, const String &after) -> Node* {
     setCmdColor(TextColor);
     std::cerr << " after ";
     setCmdColor(PurpleColor);
-    std::cerr << "\"" << after << "\"";
+    std::cerr << "'" << after << "'";
     setCmdColor(TextColor);
     std::cerr << " got ";
     setCmdColor(PurpleColor);
-    std::cerr << tokenToString(_current);
+    std::cerr << tokenToString(_lookahead);
     setCmdColor(TextColor);
     std::cerr << " instead." << std::endl;
     printLineWithError();
 
     return nullptr;
+}
+
+fn Parser::parseError(const String &expected) -> Node* {
+    errInit();
+    std::cerr << " Expected ";
+    setCmdColor(PurpleColor);
+    std::cerr << "'" << expected << "'.";
+    setCmdColor(TextColor);
+    printLineWithError();
+
+    return nullptr;
+}
+
+fn Parser::redefinitionErrorArg(const String &arg) -> void {
+    errInit();
+    std::cerr << "Redefinition of argument ";
+    setCmdColor(PurpleColor);
+    std::cerr << "'" << arg << "'.";
+    setCmdColor(TextColor);
+    printLineWithError();
 }
 
 fn Parser::parseErr(const char *error, ...) -> Node* {
@@ -247,12 +294,13 @@ fn Parser::parsePrimary() -> Node* {
     return nullptr;
 }
 
-fn Parser::parsePackage() {
-    eat(TK_IDENT, "identifier", "package");
+fn Parser::parsePackage() -> void {
+    expectAfter(TK_IDENT, "identifier", "package");
     std::cout << "current package is now: " << _current.lexeme << std::endl;
     _currentPackage = _current.lexeme;
+    eat(); // Eat the package name.
     let *package = new SymbolTable();
-    eat();
+    eatSemicolon();
 }
 
 fn Parser::parseExpression() -> Node* {
@@ -322,26 +370,36 @@ fn Parser::parseNumber() -> Node* {
     return newInt(32, num, isSigned);
 }
 
+fn Parser::parseType() -> Node* {
+
+}
+
 fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     int arity = 0;
-    std::vector<Node *> args;
-    std::vector<Node *> returnTypes;
+    Nodes args;
+    Nodes returnTypes;
+    std::vector<String> argNames;
     if (!check(TK_RPAREN)) {
         while (_current.type != TK_RPAREN) {
-            if (++arity > 16) {
-                error("Can't have more than 16 arguments.");
-            }
-            
-            eat();
-            if (_current.type != TK_IDENT) {
-                parseErr("Expected identifier.");
-            }
-            
+            expect(TK_IDENT, "name");
             String argName = _current.lexeme; // TODO: Check if this exists already.
             eat();
+
+            if (std::find(argNames.begin(), argNames.end(), argName) != argNames.end()) {
+                redefinitionErrorArg(argName);
+                return nullptr;
+            }
+
+
+            if (++arity > 16) {
+                error("A function can't have more than 16 arguments.");
+            }
             
             if (_current.type == TK_COLON) {
-                // name: type
+                let arg = parseExpression();
+                if (arg != nullptr) {
+                    args.push_back(arg);
+                }
             } else if (_current.type == TK_COMMA) {
                 // name, name: type
             } else if (_current.type == TK_LET_DECL) {
@@ -358,7 +416,7 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     }
 
     eat(); // Eat the )
-    eat(TK_COLON, ":", ")");
+    expectAfter(TK_COLON, ":", ")");
 
     if (check(TK_LBRACE)) {
         returnTypes.push_back(newVoid());
@@ -380,7 +438,7 @@ fn Parser::parseFunction() -> Node* {
 
     String name = _current.lexeme;
 
-    eat(TK_LPAREN, "(", "name");
+    expectAfter(TK_LPAREN, "(", "name");
     PrototypeNode *prototype = parsePrototype(name);
 
     return nullptr;

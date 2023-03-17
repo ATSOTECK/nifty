@@ -42,10 +42,12 @@ public:
         return _foundEntrypoint;
     }
 
-    fn firstEat();
+    fn firstEat() -> void;
     fn eat() -> void;
-    fn eat(int type, const String &expected, const String &after);
-    fn eat(uint8 amount);
+    fn expectAfter(int type, const String &expected, const String &after) -> void;
+    fn expect(int type, const String &expected) -> void;
+    fn eatSemicolon() -> void;
+    fn eat(uint8 amount) -> void;
 
     use_fn check(int type) const -> bool;
     use_fn lookahead(int type) const -> bool;
@@ -54,10 +56,12 @@ public:
     fn lookaheadToken(uint8 t) -> Token;
     fn lookaheadTokenType(uint8 t) -> uint8;
 
-    fn errInit();
-    fn warnInit();
-    fn printLineWithError();
+    fn errInit() -> void;
+    fn warnInit() -> void;
+    fn printLineWithError() -> void;
     fn parseError(const String &expected, const String &after) -> Node*;
+    fn parseError(const String &expected) -> Node*;
+    fn redefinitionErrorArg(const String &arg) -> void;
     fn parseErr(const char *error, ...) -> Node*;
     fn error(const String &error, const String &token) -> Node*;
     fn error(const String &error) -> Node*;
@@ -67,7 +71,7 @@ public:
 
 private:
     fn parsePrimary() -> Node*;
-    fn parsePackage();
+    fn parsePackage() -> void;
     fn parseExpression() -> Node*;
     fn parseBinOpRhs(int precedence, Node *lhs) -> Node*;
     fn parseNumber() -> Node*;
