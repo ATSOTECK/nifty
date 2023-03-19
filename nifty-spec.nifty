@@ -3329,7 +3329,8 @@ type
 emit
 
 // Built in functions
-assert()
+assert() // In debug and release mode.
+assert_db() // Only in debug mode.
 panic()
 
 // [TODO / IDEAS] ---------------------------------------------------------------------------------

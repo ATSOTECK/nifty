@@ -120,11 +120,11 @@
                 },
                 {
                     "name": "keyword.other.included",
-                    "match": "(assert|panic)\\s*\\("
+                    "match": "\\b(assert|assert_db|panic)\\b"
                 },
                 {
                     "name":"entity.name.type.Self.nifty",
-                    "match": "(Self)"
+                    "match": "\\b(Self)\\b"
                 }
             ]
 		},
