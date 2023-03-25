@@ -80,16 +80,13 @@ Locals must end with an underscore.
 
 // [HELLO WORLD] ----------------------------------------------------------------------------------
 
-using "nsl.fmt"
+using <fmt>
 
 fn main() {
     println("Hello, world!")
 }
 
 // Semicolons are optional.
-// Semicolons are required in some parts of the language to make parsing much easier. I might
-// require them everywhere for consistency. (Though if I do I likely wont update this file to add
-// them everywhere, just pretend they are there)
 
 // [COMMENTS] -------------------------------------------------------------------------------------
 
@@ -377,16 +374,17 @@ str := `this\is\'a\raw\string`
 
 package main
 
-use "nsl.fmt"
-use "nsl.math"
+// Packages are used with the 'use' keyword.
+use <fmt>
+use <math>
 
 fn main() {
     fmt::println(math::PI)
 }
 
-// If no package is specified for a file then the default 'global' package is used.
+// If no package is specified for a file then the default 'default' package is used.
 
-using "nsl.fmt"
+using <fmt>
 
 fn main() {
 	println("Hello world!")
@@ -401,9 +399,9 @@ fn main() {
 // path, which is also the name of the package in the file. This, however,
 // can be changed with the 'as' keyword
 
-use "nsl.fmt"
-use "nsl.math" as M
-use "nsl.math.random"
+use <fmt>
+use <math> as M
+use <math.random>
 
 fn main() {
     fmt::println(M::PI) // math::PI is invalid
@@ -415,7 +413,7 @@ fn main() {
 
 // All items inside a package can be added to the current scope with the 'using' keyword.
 
-use "nsl.fmt"
+use <fmt>
 using fmt // All items exported from the package fmt are now in this file's scope.
 
 fn main() {
@@ -424,7 +422,7 @@ fn main() {
 
 // --- --- --- --- ---
 
-use "nsl.fmt"
+use <fmt>
 
 fn sayHi() {
     using fmt // All items from the package fmt are now in this function's scope.
@@ -436,7 +434,7 @@ fn main() {
 }
 
 // 'using' can also be used to import the package and bring it in to the file scope.
-using "nsl.fmt"
+using <fmt>
 
 fn main() {
     println("Hello world!")
@@ -445,7 +443,7 @@ fn main() {
 // If two packages are brought into the same scope and they have any exported symbols
 // with the same name then the package name must be provided to avoid ambiguity.
 
-use "nsl.fmt"
+use <fmt>
 use "foo"
 
 using fmt
@@ -456,9 +454,15 @@ fn main() {
     foo::println("Yote") // Valid
 }
 
+// Packages included in the nifty standard library (nsl) can be used with '<' and '>' while user made
+// packages are included with double quotes. nsl packages can be used with double quotes as well.
+use "nsl.fmt"
+// Is the same as
+use <fmt>
+
 // Specific functions and types can be used from a package as well.
 
-use { println } in "nsf.fmt"
+use { println } in <fmt>
 
 fn main() {
     println("Hello world!")
@@ -469,9 +473,9 @@ fn main() {
 // This can be a good alternative to the 'using' keyword as it decreases the chances of name collisions.
 
 // The 'as' keyword can still be used
-use { println } in "nsf.fmt" as F // fmt is now F
+use { println } in <fmt> as F // fmt is now F
 
-use { int64, float64 } in "nsl.math.random" // Multiple can be used at once.
+use { int64, float64 } in <math.random> // Multiple can be used at once.
 
 // When importing specifics like this the 'using' keyword can not be used.
 
@@ -540,7 +544,7 @@ fn otherFunc() {
 
 api game // The game package must be defined and implemented.
 
-use "nsl.math.matrix" // Other packages can be used to show that this package depends on it. using can be
+use <math.matrix> // Other packages can be used to show that this package depends on it. using can be
 // used as well.
 
 // Functions must not be defined.
@@ -685,10 +689,16 @@ fn someFunc(x: int) {
     y := &x // Invalid
 }
 
-// If you need to change the argument for some reason you must make a copy.
+// If you need to change the argument for some reason you must either make a copy or use the 'let' keyword.
 fn someFunc(x: int) {
     newX := x
     newX = 12 // Valid
+}
+
+// Explicitly mark x as mutable with the 'let' keyword.
+fn someFunc(let x: int) {
+    x = 12 // Valid
+    y := &x // Valid
 }
 
 // Pointers can also be used to change the value.
@@ -1071,12 +1081,12 @@ when (x) {
     else: fmt::println("big")
 }
 
-// By default cases do not fall through. To fall through use '->'.
+// By default cases do not fall through. To fall through use '=>'.
 
 x := 2
 when (x) {
-    1 -> fmt::println("one")
-    2 -> fmt::println("two")
+    1 => fmt::println("one")
+    2 => fmt::println("two")
     3: fmt::println("three")
     else: fmt::println("???")
 }
@@ -1148,16 +1158,16 @@ condition = false
 x = condition ? valueIfTrue : valueIfFale
 assert(x == 42) // true
 
-// Labels are defined with labelName!
-someLabel!
+// Labels are defined with #labelName!
+#someLabel!
 
 // Labels can be used with continue, break, and goto.
 // Yes nifty has goto, however use of goto is disabled by default. Misuse of goto can quickly cause
 // messy code but it can be very powerful in specific senarios. So I see no reason not to include it.
 
-forever!
+#forever!
 // Code
-goto forever!
+goto #forever!
 
 // goto can't jump to labels in other functions.
 
@@ -1184,16 +1194,16 @@ for (val v in someArray) {
 // outer loop you can use labels to specify which loop to break/continue from. Otherwise
 // nifty will break/continue from the loop the statement is in which may not be what you want.
 
-outer!
+#outer!
 for (i := 0; i < 100; ++i) {
-    inner!
+    #inner!
     for (j := 100; j >= 0; --j) {
         if (someCondition) {
-            continue inner!
+            continue #inner!
         }
         
         if (otherCondition) {
-            break outer!
+            break #outer!
         }
         
         // Stuff
@@ -1221,17 +1231,17 @@ count := {
 
 x := aNumber()
 
-count := outerBlock! {
-    let sum: u32 = innerBlock! {
+count := #outerBlock! {
+    let sum: u32 = #innerBlock! {
         for (i: u32 = 0; i < 10; ++i) {
             sum += 1
         }
         
         if (x > 20) {
-            <- outerBlock! sum
+            <- #outerBlock! sum
         }
         
-        <- innerBlock! sum
+        <- #innerBlock! sum
     }
     
     for (i: u32 = 0; i < 10; ++i) {
@@ -1282,7 +1292,7 @@ fn anotherFunc() {
 // Defer statements can be stacked as well and are executed in a First In Last Out (FILO) fashion.
 
 package main
-using "nsl.fmt"
+using <fmt>
 
 fn main() {
     for (val i in 0 ..< 5) {
@@ -1882,7 +1892,7 @@ fmt::println("The color is ${color}.")
 // When implementing functions on a struct the structs fields are implicitly available to the
 // function body. Optionally functions implemented on a struct can have a receiver argument. The
 // receiver argument is in brackets right before the functions parentheses. The struct type name
-// can be used for the type or 'Self'.
+// can be used for the type.
 
 type Thing struct {
     x: int
@@ -1932,7 +1942,7 @@ thing.printX()
 // impl have conflicting function names there will be a compiler error. Or should it require 
 // prefixing with the BehaviorName.
 
-use "nsl.math"
+use <math>
 
 type Rect struct { w, h: f64 }
 type Circle struct { r: f64 }
@@ -2154,6 +2164,34 @@ endimpl
 
 // Because operator overloads are implemented on structs the struct object must be on the left.
 point + 5.f // Valid
+
+// Operator overloads work with bahaviors too.
+
+type Addable behavior {
+    #[overloads("+")]
+    add(other: Self): Self // Use Self to indicate that the function will return the type of the
+                              // struct impl that does this behavior.
+    #[overloads("-")]
+    sub(other: Self): Self
+}
+
+type Vec2 struct { x, y: f32 }
+
+impl Vec2 does Addable
+
+// Self can be used as the type.
+#[overloads("+")]
+md add(other: Self): Self {
+    return Vec2{x + other.x, y + other.y}
+}
+
+// Or the name of the struct can be used as the type.
+#[overloads("-")]
+md sub(other: Vec2): Vec2 {
+    return Vec2{x - other.x, y - other.y}
+}
+
+endimpl
 
 // [UNION TYPES] ----------------------------------------------------------------------------------
 
@@ -2879,6 +2917,9 @@ someVar := OTHER_CONST_MACRO // Invalid
 #set THIRD_CONST_MACRO OTHER_CONST_MACRO // Invalid
 
 // Built in macros
+// Some of the built in macros are more like keywords than macros. This is because they are useful
+// and help out the compiler but are not expected to be used frequently enough to merit their own
+// keyword. For instance #number or #atLeastOnce
 
 #file           // replaced with the filename
 // #fileRaw        // usually the same as #file but if in a macro will show the filename the macro is in, not where it is used
@@ -2986,7 +3027,7 @@ println(str) // hello.txt contents
 // happen in the background to make sure the calls to any objects are safe. However in almost all
 // cases the convenience and flexability is worth the overhead.
 
-// Signals must never return a type, they must be void.
+// Signals must never return a type, they must be void and they must be undefined.
 #[signal]
 fn valueChanged(newVal: int) undefined
 
@@ -3032,7 +3073,7 @@ type Person struct {
     updatedAt: time::Time
 }
 
-use "nsl.fmt"
+use <fmt>
 use "nsl.sqlite"
 
 // Norm allows queries to be type checked.
