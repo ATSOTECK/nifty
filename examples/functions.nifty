@@ -22,41 +22,41 @@
 
 package functions;
 
-using "nsl.fmt";
-use "nsl.math.random";
+using <fmt>
+use <math.random>
 
 fn addInt(x: int y: int): int {
-    return x + y;
+    return x + y
 }
 
 fn addFloat(x, y: float): float {
-    return x + y;
+    return x + y
 }
 
 fn addDouble(x := 0.d, y := 0.d): double {
-    return x + y;
+    return x + y
 }
 
 fn addSaturatingInt(x: u8 = 10, y: u8 = 20): u8 {
-    return x @+ y;
+    return x @+ y
 }
 
 fn add overloads {addInt, addFloat, addDouble, addSaturatingInt}
 
 fn getRandomPos(w, h: f32): f32, f32 {
-    x := random::float32Range(0, w);
-    y := random::float32Range(0, h);
-    return x, y;
+    x := random::float32Range(0, w)
+    y := random::float32Range(0, h)
+    return x, y
 }
 
 #[minArity(2)]
 fn sum(nums: ..int): int {
-    res := 0;
+    res := 0
     for (val n in nums) {
-        res += n;
+        res += n
     }
     
-    return res;
+    return res
 }
 
 fn printArg(n: int) {
@@ -68,34 +68,34 @@ fn printArg(n: int) {
     
     // let n = 42; // Uncomment and see what happens.
     
-    println(n);
+    println(n)
 }
 
 // Specifying void is optional.
 fn voidFn(): void {
-    println("This is a void function.");
+    println("This is a void function.")
 }
 
 fn main() {
-    let a: u8 = 20;
-    let b: u8 = 255;
-    println(add(a, b)); // Should print 255.
-    println(addInt(2, 2));
+    let a: u8 = 20
+    let b: u8 = 255
+    println(add(a, b)) // Should print 255.
+    println(addInt(2, 2))
     
-    x, y := getRandomPos(100.f, 100.f);
-    println("(${x}, ${y})");
+    x, y := getRandomPos(100.f, 100.f)
+    println("(${x}, ${y})")
     
     // sum(); // Uncomment this line to see what happens.
-    theSum := sum(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    println(theSum);
+    theSum := sum(1, 2, 3, 4, 5, 6, 7, 8, 9)
+    println(theSum)
     
-    printArg(100);
-    voidFn();
+    printArg(100)
+    voidFn()
     
-    printArgPtr := printArg;
+    printArgPtr := printArg
     printArgPtr(42)
     
-    let printArgPtr2: fn(int);
-    printArgPtr2 = printArg;
-    printArgPtr2(12);
+    let printArgPtr2: fn(int)
+    printArgPtr2 = printArg
+    printArgPtr2(12)
 }

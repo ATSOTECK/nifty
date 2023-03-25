@@ -1,19 +1,24 @@
-package basic;
+package basic
 
-fn add(x: int y: int): int {
-    return x + y;
+fn add(x: int, y: int): int {
+    return x + y
 }
 
 /-
 fn add2(x, y: int): int {
-    return x + y;
+    return x + y
 }
 
 fn add3(x := 10, y := 10) {
-    return x + y;
+    return x + y
+}
+
+fn xFn(let x: int): int {
+    x += 10
+    return x
 }
 -/
 
 fn main(): int {
-    return add(2, 2);
+    return add(2, 2)
 }

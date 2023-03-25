@@ -22,74 +22,77 @@
 
 package loops;
 
-using "nsl.fmt";
+using <fmt>
 
 fn printALine() {
-    println("----------");
+    println("----------")
 }
 
 fn main() {
-    println("For loops!");
+    println("For loops!")
     
     for (let i = 0; i < 10; i += 1) {
-        println(i);
+        println(i)
     }
     
-    printALine();
+    printALine()
     
     for (i := 0; i < 10; ++i) {
-        println(i);
+        println(i)
     }
     
-    printALine();
+    printALine()
     
     for (0 ..< 10) {
-        println("For loop!");
+        println("For loop!")
     }
     
-    printALine();
+    printALine()
     
+    // With step 2.
     for (val i in 0 ..< 10; 2) {
-        println(i);
+        println(i)
     }
     
-    printALine();
+    printALine()
     
     // Nothing should happen here.
     for (val i in 10 ..= 0) {
-        println(i);
+        println(i)
     }
     
     for <(val i in 10 ..= 0) {
-        println(i);
+        println(i)
     }
     
-    printALine();
-    println("While loops!");
+    printALine()
+    println("While loops!")
     
     x := 0
     while (x < 5) {
-        println(x);
-        x++;
+        println(x)
+        x++
+    }
+    
+    printALine()
+    
+    // Like do ... while
+    while (x < 0) #atLeastOnce {
+        println(x)
     }
     
     printALine();
-    
-    do {
-        println(x);
-    } while (x < 0);
-    
-    printALine();
-    println("Unil loops!");
+    println("Unil loops!")
     
     until (x == 0) {
-        println(x);
-        x--;
+        println(x)
+        x--
     }
     
-    printALine();
+    printALine()
     
-    do {
-        println(x);
-    } until(x < 0);
+    // Like do ... until
+    until (x < 0) #atLeastOnce {
+        println(x)
+    }
 }

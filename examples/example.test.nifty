@@ -21,32 +21,32 @@
 -/
 
 #test("while") {
-    x := 0;
+    x := 0
     while (x < 10) {
-        x++;
+        x++
     }
     
-    expectEq(x, 10);
+    expectEq(x, 10)
 }
 
 #test("open range for") {
-    x := 0;
+    x := 0
     for (0 ..= 10) {
-        x++;
+        x++
     }
     
-    expectEq(x, 11);
+    expectEq(x, 11)
 }
 
 #test("close range for") {
-    x := 0;
+    x := 0
     for (0 ..< 10) {
-        x++;
+        x++
     }
     
-    expectEq(x, 10);
+    expectEq(x, 10)
 }
 
 #test("skip:this test should be skipped") {
-    expect(false);
+    expect(false)
 }

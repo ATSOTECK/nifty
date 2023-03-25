@@ -20,9 +20,9 @@
  |
 -/
 
-package hello;
+package hello
 
-using "nsl.fmt";
+using <fmt>
 
 fn main() {
     greetings := [
@@ -38,9 +38,9 @@ fn main() {
         "안녕, 세상!",
         "مرحبا بالعالم!",
         "👋🌎!"
-    ];
+    ]
     
     for (val greeting in greetings) {
-        println(greeting);
+        println(greeting)
     }
 }

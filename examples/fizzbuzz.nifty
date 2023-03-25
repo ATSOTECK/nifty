@@ -22,7 +22,7 @@
 
 package fizzbuzz
 
-using "nsl.fmt"
+using <fmt>
 
 fn fizzbuzz(start, stop: int) {
     for (val i in start ..= stop) {
