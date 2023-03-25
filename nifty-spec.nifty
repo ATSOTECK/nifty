@@ -1921,6 +1921,12 @@ md printX[t: Thing]() {
     t.x = 12 // Invalid
 }
 
+// Pass receiver by value.
+md localSetX[let t: Thing]() {
+    fmt::println(t.x)
+    t.x = 12 // Valid, but done on a copy of the receiver argument.
+}
+
 endimpl
 
 // The functions are called the same as any other.
