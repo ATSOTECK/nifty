@@ -26,10 +26,6 @@
 
 Parser::Parser(Lexer *lex):
     _lex(lex),
-    _lookaheadLine(0),
-    _line(0),
-    _lookaheadPos(0),
-    _pos(0),
     _finishedWithErrors(false),
     _foundEntrypoint(false)
 {
@@ -38,21 +34,15 @@ Parser::Parser(Lexer *lex):
 
 fn Parser::firstEat() -> void {
     _lookahead = _lex->nextToken();
-    _lookaheadLine = _lex->line();
-    _lookaheadPos = _lex->linePos();
 
     eat();
 }
 
 fn Parser::eat() -> void {
+    _previous = _current;
     _current = _lookahead;
-    _line = _lookaheadLine;
-    _pos = _lookaheadPos;
 
     _lookahead = _lex->nextToken();
-    _lookaheadLine = _lex->line();
-    _lookaheadPos = _lex->linePos();
-
     String tok = tokenToString(_current);
     db(tok);
 }
@@ -75,7 +65,7 @@ fn Parser::expect(int type, const String &expected) -> void {
     eat();
 }
 
-fn Parser::eatSemicolon() -> void {
+fn Parser::expectSemicolon() -> void {
     if (_current.type == TK_SEMICOLON) {
         eat();
         return;
@@ -88,10 +78,16 @@ fn Parser::eatSemicolon() -> void {
     setCmdColor(TextColor);
     std::cerr << " after ";
     setCmdColor(PurpleColor);
-    std::cerr << "'" << _current.lexeme << "'.";
+    std::cerr << "'" << _previous.lexeme << "'.";
     setCmdColor(TextColor);
     std::cerr << std::endl;
-    printLineWithError();
+    printLineWithError(_previous);
+}
+
+fn Parser::maybeSemicolon() -> void {
+    if (_current.type == TK_SEMICOLON) {
+        eat();
+    }
 }
 
 fn Parser::eat(uint8 amount) -> void {
@@ -133,14 +129,14 @@ fn Parser::warnInit() -> void {
     setCmdColor(TextColor);
 }
 
-fn Parser::printLineWithError() -> void {
+fn Parser::printLineWithError(const Token &token) -> void {
     FILE *file = fopen(_lex->path().c_str(), "r");
 
     if (file != nullptr) {
         int lineNumber = 0;
         char line[4096]; //TODO: Dynamic line size.
         while (fgets(line, sizeof line, file) != nullptr) {
-            if (++lineNumber == _current.line) {
+            if (++lineNumber == token.line) {
                 break;
             }
         }
@@ -148,12 +144,12 @@ fn Parser::printLineWithError() -> void {
         fclose(file);
 
         int width = 3;
-        for (int n = _current.line; n > 0; n /= 10) {
+        for (int n = token.line; n > 0; n /= 10) {
             ++width;
         }
 
         setCmdColor(GreenColor);
-        std::cerr << _current.line << " | ";
+        std::cerr << token.line << " | ";
         setCmdColor(TextColor);
         std::cerr << line;
         setCmdColor(GreenColor);
@@ -162,7 +158,7 @@ fn Parser::printLineWithError() -> void {
             std::cerr << " ";
         }
         std::cerr << "| ";
-        for (; i - width + 2 < _current.pos; ++i) {
+        for (; i - width + 2 < token.pos; ++i) {
             std::cerr << "~";
         }
         std::cerr << "^" << std::endl;
@@ -191,7 +187,7 @@ fn Parser::parseError(const String &expected, const String &after) -> Node* {
     std::cerr << tokenToString(_lookahead);
     setCmdColor(TextColor);
     std::cerr << " instead." << std::endl;
-    printLineWithError();
+    printLineWithError(_current);
 
     return nullptr;
 }
@@ -200,9 +196,9 @@ fn Parser::parseError(const String &expected) -> Node* {
     errInit();
     std::cerr << " Expected ";
     setCmdColor(PurpleColor);
-    std::cerr << "'" << expected << "'.";
+    std::cerr << "'" << expected << "'." << std::endl;
     setCmdColor(TextColor);
-    printLineWithError();
+    printLineWithError(_current);
 
     return nullptr;
 }
@@ -213,7 +209,7 @@ fn Parser::redefinitionErrorArg(const String &arg) -> void {
     setCmdColor(PurpleColor);
     std::cerr << "'" << arg << "'.";
     setCmdColor(TextColor);
-    printLineWithError();
+    printLineWithError(_current);
 }
 
 fn Parser::parseErr(const char *error, ...) -> Node* {
@@ -226,7 +222,7 @@ fn Parser::parseErr(const char *error, ...) -> Node* {
     va_end(args);
     std::cerr << buff << std::endl;
 
-    printLineWithError();
+    printLineWithError(_current);
 
     return nullptr;
 }
@@ -234,23 +230,23 @@ fn Parser::parseErr(const char *error, ...) -> Node* {
 fn Parser::error(const String &error, const String &token) -> Node* {
     errInit();
     std::cerr << error << " \"" << token << "\"." << std::endl;
-    printLineWithError();
+    printLineWithError(_current);
 
     return nullptr;
 }
 
 fn Parser::error(const String &error) -> Node* {
     errInit();
-    std::cerr << "on line " << _line << ": " << error << std::endl;
-    printLineWithError();
+    std::cerr << "on line " << _current.line << ": " << error << std::endl;
+    printLineWithError(_current);
 
     return nullptr;
 }
 
 fn Parser::warning(const String &warning) {
     warnInit();
-    std::cerr << "on line " << _line << ": " << warning << std::endl;
-    printLineWithError();
+    std::cerr << "on line " << _current.line << ": " << warning << std::endl;
+    printLineWithError(_current);
 }
 
 fn Parser::parse() -> Nodes {
@@ -289,6 +285,8 @@ fn Parser::parsePrimary() -> Node* {
     switch (_current.type) {
         case TK_NUMBER: return parseNumber();
         case TK_FN: return parseFunction();
+        case TK_TRUE: return parseBool(true);
+        case TK_FALSE: return parseBool(false);
     }
 
     return nullptr;
@@ -300,7 +298,8 @@ fn Parser::parsePackage() -> void {
     _currentPackage = _current.lexeme;
     eat(); // Eat the package name.
     let *package = new SymbolTable();
-    eatSemicolon();
+    // expectSemicolon();
+    maybeSemicolon();
 }
 
 fn Parser::parseExpression() -> Node* {
@@ -370,8 +369,12 @@ fn Parser::parseNumber() -> Node* {
     return newInt(32, num, isSigned);
 }
 
-fn Parser::parseType() -> Node* {
+fn Parser::parseBool(bool value) -> Node* {
+    return newBool(32, value);
+}
 
+fn Parser::parseType() -> Node* {
+    return nullptr;
 }
 
 fn Parser::parsePrototype(const String &name) -> PrototypeNode* {

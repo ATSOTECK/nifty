@@ -34,6 +34,8 @@
 #if defined(WIN32) || defined(_WIN32)
 #   define VWIN
 #   include <Windows.h>
+#   undef max
+#   undef min
 #endif
 
 #if defined(__APPLE__)

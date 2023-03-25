@@ -57,7 +57,8 @@ enum VarKind {
 
 struct Node {
     NodeType type;
-    Node() = delete;
+    String file;
+    int line, col;
 };
 
 typedef std::vector<Node*> Nodes;

@@ -46,7 +46,8 @@ public:
     fn eat() -> void;
     fn expectAfter(int type, const String &expected, const String &after) -> void;
     fn expect(int type, const String &expected) -> void;
-    fn eatSemicolon() -> void;
+    fn expectSemicolon() -> void;
+    fn maybeSemicolon() -> void;
     fn eat(uint8 amount) -> void;
 
     use_fn check(int type) const -> bool;
@@ -58,7 +59,7 @@ public:
 
     fn errInit() -> void;
     fn warnInit() -> void;
-    fn printLineWithError() -> void;
+    fn printLineWithError(const Token &token) -> void;
     fn parseError(const String &expected, const String &after) -> Node*;
     fn parseError(const String &expected) -> Node*;
     fn redefinitionErrorArg(const String &arg) -> void;
@@ -75,6 +76,7 @@ private:
     fn parseExpression() -> Node*;
     fn parseBinOpRhs(int precedence, Node *lhs) -> Node*;
     fn parseNumber() -> Node*;
+    fn parseBool(bool value) -> Node*;
     fn parseType() -> Node*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
     fn parseFunction() -> Node*;
@@ -82,10 +84,7 @@ private:
     Lexer *_lex;
     Token _lookahead;
     Token _current;
-    int _lookaheadLine;
-    int _line;
-    int _lookaheadPos;
-    int _pos;
+    Token _previous;
 
     Nodes _nodes;
     String _currentPackage;

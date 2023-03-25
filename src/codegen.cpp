@@ -30,7 +30,7 @@ fn Codegen::initModules() {
 fn Codegen::genCode(Node *ast) -> llvm::Value* {
     return _builder->getInt32(42);
 }
-
+/*
 fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function {
     //
 }
@@ -38,3 +38,4 @@ fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function {
 fn Codegen::genFunction(FunctionNode *function) -> llvm::Function* {
     //
 }
+ */
