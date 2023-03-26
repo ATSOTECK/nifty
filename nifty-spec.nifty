@@ -1029,8 +1029,8 @@ for (val key, value, index in map) { /- ... -/ }
 for (10 ..< 0) { /- ... -/ } // Does nothing
 
 // To go backwards over a range use <
-for < (10 ..< 0) { /- ... -/ }
-for < (val str in strings) { /- ... -/ }
+for <(10 ..< 0) { /- ... -/ }
+for <(val str in strings) { /- ... -/ }
 
 // While loops work like they do in c/c++.
 
@@ -1085,8 +1085,8 @@ when (x) {
 
 x := 2
 when (x) {
-    1 => fmt::println("one")
-    2 => fmt::println("two")
+    1: fmt::println("one") =>
+    2: fmt::println("two") =>
     3: fmt::println("three")
     else: fmt::println("???")
 }
