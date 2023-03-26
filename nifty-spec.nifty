@@ -3219,6 +3219,8 @@ project = string
 [<TargetName:string>]
 outputName = string 
 // Name of the output.
+description = string
+// Description of the target.
 entryPoint = string 
 // The file containing 'main()'.
 noEntryPoint = bool 
@@ -3313,6 +3315,12 @@ For instance if you had a build target you would have to use
 nifty run build
 or
 nifty build build
+
+To list all of the targets and their descriptions for the default build file use
+nifty list
+
+To specify a build file to list use
+nifty list [buildFile]
 
 -/
 
