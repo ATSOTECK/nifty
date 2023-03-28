@@ -14,7 +14,9 @@ if (APPLE)
 endif ()
 
 execute_process(COMMAND llvm-config --cxxflags OUTPUT_VARIABLE CMAKE_CXX_FLAGS)
-#string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
+if (APPLE)
+    string(STRIP ${CMAKE_CXX_FLAGS} CMAKE_CXX_FLAGS)
+endif ()
 
 find_package(LLVM REQUIRED CONFIG)
 
