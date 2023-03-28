@@ -1,0 +1,22 @@
+package main
+
+// Packages are used with the 'use' keyword.
+use <fmt>
+use <math>
+
+fn main() {
+    fmt::println(math::PI)
+}
+
+// If no package is specified for a file then the
+// default 'default' package is used.
+
+// nsl packages are use with <>
+using <fmt>
+use "foo"
+// user packages are used with ""
+
+fn main() {
+	println("Hello world!")
+    foo::bar()
+}

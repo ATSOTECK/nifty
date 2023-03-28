@@ -12,10 +12,10 @@
 // [ARRAYS]
 // [SLICES]
 // [MAP]
-// [ENUMS]
 // [STRUCTS]
 // [OOP]
 // [BEHAVIORS]
+// [ENUMS]
 // [OPERATOR OVERLOADING]
 // [UNION TYPES]
 // [GENERICS]
@@ -306,7 +306,7 @@ takeCustom(b) // Invalid
 x: s8 = 100
 y := cast(x, s32) // cast(var, type)
 
-// To cast between two types of the same size you can uuse the 'recast' operator. 
+// To cast between two types of the same size you can use the 'recast' operator. 
 // Like reinterpret_cast in c++.
 let x: f32 = 12.0
 y := recast(x, u32)
@@ -346,9 +346,9 @@ if (x != 0) { /- ... -/ } // Valid
 
 b := true
 if (b) { /- ... -/ } // Valid
-if (b == true) { /- ... -/ } // Valid,
+if (b == true) { /- ... -/ } // Valid
 
-p: ^int? = null
+p: ^int = null
 if (p) { /- ... -/ } // Invalid 
 if (p != null) { /- ... -/ } // Valid
 
@@ -629,7 +629,7 @@ fn add(a: int, b: int): int {
 }
 
 // ...and multiple return types
-fn openFile(name: string): File, Error {
+fn openFile(name: string): File, bool {
     // do stuff
 }
 
@@ -812,7 +812,7 @@ unused := returnsError() // Valid
 // important. Maybe a warning could be emitted if unused is used on functions that return an error
 // (or Result).
 
-// Should I have a keyword for this like use_fn/use_md?
+// Should I have a keyword for this like use_fn/use_md? Probably not.
 
 // Functions can have preconditions or postconditions.
 // Preconditions use the require attribute.
@@ -839,10 +839,10 @@ fn min(a, b: s32): s32 {
 // In debug mode the above two functions would effectively be:
 #[require {x > 0 && x < 1_000}, ensure{return > 0}]
 fn someFunc(x: int): int {
-    assert(x > 0)
-    assert(x < 1000)
+    assert_db(x > 0)
+    assert_db(x < 1000)
     _return := x * 10
-    assert(_return > 0)
+    assert_db(_return > 0)
     return _return
 }
 
@@ -850,11 +850,11 @@ fn someFunc(x: int): int {
 fn min(a, b: s32): s32 {
     if (a < b) {
         _return := a
-        assert(_return <= a)
+        assert_db(_return <= a)
         return _return
     }
     _return := b
-    assert(_return <= b)
+    assert_db(_return <= b)
     return _return
 }
 
@@ -1511,133 +1511,6 @@ m := map<string, Point>{
     "stop": Point{x: 142.f, y: 96.f}
 }
 
-// [ENUMS] ----------------------------------------------------------------------------------------
-
-type Token enum {
-    TK_STRING,
-    TK_NUMBER,
-    TK_BOOL,
-    TK_FUNCTION,
-    TK_VAR,
-}
-
-// The above example is just like enums in c/c++. So TK_STRING = 0, TK_NUMBER = 1 ...
-
-type Token enum {
-    TK_STRING,
-    TK_NUMBER,
-    TK_BOOL = 5,
-    TK_FUNCTION,
-    TK_VAR,
-}
-
-// Unless otherwise specified enumerators take the value of the enumerator before them + 1.
-// TK_STRING = 0, TK_NUMBER = 1, TK_BOOL = 5, TK_FUNCTION = 6 ...
-
-// The values in an enum must be unique.
-
-type Token enum {
-    TK_STRING,
-    TK_NUMBER,
-    TK_BOOL = 5,
-    TK_FUNCTION,
-    TK_VAR = 6, // Invalid
-}
-
-// More advanced patterns can be used as well for the increments.
-type EvensForSomeReason enum {
-    unused = #jot * 2,
-    First,  // 2
-    Second, // 4
-    Third,  // 8
-}
-
-type EvensForSomeReason enum {
-    First = (#jot + 1) * 2,  // 2
-    Second, // 4
-    Third,  // 8
-}
-
-type Permission enum {
-    Read = 1 << #jot, // 00000001
-    Write,            // 00000010
-    Delete,           // 00000100
-}
-
-type MemSize enum {
-    unused = 1 << (#jot * 10),
-    KB, // dec: 1024       bin: 00000000000000000000010000000000
-    MB, // dec: 1048576    bin: 00000000000100000000000000000000
-    GB, // dec: 1073741824 bin: 01000000000000000000000000000000
-}
-
-// 'jot' works much like 'iota' in go (the etymology nerds out there should love this).
-
-// Enums can be types other than int. When this is the case all enumerators must be specified.
-
-type Numbers enum: f64 {
-    PI = 3.14159,
-    E = 2.71828,
-}
-
-type Animals enum: string {
-    Aardvark = "Aardvark",
-    Cat = "Cat",
-    Dog = "Dog",
-}
-
-// To get the name of a enumeration use the name_of operator.
-
-num := Numbers.PI
-name := name_of(num, Numbers)
-fmt::println("num is ${name}") // Prints 'num is PI'
-
-// If the value can't be found it will return an empty string.
-num = 3.4
-name = name_of(num, Numbers) // 'name' is an empty string.
-
-// using can be used on enums.
-
-type Numbers enum: f64 {
-    PI = 3.14159,
-    E = 2.71828,
-}
-
-// ...
-
-using Numbers // Bring Numbers enumerations into the current scope.
-
-num := PI // Valid
-e := Numbers.E // Unlike with packages the name can still be used with using.
-
-type Direction enum {
-    North,
-    South,
-    East,
-    West,
-}
-
-let dir: Direction = Direction.North
-
-when (dir) {
-    Direction.North: fmt::println("north")
-    Direction.South: fmt::println("south")
-    else: fmt::println("other") // Because we are using when on an enum else must be used to cover
-    // the other cases.
-}
-
-// The complete attribute can be used to force all of the options to be considered in the when.
-// else: can't be used with complete. complete can only be used with enums, otherwise it is a
-// compiler error.
-
-#[complete]
-when (dir) {
-    Direction.North: fmt::println("north")
-    Direction.South: fmt::println("south")
-    Direction.East: fmt::println("east")
-    Direction.West: fmt::println("west")
-}
-
 // [STRUCTS] --------------------------------------------------------------------------------------
 
 type Point struct {
@@ -2128,6 +2001,161 @@ endimpl
 allocator := MyAllocator{}
 // Use the allocator.
 allocator.printStats() // Prints number of bytes allocated and freed.
+
+// [ENUMS] ----------------------------------------------------------------------------------------
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+    TK_BOOL,
+    TK_FUNCTION,
+    TK_VAR,
+}
+
+// The above example is just like enums in c/c++. So TK_STRING = 0, TK_NUMBER = 1 ...
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+    TK_BOOL = 5,
+    TK_FUNCTION,
+    TK_VAR,
+}
+
+// Unless otherwise specified enumerators take the value of the enumerator before them + 1.
+// TK_STRING = 0, TK_NUMBER = 1, TK_BOOL = 5, TK_FUNCTION = 6 ...
+
+// The values in an enum must be unique.
+
+type Token enum {
+    TK_STRING,
+    TK_NUMBER,
+    TK_BOOL = 5,
+    TK_FUNCTION,
+    TK_VAR = 6, // Invalid
+}
+
+// More advanced patterns can be used as well for the increments.
+type EvensForSomeReason enum {
+    unused = #jot * 2,
+    First,  // 2
+    Second, // 4
+    Third,  // 8
+}
+
+type EvensForSomeReason enum {
+    First = (#jot + 1) * 2,  // 2
+    Second, // 4
+    Third,  // 8
+}
+
+type Permission enum {
+    Read = 1 << #jot, // 00000001
+    Write,            // 00000010
+    Delete,           // 00000100
+}
+
+type MemSize enum {
+    unused = 1 << (#jot * 10),
+    KB, // dec: 1024       bin: 00000000000000000000010000000000
+    MB, // dec: 1048576    bin: 00000000000100000000000000000000
+    GB, // dec: 1073741824 bin: 01000000000000000000000000000000
+}
+
+// 'jot' works much like 'iota' in go (the etymology nerds out there should love this).
+
+// Enums can be types other than int. When this is the case all enumerators must be specified.
+
+type Numbers enum: f64 {
+    PI = 3.14159,
+    E = 2.71828,
+}
+
+type Animals enum: string {
+    Aardvark = "Aardvark",
+    Cat = "Cat",
+    Dog = "Dog",
+}
+
+// To get the name of a enumeration use the name_of operator.
+
+num := Numbers.PI
+name := name_of(num, Numbers)
+fmt::println("num is ${name}") // Prints 'num is PI'
+
+// If the value can't be found it will return an empty string.
+num = 3.4
+name = name_of(num, Numbers) // 'name' is an empty string.
+
+// using can be used on enums.
+
+type Numbers enum: f64 {
+    PI = 3.14159,
+    E = 2.71828,
+}
+
+// ...
+
+using Numbers // Bring Numbers enumerations into the current scope.
+
+num := PI // Valid
+e := Numbers.E // Unlike with packages the name can still be used with using.
+
+type Direction enum {
+    North,
+    South,
+    East,
+    West,
+}
+
+let dir: Direction = Direction.North
+
+when (dir) {
+    Direction.North: fmt::println("north")
+    Direction.South: fmt::println("south")
+    else: fmt::println("other") // Because we are using when on an enum else must be used to cover
+    // the other cases.
+}
+
+// The complete attribute can be used to force all of the options to be considered in the when.
+// else: can't be used with complete. complete can only be used with enums, otherwise it is a
+// compiler error.
+
+#[complete]
+when (dir) {
+    Direction.North: fmt::println("north")
+    Direction.South: fmt::println("south")
+    Direction.East: fmt::println("east")
+    Direction.West: fmt::println("west")
+}
+
+// Functions can be implemented on enums as well.
+
+type Color enum {
+    Yellow,
+    Red,
+    Green,
+    BLue,
+}
+
+impl Color
+
+md greenPart[c: Color](): bool {
+    when (c) {
+        Color.Yellow,
+        Color.Blue: return true
+        else: return false
+    }
+}
+
+md isGreen[self: Self](): bool {
+    return self == Color.Green
+}
+
+endimpl
+
+c := Color.Green
+assert(c.isGreen()) // True
 
 // [OPERATOR OVERLOADING] -------------------------------------------------------------------------
 
