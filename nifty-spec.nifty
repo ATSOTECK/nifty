@@ -302,6 +302,10 @@ takeCustom(b) // Valid
 takeCustom(a)
 takeCustom(b) // Invalid
 
+// A new default value can be given for distinct types.
+#[distinct, initTo(1)] type Month as int
+let month: Month // month is 1
+
 // Casting uses the 'cast' operator.
 x: s8 = 100
 y := cast(x, s32) // cast(var, type)
