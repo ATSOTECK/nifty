@@ -1,22 +1,20 @@
-package main
+// Labels can be used with break and continue.
+// Can be useful if you have an inner and outer loop.
 
-// Packages are used with the 'use' keyword.
-use <fmt>
-use <math>
-
-fn main() {
-    fmt::println(math::PI)
-}
-
-// If no package is specified for a file then the
-// default 'default' package is used.
-
-// nsl packages are use with <>
-using <fmt>
-use "foo"
-// user packages are used with ""
-
-fn main() {
-	println("Hello world!")
-    foo::bar()
+#outer!
+for (i := 0; i < 100; ++i) {
+    #inner!
+    for (j := 100; j >= 0; --j) {
+        if (someCondition) {
+            continue #inner!
+        }
+        
+        if (otherCondition) {
+            break #outer!
+        }
+        
+        // Stuff
+    }
+    
+    // Stuff
 }

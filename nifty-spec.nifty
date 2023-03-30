@@ -388,15 +388,17 @@ fn main() {
 
 // If no package is specified for a file then the default 'default' package is used.
 
-using <fmt>
+using <fmt> // the same as using "nsl.fmt"
+use "foo"
 
 fn main() {
 	println("Hello world!")
+    foo::bar()
 }
 
-// It is fine to just use the global package for your programs. By default the global
-// package is empty. Just using the global package could be an issue for larger
-// programs though. The global package can't be imported and can't be used for packages
+// It is fine to just use the default package for your programs. By default the default
+// package is empty. Just using the default package could be an issue for larger
+// programs though. The default package can't be imported and can't be used for packages
 // meant to be used as 3rd party packages.
 
 // By default the name of the package is the last element of the package 
@@ -477,7 +479,7 @@ fn main() {
 // This can be a good alternative to the 'using' keyword as it decreases the chances of name collisions.
 
 // The 'as' keyword can still be used
-use { println } in <fmt> as F // fmt is now F
+use { println as pln } in <fmt> as F // println is now pln, fmt is now F
 
 use { int64, float64 } in <math.random> // Multiple can be used at once.
 
@@ -530,7 +532,7 @@ let _someVar_: string
 
 // Underscores can be used in variable names in other contexts with no warnings, though it isn't
 // always recommended.
-fn someFunc(_someVar, secondVar_, _thirdVar_: int) {/- ... -/} // Nothing special about any of these args.
+fn someFunc(_someVar, secondVar_, _thirdVar_: int) { /- ... -/ } // Nothing special about any of these args.
 
 fn otherFunc() {
     // Stuff
@@ -551,10 +553,13 @@ api game // The game package must be defined and implemented.
 use <math.matrix> // Other packages can be used to show that this package depends on it. using can be
 // used as well.
 
+// Items should be defined as they are in the package.
+// Otherwise a warning will be issued.
+
 // Functions must not be defined.
-fn drawText(x, y: f32, text: string, fontSize: u32, color: Color);
-fn createRobot(x, y: f32, health: int): ^Robot;
-fn doSomethingWithAMatrix(m: matrix::Matrix);
+fn drawText(x, y: f32, text: string, fontSize: u32, color: Color)
+fn createRobot(x, y: f32, health: int): ^Robot
+fn doSomethingWithAMatrix(m: matrix::Matrix)
 
 // Invalid, functions can't have implementations.
 fn sayHi() {
@@ -562,7 +567,7 @@ fn sayHi() {
 }
 
 // It is ok to redefine structs/enums/behaviors/types in the api file.
-struct Circle struct {
+type Circle struct {
     x, y: f32
     r: int = 100
 }
@@ -570,18 +575,20 @@ struct Circle struct {
 // Even though the functions are not being implemented here the impl, constimpl, and endimpl
 // keywords are used here.
 impl Circle
-    md draw(color: Color);
+    md draw(color: Color)
 endimpl
+
+type Collection<T> struct { /- snipped -/ }
 
 // The same for generics. (Pretend Collection is defined above, it is defined in [GENERICS] though)
 impl Collection<T>
-    md constructor(size := 0);
-    md add(num: T);
-    md average(): float;
+    md constructor(size := 0)
+    md add(num: T)
+    md average(): float
 endimpl
 
 impl Collection<int>
-    md sum(): int;
+    md sum(): int
 endimpl
 
 // The use of indentation above is optional, I just think it is easier to read this way when there
@@ -592,23 +599,18 @@ type Align enum {
     Horizontal,
 }
 
-// Variables and const may be defined or undefined. Unlike normal variable declarations variables
-// and consts must be explicetly set.
+// Variables may be defined or undefined. Unlike normal variable declarations variables
+// must be explicetly set.
 let defaultAlignment = Align.Vertical
 let defaultFont: ^Font = undefined
 const DEFAULT_FONT_SIZE = 42
-// The values given to variables and consts do not need to match what is given in the implementation
-// of the package. This is meant for the convienience of the consumer of the api and the values
-// listed in the file are not actually used by the compiler at all.
+// If a variable does not match the definition in the package a warning will be issued.
 
-// A better option would be to set them to undefined and explain the default in a comment.
+// An option would be to set them to undefined and explain the default in a comment.
 /// Defaults to vertical
 let defaultAlignment: Align = undefined
 /// Defaults to "Comic Sans" aka the font of Champions.
 let defaultFont: ^Font = undefined
-/// Defaults to 42
-const DEFAULT_FONT_SIZE: int = undefined
-// api files are the only place where constants can be set to undefined.
 
 
 // Declaration operators can be used as well.
@@ -1022,7 +1024,7 @@ for (i := 0; i < 10; ++i) {
 for (0 ..= 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
 for (0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
-for (val i in 0 ..< 10)
+for (val i in 0 ..< 10) { /- ... -/ }
 for (val i in 0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
 for (val str in strings) { /- ... -/ }
 for (val str, index in strings) { /- ... -/ }
@@ -1042,8 +1044,9 @@ while (condition == true) {
     // Do something
 }
 
-// For a do ... while loop use #atLeastOnce.
-while (condition == true) #atLeastOnce {
+// For a do ... while loop use #[atLeastOnce]
+#[atLeastOnce]
+while (condition == true) {
     // Code ran at least once
 }
 
@@ -1053,9 +1056,19 @@ until (condition == true) {
     // Do something
 }
 
-// For a do ... until loop use #atLeastOnce.
-until (condition == true) #atLeastOnce {
+// For a do ... until loop use #[atLeastOnce]
+#[atLeastOnce]
+until (condition == true) {
     // Code ran at least once
+}
+
+until (window.shouldCLose()) {
+    // Game loop.
+}
+
+// Is the same as
+while (!window.shouldClose()) {
+    // Game loop.
 }
 
 // When statements are much like switch statements in c/c++ except they only need one dedicated
@@ -1194,7 +1207,7 @@ for (val v in someArray) {
     }
 }
 
-// Labels can be used with breal and continue as well. For instance if you have and inner and
+// Labels can be used with break and continue as well. For instance if you have and inner and
 // outer loop you can use labels to specify which loop to break/continue from. Otherwise
 // nifty will break/continue from the loop the statement is in which may not be what you want.
 
@@ -2957,7 +2970,7 @@ someVar := OTHER_CONST_MACRO // Invalid
 // Built in macros
 // Some of the built in macros are more like keywords than macros. This is because they are useful
 // and help out the compiler but are not expected to be used frequently enough to merit their own
-// keyword. For instance #number or #atLeastOnce
+// keyword. For instance #number
 
 #file           // replaced with the filename
 // #fileRaw        // usually the same as #file but if in a macro will show the filename the macro is in, not where it is used
@@ -2998,8 +3011,6 @@ someVar := OTHER_CONST_MACRO // Invalid
 #noBoundsCheck     // does not check bounds in the given block or statement
 #checkBounds       // will always check bounds in the given block or statement
 #noAutoInit        // does not auto init variables for the given block
-
-#atLeastOnce       // used with 'while', and 'until' loops for a do ... while type loop
 
 #strictIEEE        // ignores IEEE breaking optimizations for the code block. If an algorith relies
                    // on IEEE correctness then this should be used while the optimizations can be 
