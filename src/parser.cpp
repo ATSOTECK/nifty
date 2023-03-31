@@ -27,7 +27,8 @@
 Parser::Parser(Lexer *lex):
     _lex(lex),
     _finishedWithErrors(false),
-    _foundEntrypoint(false)
+    _foundEntrypoint(false),
+    _inFunction(false)
 {
     //
 }
@@ -434,15 +435,38 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
 
 fn Parser::parseFunction() -> Node* {
     eat(); // Eat the fn
+    _inFunction = true;
 
     if (!check(TK_IDENT)) {
         return parseError("name", "fn");
     }
 
     String name = _current.lexeme;
+    _currentFnName = name;
 
     expectAfter(TK_LPAREN, "(", "name");
     PrototypeNode *prototype = parsePrototype(name);
 
     return nullptr;
+}
+
+fn Parser::parseReturn() -> Node* {
+    eat();
+    
+    if (!_inFunction) {
+        return parseErr("A return statement must be within a function.");
+    }
+    
+    Nodes retStatements;
+    while (_current.type != TK_SEMICOLON && _current.type != TK_RBRACE) {
+        let *retStatement = parseExpression();
+        retStatements.push_back(retStatement);
+        if (_current.type != TK_COMMA || _current.type == TK_EOF) {
+            break;
+        }
+        eat();
+    }
+    
+    maybeSemicolon();
+    return newReturn(retStatements);
 }

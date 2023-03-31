@@ -80,6 +80,7 @@ private:
     fn parseType() -> Node*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
     fn parseFunction() -> Node*;
+    fn parseReturn() -> Node*;
 
     Lexer *_lex;
     Token _lookahead;
@@ -91,6 +92,9 @@ private:
 
     bool _finishedWithErrors;
     bool _foundEntrypoint;
+    
+    bool _inFunction;
+    String _currentFnName;
 };
 
 

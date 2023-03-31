@@ -1,20 +1,28 @@
-// Labels can be used with break and continue.
-// Can be useful if you have an inner and outer loop.
+// Single line comments use '//'.
+// This is a comment.
 
-#outer!
-for (i := 0; i < 100; ++i) {
-    #inner!
-    for (j := 100; j >= 0; --j) {
-        if (someCondition) {
-            continue #inner!
-        }
-        
-        if (otherCondition) {
-            break #outer!
-        }
-        
-        // Stuff
-    }
-    
-    // Stuff
-}
+/-
+    Multiline comments use '/-' and '-/'
+    Comments can be nested so the following is valid
+-/
+
+/-
+    /-
+        // bla
+    -/
+-/
+
+/- Multiline comments can be on just one line too -/
+
+/*
+    C-style comments can be used and mixed with nifty comments.
+*/
+
+/-
+    Like so
+    /*
+        and so
+    -/
+*/
+
+// Why not just use /* */? I'm lazy, but you do you.

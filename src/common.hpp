@@ -46,11 +46,10 @@
 #define fn auto
 #define use_fn [[nodiscard]] auto
 #define until(x) while(!(x))
-#define forever for (;;)
 
 #define NIFTY_VERSION "0.0.0"
 #define NIFTY_DATE "25 - September - 2022"
-#define NIFTY_BUILD_FILE "nifty.toml"
+#define NIFTY_BUILD_FILE "build.toml"
 
 typedef int8_t  int8;
 typedef int16_t int16;

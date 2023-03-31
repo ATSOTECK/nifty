@@ -1244,11 +1244,11 @@ count := {
 // Sometimes it's impracticle or not possible to initialize/set a variable in one line. Using
 // blocks can prevent needing to set the variable to undefined or a temporary value.
 
-// Blocks can be labbeled as well to return a value from a spcified block if nested.
+// Blocks can be labbeled as well to return a value from a specified block if nested.
 
 x := aNumber()
 
-count := #outerBlock! {
+count2 := #outerBlock! {
     let sum: u32 = #innerBlock! {
         for (i: u32 = 0; i < 10; ++i) {
             sum += 1
@@ -1328,7 +1328,7 @@ Hello world
 -/
 
 // Nifty has a second type of defer, defer_err. defer_err only runs if the function returns an error.
-// This can only be used in function the returns a Result. This is because if the function returns
+// This can only be used in function that returns a Result. This is because if the function returns
 // an Errorable then it would always be called because the function would always have to return an
 // Errorable. In that case defer should be used. defer_err is run in a FILO fashion as well.
 
@@ -1385,6 +1385,7 @@ x := arr[0] // x is 1
 arr[2] = 12 // [1, 2, 12, 4, 5]
 
 // Arrays are bounds checked at compile time (where possible) and runtime.
+// Nifty can be set to only bounds check in debug mode.
 x := arr[5] // Compile time error.
 arr[12] = 42 // Compile time error.
 
@@ -1410,6 +1411,7 @@ assert(arr.size() == 100) // true
 assert(arr.cap() == 95) // true
 
 // To append to an array use the included append() function.
+// Will error on static arrays.
 arr.append(4) // [5, 5, 5, 5, 5, 4]
 // Multiple values can be appended at once.
 arr.append(6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
@@ -2492,7 +2494,14 @@ someFunc(y) // Invalid
 
 // Pointers passed to functions can't be null by default.
 fn takesPtr(ptr: ^int) {
-    x = ptr^ // No need to check if ptr is null.
+    x := ptr^ // No need to check if ptr is null.
+}
+
+// assert_db will automatically get inserted into the function to make sure the pointer is not null.
+
+fn takesPtr(ptr: ^int) {
+    assert_db(ptr != null)
+    x := ptr^
 }
 
 ptr := new int{12} // ptr^ is 12
@@ -3287,6 +3296,8 @@ default = bool
 // Defaults to true in the first target, otherwise false. Can only be true for one target at a time.
 noBoundsChecks = bool 
 // Disables bounds checking for the entire program. Defaults to false.
+debugBoundsChecks = bool 
+// Only bounds checks in debug mode. Defaults to false.
 children = [string]
 // List of child targets that will be run when this target is complete.
 disallowNull = bool

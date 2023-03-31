@@ -124,10 +124,10 @@ fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node* {
     return recast(node, Node*);
 }
 
-fn newReturn(Node *statement) -> Node* {
+fn newReturn(Nodes statements) -> Node* {
     let node = new ReturnNode{};
     node->node.type = ReturnNodeType;
-    node->statement = statement;
+    node->statements = std::move(statements);
     return recast(node, Node*);
 }
 

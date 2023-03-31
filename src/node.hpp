@@ -146,7 +146,7 @@ struct FunctionNode {
 
 struct ReturnNode {
     Node node;
-    Node *statement;
+    Nodes statements;
 };
 
 struct VarNode {
@@ -170,7 +170,7 @@ fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> Node*;
 fn newBlock(Nodes statements) -> Node*;
 fn newNamedBlock(const String &name, Nodes statements) -> Node*;
 fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node*;
-fn newReturn(Node *statement) -> Node*;
+fn newReturn(Nodes statements) -> Node*;
 fn newVar(const String &name, Node *type, Node *value, VarKind kind) -> Node*;
 
 #endif //__NIFTY_NODE_HPP__

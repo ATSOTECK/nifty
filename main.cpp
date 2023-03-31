@@ -25,6 +25,7 @@
 #include "common.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "project.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -147,6 +148,77 @@ void build(const char *arg) {
     parser.parse();
 }
 
+void newProject(bool existingProject) {
+    std::string answer;
+    
+    if (existingProject) {
+        db("A Nifty project already exists in this directory.");
+        dbnln("Would you like to overwrite it? (no) >");
+        std::getline(std::cin, answer);
+        std::transform(answer.begin(), answer.end(), answer.begin(), [](unsigned char c){return std::tolower(c);});
+    
+        if (answer.empty() && answer != "yes" && answer != "y") {
+            db("Exiting.");
+            return;
+        }
+        
+        answer.clear();
+        dbln
+    }
+    
+    CreateProjectInfo info{};
+    
+    db("This utility will help you make a new Nifty project.");
+    db("See 'nifty help new' for more information.");
+    dbln
+    
+    dbnln("Project name: (Untitled) >");
+    std::getline(std::cin, info.name);
+    
+    dbnln("Project version: (0.1.0) >");
+    std::getline(std::cin, info.version);
+    
+    dbnln("Entry point: (main.nifty) >");
+    std::getline(std::cin, info.entryPoint);
+    
+    dbnln("Author: >");
+    std::getline(std::cin, info.author);
+    
+    dbnln("License: (zlib) >");
+    std::getline(std::cin, info.license);
+    
+    if (info.name.empty()) {
+        info.name = "Untitled";
+    }
+    
+    if (info.version.empty()) {
+        info.version = "0.1.0";
+    }
+    
+    if (info.entryPoint.empty()) {
+        info.entryPoint = "main.nifty";
+    }
+    
+    if (info.license.empty()) {
+        info.license = "zlib";
+    }
+    
+    Project::print(info);
+    
+    dbln
+    dbnln("Is this ok? (yes) >");
+    std::getline(std::cin, answer);
+    
+    std::transform(answer.begin(), answer.end(), answer.begin(), [](unsigned char c){return std::tolower(c);});
+    if (!answer.empty() && answer != "yes" && answer != "y") {
+        dbln
+        newProject(false);
+        return;
+    }
+    
+    Project::create(info);
+}
+
 /*
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
@@ -263,10 +335,13 @@ int main(int argc, char **argv) {
             db(NIFTY_VERSION);
         } else if (cmd == "info" || cmd == "-i") {
             db("Nifty version " << NIFTY_VERSION << " built on " << NIFTY_DATE << ".");
+            db("Installed location: " << std::filesystem::current_path());
         } else if (cmd == "build" || cmd == "-b") {
             build(argv[2]);
         } else if (cmd == "run" || cmd == "-r") {
             db("TODO");
+        } else if (cmd == "new" || cmd == "-n") {
+            newProject(buildFileFound);
         } else {
             unknownCmd(cmd);
         }
