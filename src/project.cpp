@@ -22,9 +22,13 @@
 
 #include "project.hpp"
 
+#include "common.hpp"
+
 #include <iomanip>
 #include <filesystem>
 #include <fstream>
+#define TOML_EXCEPTIONS 0
+#include <toml.hpp>
 
 void Project::create(CreateProjectInfo &info) {
     std::ofstream buildfile;
@@ -34,12 +38,15 @@ void Project::create(CreateProjectInfo &info) {
         verr("Could not open " << NIFTY_BUILD_FILE << " for writing!");
         exit(0);
     }
+    
+    buildfile << "project = \"" << info.name << "\"" << std::endl << std::endl;
 
     buildfile << "[" << info.name << "]" << std::endl;
     buildfile << "description = \"Debug Build\"" << std::endl;
     buildfile << "outputName = \"" << info.name << "\"" << std::endl;
     buildfile << "entryPoint = \"" << info.entryPoint << "\"" << std::endl;
     buildfile << "debug = true" << std::endl;
+    buildfile << "default = true" << std::endl;
     
     
     buildfile << std::endl;
@@ -137,7 +144,47 @@ void Project::create(CreateProjectInfo &info) {
     
     entry.close();
     
-    db("Created project '" << info.name << "'. Exiting.");
+    db("Created project '" << info.name << "'.\nExiting.");
+}
+
+void Project::build(const String &target) {
+    let projectInfo = Project::getProjectInfo();
+    std::cerr << "build\n";
+}
+
+void Project::listTargets() {
+    let projectInfo = Project::getProjectInfo();
+    
+    let maxWidth = 0;
+    for (const let& t : projectInfo.targets) {
+        if (t.targetName.length() > maxWidth) {
+            maxWidth = (int)t.targetName.length();
+        }
+    }
+    
+    String defaultTarget;
+    std::cout << "Targets in project " << projectInfo.projectName << ":\n";
+    for (const let& t : projectInfo.targets) {
+        if (t.description.empty()) {
+            if (t.isDefaltTarget) {
+                db(" *" << t.targetName);
+                defaultTarget = t.targetName;
+            } else {
+                db("  " << t.targetName);
+            }
+        } else {
+            if (t.isDefaltTarget) {
+                db(" *" << std::left << std::setfill('-') << std::setw(maxWidth + 5) << t.targetName + " " << " "
+                        << t.description);
+                defaultTarget = t.targetName;
+            } else {
+                db("  " << std::left << std::setfill('-') << std::setw(maxWidth + 5) << t.targetName + " " << " "
+                        << t.description);
+            }
+        }
+    }
+    
+    std::cout << "\nTarget '" << defaultTarget << "' is marked as default.\n";
 }
 
 void Project::print(const CreateProjectInfo &info) {
@@ -149,4 +196,57 @@ void Project::print(const CreateProjectInfo &info) {
         db(std::setw(30) << "Author " << " " << info.author);
     }
     db(std::setw(30) << "License "         << " " << info.license);
+}
+
+ProjectInfo Project::getProjectInfo() {
+    toml::parse_result result = toml::parse_file(NIFTY_BUILD_FILE);
+    if (!result) {
+        std::cerr << "Parsing " << NIFTY_BUILD_FILE << " failed:\n" << result.error() << std::endl;
+    }
+    
+    toml::table table = result.table();
+    ProjectInfo projectInfo{};
+    bool defaultFound = false;
+    String defaultTargetName;
+    
+    for (let&& [k, v] : table) {
+        const let type = v.type();
+        if (type == toml::node_type::table) {
+            TargetInfo targetInfo{};
+            
+            // Required.
+            targetInfo.targetName = k.data();
+            targetInfo.outputName = v.at_path("outputName").value_or("");
+            targetInfo.entryPoint = v.at_path("entryPoint").value_or("");
+            
+            // Optional.
+            targetInfo.description = v.at_path("description").value_or("");
+            targetInfo.isDebugMode = v.at_path("debug").value_or(false);
+            targetInfo.isDefaltTarget = v.at_path("default").value_or(false);
+            
+            if (targetInfo.isDefaltTarget && !defaultFound) {
+                defaultFound = true;
+                defaultTargetName = targetInfo.targetName;
+            } else if (targetInfo.isDefaltTarget && defaultFound) {
+                std::cerr << "Config Error: Can only have one default target." << std::endl;
+                std::cerr << "Target '" << defaultTargetName << "' already set as default. Target '" << k
+                          << "' can't also be set as default." << std::endl;
+                std::cerr << "Exiting." << std::endl;
+                std::exit(1);
+            }
+            
+            projectInfo.targets.push_back(targetInfo);
+        } else if (type == toml::node_type::string) {
+            if (k == "project") {
+                projectInfo.projectName = v.value_or("");
+            }
+        }
+    }
+    
+    if (!defaultFound) {
+        std::cout << "Config Warning: Default target not found. Setting '" << projectInfo.targets[0].targetName << "' as default.\n\n";
+        projectInfo.targets[0].isDefaltTarget = true;
+    }
+    
+    return projectInfo;
 }

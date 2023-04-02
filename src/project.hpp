@@ -37,15 +37,24 @@ struct CreateProjectInfo {
 };
 
 struct TargetInfo {
-    String name;
-    int minVersion;
+    // Required.
+    String targetName;
+    String outputName;
+    String entryPoint;
+    
+    // Optional.
+    bool isDebugMode;
+    String optimization;
+    String description;
+    bool isDefaltTarget;
+    
+    // std::vector<String> includeDirs;
+    // std::vector<String> linkDirs;
 };
 
 struct ProjectInfo {
-    String name;
-    int target;
-    std::vector<String> includeDirs;
-    std::vector<String> linkDirs;
+    String projectName;
+    std::vector<TargetInfo> targets;
 };
 
 
@@ -53,7 +62,12 @@ struct ProjectInfo {
 class Project {
 public:
     static void create(CreateProjectInfo &info);
+    static void build(const String &target);
+    static void listTargets();
     static void print(const CreateProjectInfo &info);
+    
+private:
+    static ProjectInfo getProjectInfo();
 };
 
 

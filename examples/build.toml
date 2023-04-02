@@ -4,43 +4,53 @@ project = "examples"
 outputName = "hello_nifty"
 entryPoint = "hello.nifty"
 optimization = "fast"
+description = "Says hello"
+default = true
 
 [variables]
 outputName = "variables"
 entryPoint = "variables.nifty"
 optimization = "fast"
+description = "Shows how variables work"
 
 [hellos]
 outputName = "hellos"
 entryPoint = "hellos.nifty"
 optimization = "fast"
+description = "Prints Hello World! in various languages"
 
 [functions]
 outputName = "functions"
 entryPoint = "functions.nifty"
 optimization = "fast"
+description = "Shows how functions work"
 
 [fizzbuzz]
 outputName = "fizzbuzz"
 entryPoint = "fizzbuzz.nifty"
 optimization = "fast"
+description = "Fizzbuzz"
 
 [loops]
 outputName = "loops"
 entryPoint = "loops.nifty"
 optimization = "fast"
+description = "Shows how loops work"
 
 [structs]
 outputName = "structs"
 entryPoint = "structs.nifty"
 optimization = "fast"
+description = "Shows how structs work"
 
 [operatorOverload]
 outputName = "operatorOverload"
 entryPoint = "operatorOverload.nifty"
 optimization = "fast"
+description = "Shows operator overloading"
 
 [reflection]
 outputName = "reflection"
 entryPoint = "reflection.nifty"
 optimization = "fast"
+description = "Shows how type reflection works"

@@ -1,0 +1,24 @@
+project = "basic"
+
+[basic]
+description = "Basic test"
+outputName = "basic"
+entryPoint = "basicTest.nifty"
+debug = true
+
+[basic_default]
+description = "Basic test using the default package"
+outputName = "basic_default"
+entryPoint = "basicTestDefault.nifty"
+debug = true
+
+[four]
+description = "Returns 4"
+outputName = "four"
+entryPoint = "four.ny"
+debug = true
+
+[yeet]
+outputName = "four"
+entryPoint = "four.ny"
+debug = true

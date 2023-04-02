@@ -30,9 +30,6 @@
 #include <filesystem>
 #include <fstream>
 
-#define hlp(x) db(std::setfill('-') << std::left << std::setw(32) << std::string("    ") + x)
-#define hlp2(x) db(std::setfill(' ') << std::left << std::setw(32) << std::string("    ") + x)
-
 void unknownCmd(const String &cmd) {
     if (!cmd.empty()) {
         db("Unknown command '" << cmd << "'.");
@@ -55,6 +52,7 @@ void printHelp(const String &cmd) {
         hlp("test, t: " << " Compile and run all functions with the test attribute in the specified build file or target.");
         hlp("docs, d: " << " Generate documentation from the specified build file or target.");
         hlp("version, v: " << " Prints Nifty version info.");
+        hlp("info, i: " << " Prints information about the Nifty compiler.");
         dbln
         db("If no command is given Nifty will build from 'nifty.toml'");
     }
@@ -124,6 +122,11 @@ void printHelp(const String &cmd) {
         db("Prints version info.");
         return;
     }
+    
+    if (cmd == "info" || cmd == "i") {
+        db("Prints compiler info.");
+        return;
+    }
 
     if (cmd == "me") {
         db("I wish I could :(");
@@ -136,6 +139,9 @@ void printHelp(const String &cmd) {
 // TODO: Get build args.
 void build(const char *arg) {
     String path;
+    
+    Project::build("");
+    return;
 
     if (arg == nullptr) {
         path = NIFTY_BUILD_FILE;
@@ -336,6 +342,13 @@ int main(int argc, char **argv) {
         } else if (cmd == "info" || cmd == "-i") {
             db("Nifty version " << NIFTY_VERSION << " built on " << NIFTY_DATE << ".");
             db("Installed location: " << std::filesystem::current_path());
+        } else if (cmd == "list" || cmd == "-l") {
+            if (buildFileFound) {
+                Project::listTargets();
+                return 0;
+            }
+            
+            db("No build file found.\nExiting.");
         } else if (cmd == "build" || cmd == "-b") {
             build(argv[2]);
         } else if (cmd == "run" || cmd == "-r") {
@@ -348,7 +361,7 @@ int main(int argc, char **argv) {
     } else {
         if (!buildFileFound) {
             db("No " << NIFTY_BUILD_FILE << " file found.");
-            db("Run 'nifty help' for more info. Exiting.");
+            db("Run 'nifty help' for more info.\nExiting.");
         } else {
             build(nullptr);
         }

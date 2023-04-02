@@ -30,6 +30,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/inc)
 
 set(LLVM_LINK_COMPONENTS
         AllTargetsAsmParsers

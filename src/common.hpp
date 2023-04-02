@@ -105,6 +105,9 @@ typedef uint64      uchar64;
 #define trace(x) std::cout << __FILE__ << ", L" << __LINE__ << ": " << (x) << std::endl
 #define tracemsg std::cout << __FILE__ << ", L" << __LINE__ << ": "
 
+#define hlp(x) db(std::setfill('-') << std::left << std::setw(32) << std::string("    ") + x)
+#define hlp2(x) db(std::setfill(' ') << std::left << std::setw(32) << std::string("    ") + x)
+
 #ifdef VWIN
 #   define GreenColor  10
 #   define PurpleColor 13
