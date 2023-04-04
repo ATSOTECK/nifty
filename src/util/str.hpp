@@ -204,4 +204,7 @@ public:
 };
 }
 
+#include <vector>
+typedef std::vector<String> Strings;
+
 #endif //__NIFTY_STRING_H__

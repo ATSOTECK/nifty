@@ -31,15 +31,23 @@
 #   define VDEBUG
 #endif
 
-#if defined(WIN32) || defined(_WIN32)
+#if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #   define VWIN
 #   include <Windows.h>
 #   undef max
 #   undef min
 #endif
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__MACH__)
 #   define VMAC
+#endif
+
+#if defined(__linux__)
+#   define VLINUX
+#endif
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#   define VBSD
 #endif
 
 #define let auto
@@ -48,7 +56,7 @@
 #define until(x) while(!(x))
 
 #define NIFTY_VERSION "0.0.0"
-#define NIFTY_DATE "25 - September - 2022"
+#define NIFTY_DATE "1 - April - 2023"
 #define NIFTY_BUILD_FILE "build.toml"
 
 typedef int8_t  int8;

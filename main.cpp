@@ -23,8 +23,6 @@
 #include <iostream>
 
 #include "common.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
 #include "project.hpp"
 
 #include <filesystem>
@@ -37,51 +35,86 @@ void unknownCmd(const String &cmd) {
     }
 }
 
+void printBuildFlags() {
+    hlp("-name <string> " << " Set the name of the compiled executable. Overwrites what is in the build file.");
+    hlp("-opt <string> " << " Set the optimization level. Valid options are: none, debug, size, fast");
+    hlp2("" << " none:  (default) Does not run any optimizations at all.");
+    hlp2("" << " debug: Does not optimize and includes debug symbols.");
+    hlp2("" << " size:  Optimizes for size rather than speed.");
+    hlp2("" << " fast:  Optimizes for speed.");
+    hlp("-debug " << " Enable debug symbols.");
+    hlp("-keep-tmp " << " Keeps all temporary files generated during the compile.");
+    hlp("-emit-llvm " << " Emits the LLVM IR generated during the compile.");
+    hlp("-no-color " << " Disable the use of colors in the error/warning messages.");
+    hlp("-yes-color " << " Always use colors in the error/warning messages.");
+    hlp("-define <string> " << " Defines a macro that can be used in compilation. Can set optional value.");
+    hlp2("" << " -define TRACE_EXECUTION");
+    hlp2("" << " -define PRINT_DEPTH=3\tNote no spaces are allowed.");
+    hlp("-error-on-warn " << " Treat all warnings as errors.");
+    hlp("-no-warn " << " Disable all warnings.");
+    hlp("-no-entry " << " Tells the compiler there is no default entry point.");
+}
+
 void printHelp(const String &cmd) {
     db("Nifty Programming Language");
     dbln
 
     if (cmd.empty()) {
-        db("Usage: nifty command [arguments]");
+        db("Usage: nifty [command] <inputs> <flags>");
         dbln
         db("Commands:");
-        hlp("build, b: " << " Build the specified build file or target.");
-        hlp("run, r: " << " Build and run the specified build file or target.");
-        hlp("help, h: " << " Show this help information or information on the specified command.");
-        hlp("new, n: " << " Create new Nifty project.");
-        hlp("test, t: " << " Compile and run all functions with the test attribute in the specified build file or target.");
-        hlp("docs, d: " << " Generate documentation from the specified build file or target.");
-        hlp("version, v: " << " Prints Nifty version info.");
-        hlp("info, i: " << " Prints information about the Nifty compiler.");
+        hlp("build: " << " Build the default or specified target.");
+        hlp("run: " << " Build and run the default or specified target.");
+        hlp("clean: " << " Delete compiled files for the project or target.");
+        hlp("help: " << " Show this help information or information on the specified command.");
+        hlp("new: " << " Create new Nifty project.");
+        hlp("test: " << " Compile and run all functions with the test attribute in the default or specified target.");
+        hlp("docs: " << " Generate documentation from the default or specified target.");
+        hlp("version: " << " Prints Nifty version info.");
+        hlp("info: " << " Prints information about the Nifty compiler.");
+        hlp("list: " << " List all of the targets for the build file in the current directory.");
         dbln
-        db("If no command is given Nifty will build from 'nifty.toml'");
+        db("If no command is given Nifty will build and run the default target from '" << NIFTY_BUILD_FILE << "'.");
     }
 
-    if (cmd == "build" || cmd == "b") {
+    if (cmd == "build") {
         db("Usage: nifty build [arguments]");
-        hlp("build, b <string>: " << " Build the specified build file or target.");
+        hlp("nifty build <string>: " << " Build the default or specified target.");
         dbln
         db("Examples:");
-        hlp("nifty build " << " Builds the default target in nifty.toml");
-        hlp("nifty build filename.nifty " << " Builds filename.nifty");
-        hlp("nifty build target " << " Builds target in nifty.toml");
+        hlp("nifty build " << " Builds the default target in build.toml");
+        hlp("nifty build filename.nifty " << " Builds 'filename.nifty'");
+        hlp("nifty build target " << " Builds 'target' in build.toml");
         dbln
         db("Flags:");
-        hlp("-name <string> " << " Set the name of the compiled executable. Overwrites what is in the build file.");
-        hlp("-opt <string> " << " Set the optimization level. Valid options are: debug, size, fast");
-        hlp2("" << " debug reduces compile times and is meant for debug builds. This is the default.");
-        hlp2("" << " size optimizes for size rather than speed.");
-        hlp2("" << " fast optimizes for speed.");
-        hlp("-debug " << " Enable debug symbols.");
-        hlp("-keep-tmp " << " Keeps all temporary files generated during the compile.");
-        hlp("-emit-llvm " << " Emits the LLVM IR generated during the compile.");
-        hlp("-no-color " << " Disable the use of colors in the error/warning messages.");
-        hlp("-define <string> " << " Defines a macro that can be used in compilation. Can set optional value.");
-        hlp2("" << " -define TRACE_EXECUTION");
-        hlp2("" << " -define PRINT_DEPTH=3\tNote no spaces are allowed.");
-        hlp("-error-on-warn " << " Treat all warnings as errors.");
-        hlp("-no-warn " << " Disable all warnings.");
-        hlp("-no-entry " << " Tells the compiler there is no default entry point.");
+        hlp("-all " << " Builds all of the targets in the build file.");
+        printBuildFlags();
+        return;
+    }
+    
+    if (cmd == "run") {
+        db("Usage: nifty run [arguments]");
+        hlp("nifty run <string>: " << " Build and run the default or specified target.");
+        dbln
+        db("Examples:");
+        hlp("nifty run " << " Builds and runs the default target in build.toml");
+        hlp("nifty run filename.nifty " << " Builds and runs 'filename.nifty'");
+        hlp("nifty run target " << " Builds and runs 'target' in build.toml");
+        dbln
+        db("Flags:");
+        printBuildFlags();
+        return;
+    }
+    
+    if (cmd == "clean") {
+        db("Usage: nifty clean [targetName]");
+        hlp("nifty clean <string>: " << "Delete compiled files for the project or target.");
+        dbln
+        hlp("nifty clean " << " Cleans the default target in build.toml.");
+        hlp("nifty clean target " << " Cleans 'target' in build.toml.");
+        dbln
+        db("Flags:");
+        hlp("-all " << " Cleans all of the targets in the build file.");
         return;
     }
 
@@ -91,7 +124,7 @@ void printHelp(const String &cmd) {
     }
 
     if (cmd == "new" || cmd == "n") {
-        hlp("nifty new, n " << " Creates a new nifty project.");
+        hlp("nifty new " << " Creates a new nifty project.");
         dbln
         db("Project Info:");
         hlp("Project name " << " Name of the project. May not contain whitespace.");
@@ -114,7 +147,7 @@ void printHelp(const String &cmd) {
         hlp("EPL-2.0 " << " Eclipse Public License version 2.0");
         hlp("Zlib " << " The zlib/libpng License (Zlib)");
         hlp("License identifiers are not case sensitive.");
-        hlp("Another license can be used but you must provide it.");
+        hlp("Other licenses can be used but you must provide them.");
         return;
     }
 
@@ -132,26 +165,48 @@ void printHelp(const String &cmd) {
         db("I wish I could :(");
         return;
     }
+    
+    if (cmd == "test") {
+        db("Usage: nifty test [targetName]");
+        hlp("nifty test <string>: " << " Compile and run all functions with the test attribute in the default or specified target.");
+        dbln
+        hlp("nifty test " << " Runs tests in the default target in build.toml.");
+        hlp("nifty test target " << " Runs tests in 'target' in build.toml.");
+        dbln
+        db("Flags:");
+        hlp("-all " << " Runs tests for all of the targets in the build file.");
+        return;
+    }
+    
+    if (cmd == "docs") {
+        db("Usage: nifty docs [targetName]");
+        hlp("nifty docs <string>: " << " Generate documentation from the default or specified target.");
+        dbln
+        hlp("nifty docs " << " Generate docs for the default target in build.toml.");
+        hlp("nifty docs target " << " Generate docs for 'target' in build.toml.");
+        dbln
+        db("Flags:");
+        hlp("-all " << " Generate docs for all of the targets in the build file.");
+        return;
+    }
+    
+    if (cmd == "definition") {
+        db("nifty\tnif*ty");
+        hlp("adjective " << " Particularly good, skillful, or effective.");
+        hlp("adjective " << " Fashionable; stylish.");
+        return;
+    }
 
     unknownCmd(cmd);
 }
 
 // TODO: Get build args.
 void build(const char *arg) {
-    String path;
-    
-    Project::build("");
-    return;
+    Project::build(arg);
+}
 
-    if (arg == nullptr) {
-        path = NIFTY_BUILD_FILE;
-    } else {
-        path = arg;
-    }
-
-    Lexer lexer(path);
-    Parser parser = Parser(&lexer);
-    parser.parse();
+void run(const char *arg) {
+    Project::run(arg);
 }
 
 void newProject(bool existingProject) {
@@ -223,6 +278,70 @@ void newProject(bool existingProject) {
     }
     
     Project::create(info);
+}
+
+int main(int argc, char **argv) {
+    std::ifstream buildFile;
+    buildFile.open(NIFTY_BUILD_FILE, std::ios_base::in);
+    bool buildFileFound = buildFile.is_open();
+    if (buildFileFound) {
+        buildFile.close();
+    }
+
+    if (argc >= 2) {
+        String cmd = argv[1];
+
+        if (cmd == "help" || cmd == "-h") {
+            argc == 3 ? printHelp(argv[2]) : printHelp("");
+        } else if (cmd == "version" || cmd == "-v") {
+            db(NIFTY_VERSION);
+        } else if (cmd == "info" || cmd == "-i") {
+            String installedLocation = "???";
+#ifdef VWIN
+            char *loc = (char*)malloc(sizeof(char) * 1024);
+            GetModuleFileNameA(nullptr, loc, 1024);
+            installedLocation = loc;
+            free(loc);
+#elif VMAC
+            uint32 size = 1024;
+            char *loc = (char*)malloc(sizeof(char) * size);
+            if (_NSGetExecutablePath(path, &size) == 0) {
+                installedLocation = loc;
+                free(loc);
+            }
+#elif VLINUX
+            installedLocation = std::filesystem::canonical("/proc/self/exe").string();
+#endif
+            
+            // std::filesystem::current_path()
+            db("Nifty version " << NIFTY_VERSION << "\nBuilt on " << NIFTY_DATE);
+            db("Installed location: " << installedLocation);
+        } else if (cmd == "list" || cmd == "-l") {
+            if (buildFileFound) {
+                Project::listTargets();
+                return 0;
+            }
+            
+            db("No build file found.\nExiting.");
+        } else if (cmd == "build" || cmd == "-b") {
+            build(argv[2]);
+        } else if (cmd == "run" || cmd == "-r") {
+            run(argv[2]);
+        } else if (cmd == "new" || cmd == "-n") {
+            newProject(buildFileFound);
+        } else {
+            unknownCmd(cmd);
+        }
+    } else {
+        if (!buildFileFound) {
+            db("No '" << NIFTY_BUILD_FILE << "' file found.");
+            db("Run 'nifty help' for help.\nExiting.");
+        } else {
+            run(nullptr);
+        }
+    }
+
+    return 0;
 }
 
 /*
@@ -323,49 +442,3 @@ int main() {
 }
 
 */
-
-int main(int argc, char **argv) {
-    std::ifstream buildFile;
-    buildFile.open(NIFTY_BUILD_FILE, std::ios_base::in);
-    bool buildFileFound = buildFile.is_open();
-    if (buildFileFound) {
-        buildFile.close();
-    }
-
-    if (argc >= 2) {
-        String cmd = argv[1];
-
-        if (cmd == "help" || cmd == "-h") {
-            argc == 3 ? printHelp(argv[2]) : printHelp("");
-        } else if (cmd == "version" || cmd == "-v") {
-            db(NIFTY_VERSION);
-        } else if (cmd == "info" || cmd == "-i") {
-            db("Nifty version " << NIFTY_VERSION << " built on " << NIFTY_DATE << ".");
-            db("Installed location: " << std::filesystem::current_path());
-        } else if (cmd == "list" || cmd == "-l") {
-            if (buildFileFound) {
-                Project::listTargets();
-                return 0;
-            }
-            
-            db("No build file found.\nExiting.");
-        } else if (cmd == "build" || cmd == "-b") {
-            build(argv[2]);
-        } else if (cmd == "run" || cmd == "-r") {
-            db("TODO");
-        } else if (cmd == "new" || cmd == "-n") {
-            newProject(buildFileFound);
-        } else {
-            unknownCmd(cmd);
-        }
-    } else {
-        if (!buildFileFound) {
-            db("No " << NIFTY_BUILD_FILE << " file found.");
-            db("Run 'nifty help' for more info.\nExiting.");
-        } else {
-            build(nullptr);
-        }
-    }
-
-    return 0;
-}

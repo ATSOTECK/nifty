@@ -23,6 +23,8 @@
 #include "project.hpp"
 
 #include "common.hpp"
+#include "lexer.hpp"
+#include "parser.hpp"
 
 #include <iomanip>
 #include <filesystem>
@@ -30,34 +32,34 @@
 #define TOML_EXCEPTIONS 0
 #include <toml.hpp>
 
-void Project::create(CreateProjectInfo &info) {
-    std::ofstream buildfile;
-    buildfile.open(NIFTY_BUILD_FILE, std::ios_base::out);
+void Project::create(const CreateProjectInfo &info) {
+    std::ofstream buildFile;
+    buildFile.open(NIFTY_BUILD_FILE, std::ios_base::out);
 
-    if (!buildfile.is_open()) {
+    if (!buildFile.is_open()) {
         verr("Could not open " << NIFTY_BUILD_FILE << " for writing!");
         exit(0);
     }
     
-    buildfile << "project = \"" << info.name << "\"" << std::endl << std::endl;
+    buildFile << "project = \"" << info.name << "\"" << std::endl << std::endl;
 
-    buildfile << "[" << info.name << "]" << std::endl;
-    buildfile << "description = \"Debug Build\"" << std::endl;
-    buildfile << "outputName = \"" << info.name << "\"" << std::endl;
-    buildfile << "entryPoint = \"" << info.entryPoint << "\"" << std::endl;
-    buildfile << "debug = true" << std::endl;
-    buildfile << "default = true" << std::endl;
+    buildFile << "[" << info.name << "]" << std::endl;
+    buildFile << "description = \"Debug Build\"" << std::endl;
+    buildFile << "outputName = \"" << info.name << "\"" << std::endl;
+    buildFile << "entryPoint = \"src/" << info.entryPoint << "\"" << std::endl;
+    buildFile << "debug = true" << std::endl;
+    buildFile << "default = true" << std::endl;
     
     
-    buildfile << std::endl;
+    buildFile << std::endl;
     
-    buildfile << "[" << info.name << "_release" << "]" << std::endl;
-    buildfile << "description = \"Release Build\"" << std::endl;
-    buildfile << "outputName = \"" << info.name << "\"" << std::endl;
-    buildfile << "entryPoint = \"" << info.entryPoint << "\"" << std::endl;
-    buildfile << "optimization = \"fast\"" << std::endl;
+    buildFile << "[" << info.name << "_release" << "]" << std::endl;
+    buildFile << "description = \"Release Build\"" << std::endl;
+    buildFile << "outputName = \"" << info.name << "\"" << std::endl;
+    buildFile << "entryPoint = \"src/" << info.entryPoint << "\"" << std::endl;
+    buildFile << "optimization = \"fast\"" << std::endl;
     
-    buildfile.close();
+    buildFile.close();
     
     std::fstream license;
     license.open("license.md", std::ios_base::out);
@@ -72,8 +74,8 @@ void Project::create(CreateProjectInfo &info) {
     int year = time.tm_year + 1900;
     
     //std::transform(info.license.begin(), info.license.end(), info.license.begin(), [](unsigned char c){return std::tolower(c);});
-    info.license = String(info.license).toLower().stdString();
-    if (info.license == "zlib") {
+    let licenseName = String(info.license).toLower().stdString();
+    if (licenseName == "zlib") {
         license << "# " << info.name << "\n"
                    "\n"
                    "Copyright (c) " << year << " " << info.author << "\n"
@@ -93,7 +95,7 @@ void Project::create(CreateProjectInfo &info) {
                    "2. Altered source versions must be plainly marked as such, and must not be\n"
                    "   misrepresented as being the original software.\n"
                    "3. This notice may not be removed or altered from any source distribution.";
-    } else if (info.license == "mit") {
+    } else if (licenseName == "mit") {
         license << "# " << info.name << "\n"
                    "\n"
                    "Copyright " << year << " " << info.author << "\n"
@@ -147,9 +149,33 @@ void Project::create(CreateProjectInfo &info) {
     db("Created project '" << info.name << "'.\nExiting.");
 }
 
-void Project::build(const String &target) {
+void Project::build(const String &targetName) {
     let projectInfo = Project::getProjectInfo();
-    std::cerr << "build\n";
+    
+    String entryPoint = "";
+    if (!targetName.empty()) {
+        for (const let& target : projectInfo.targets) {
+            if (target.targetName == targetName) {
+                entryPoint = target.entryPoint;
+            }
+        }
+        
+        if (entryPoint.empty()) {
+            std::cout << "Build error: No such target '" << targetName << "' in " << NIFTY_BUILD_FILE << ".\n";
+            return;
+        }
+    } else {
+        entryPoint = projectInfo.targets[projectInfo.defaultTargetIdx].entryPoint;
+    }
+    
+    Lexer lexer(entryPoint);
+    Parser parser = Parser(&lexer);
+    parser.parse();
+}
+
+void Project::run(const String &targetName) {
+    build(targetName);
+    // TODO: Run.
 }
 
 void Project::listTargets() {
@@ -209,24 +235,38 @@ ProjectInfo Project::getProjectInfo() {
     bool defaultFound = false;
     String defaultTargetName;
     
+    int idx = 0;
     for (let&& [k, v] : table) {
         const let type = v.type();
         if (type == toml::node_type::table) {
             TargetInfo targetInfo{};
             
-            // Required.
             targetInfo.targetName = k.data();
             targetInfo.outputName = v.at_path("outputName").value_or("");
             targetInfo.entryPoint = v.at_path("entryPoint").value_or("");
-            
-            // Optional.
             targetInfo.description = v.at_path("description").value_or("");
             targetInfo.isDebugMode = v.at_path("debug").value_or(false);
             targetInfo.isDefaltTarget = v.at_path("default").value_or(false);
+            targetInfo.noMain = v.at_path("noMain").value_or(false);
+            targetInfo.cmdOnly = v.at_path("cmdOnly").value_or(false);
+            targetInfo.noDepreciated = v.at_path("noDepreciated").value_or(false);
+            targetInfo.noGoto = v.at_path("noGoto").value_or(true);
+            targetInfo.boundsChecks = v.at_path("boundsChecks").value_or("always");
+            targetInfo.errorOnWarn = v.at_path("errorOnWarn").value_or(false);
+            targetInfo.noWarn = v.at_path("noWarn").value_or(false);
+            targetInfo.disallowNull = v.at_path("disallowNull").value_or(false);
+            targetInfo.deprecatedAfterWarnWithin = v.at_path("deprecatedAfterWarnWithin").value_or(0);
+            targetInfo.noUnusedOnErrorReturn = v.at_path("noUnusedOnErrorReturn").value_or(false);
+            targetInfo.fastMath = v.at_path("fastMath").value_or(false);
+            targetInfo.finiteMathOnly = v.at_path("finiteMathOnly").value_or(false);
+            targetInfo.associativeMath = v.at_path("associativeMath").value_or(false);
+            targetInfo.unsafeMathOptimization = v.at_path("unsafeMathOptimization").value_or(false);
+            
             
             if (targetInfo.isDefaltTarget && !defaultFound) {
                 defaultFound = true;
                 defaultTargetName = targetInfo.targetName;
+                projectInfo.defaultTargetIdx = idx;
             } else if (targetInfo.isDefaltTarget && defaultFound) {
                 std::cerr << "Config Error: Can only have one default target." << std::endl;
                 std::cerr << "Target '" << defaultTargetName << "' already set as default. Target '" << k
@@ -236,6 +276,7 @@ ProjectInfo Project::getProjectInfo() {
             }
             
             projectInfo.targets.push_back(targetInfo);
+            ++idx;
         } else if (type == toml::node_type::string) {
             if (k == "project") {
                 projectInfo.projectName = v.value_or("");
@@ -246,7 +287,40 @@ ProjectInfo Project::getProjectInfo() {
     if (!defaultFound) {
         std::cout << "Config Warning: Default target not found. Setting '" << projectInfo.targets[0].targetName << "' as default.\n\n";
         projectInfo.targets[0].isDefaltTarget = true;
+        projectInfo.defaultTargetIdx = 0;
     }
     
-    return projectInfo;
+    if (verifyProjectInfo(projectInfo)) {
+        return projectInfo;
+    }
+    
+    return ProjectInfo{};
+}
+
+bool Project::verifyProjectInfo(const ProjectInfo &info) {
+    #define invalid(v, k, t) db("Invalid value '" << (v) << "' for " << (k) << " in target '" << (t) << "'.")
+    
+    for (const let& target : info.targets) {
+        if (target.optimization != "none" && target.optimization != "fast" && target.optimization != "size"
+            && target.optimization != "debug") {
+            invalid(target.optimization, "optimization", target.targetName);
+            db("Valid options are none, fast, size, debug.");
+            return false;
+        }
+        
+        if (target.boundsChecks != "always" && target.boundsChecks != "debug" && target.boundsChecks != "never") {
+            invalid(target.boundsChecks, "boundsChecks", target.targetName);
+            db("Valid options are always, debug, never.");
+            return false;
+        }
+        
+        if (!target.cmdOnly && target.entryPoint.empty()) {
+            db("Entry point must be set for target '" << "'.");
+            return false;
+        }
+    }
+
+    #undef invalid
+    
+    return true;
 }

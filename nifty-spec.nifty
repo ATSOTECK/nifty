@@ -3275,8 +3275,12 @@ description = string
 // Description of the target.
 entryPoint = string 
 // The file containing 'main()'.
-noEntryPoint = bool 
+noMain = bool 
 // Set to true to remove the requirement for a 'main()' function. Defaults to false.
+cmdOnly = bool
+// Set to true if there is no code to compile for the target. Defaults to false.
+commands = [[string], [string]]
+// List of commands to be executed. Can only be used if cmdOnly is true.
 noDepreciated = bool 
 // Error if a function marked depreciated is used. Disabled by default.
 noGoto = bool 
@@ -3294,10 +3298,8 @@ optimization = string
 // Defaults to "none". This is set to 'debug' if debug mode is enabled.
 default = bool 
 // Defaults to true in the first target, otherwise false. Can only be true for one target at a time.
-noBoundsChecks = bool 
-// Disables bounds checking for the entire program. Defaults to false.
-debugBoundsChecks = bool 
-// Only bounds checks in debug mode. Defaults to false.
+boundsChecks = string 
+// When to check bounds. Options are always, debug, never.
 children = [string]
 // List of child targets that will be run when this target is complete.
 disallowNull = bool
@@ -3375,6 +3377,12 @@ nifty list
 
 To specify a build file to list use
 nifty list [buildFile]
+
+To delete compiled files for a nifty project use
+nifty clean
+
+To delete compiled files for a specific target use
+nifty clean [targetName]
 
 -/
 

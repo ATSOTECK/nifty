@@ -37,23 +37,40 @@ struct CreateProjectInfo {
 };
 
 struct TargetInfo {
-    // Required.
     String targetName;
     String outputName;
     String entryPoint;
-    
-    // Optional.
     bool isDebugMode;
     String optimization;
     String description;
     bool isDefaltTarget;
+    bool noMain;
+    bool cmdOnly;
+    bool noDepreciated;
+    bool noGoto;
+    String boundsChecks;
+    bool errorOnWarn;
+    bool noWarn;
+    bool disallowNull;
+    int deprecatedAfterWarnWithin;
+    bool noUnusedOnErrorReturn;
+    bool fastMath;
+    bool finiteMathOnly;
+    bool associativeMath;
+    bool unsafeMathOptimization;
     
-    // std::vector<String> includeDirs;
-    // std::vector<String> linkDirs;
+    // Strings children;
+    // Strings defines;
+    
+    // add executeBefore, executeAfter
+    
+    // Strings includeDirs;
+    // Strings linkDirs;
 };
 
 struct ProjectInfo {
     String projectName;
+    int defaultTargetIdx;
     std::vector<TargetInfo> targets;
 };
 
@@ -61,13 +78,15 @@ struct ProjectInfo {
 
 class Project {
 public:
-    static void create(CreateProjectInfo &info);
-    static void build(const String &target);
+    static void create(const CreateProjectInfo &info);
+    static void build(const String &targetName);
+    static void run(const String &targetName);
     static void listTargets();
     static void print(const CreateProjectInfo &info);
     
 private:
     static ProjectInfo getProjectInfo();
+    static bool verifyProjectInfo(const ProjectInfo &info);
 };
 
 
