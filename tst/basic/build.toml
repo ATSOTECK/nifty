@@ -17,6 +17,7 @@ description = "Returns 4"
 outputName = "four"
 entryPoint = "four.ny"
 debug = true
+default = true
 
 [yeet]
 outputName = "four"

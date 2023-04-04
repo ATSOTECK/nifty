@@ -71,6 +71,6 @@ endif ()
 message(STATUS "linking to llvm libs ${lld_libs}")
 message(STATUS "Found lld libs ${lld_libs}")
 
-add_executable(nifty main.cpp src/util/str.cpp src/util/str.hpp src/token.cpp src/token.hpp src/common.hpp src/lexer.cpp src/lexer.hpp src/parser.cpp src/parser.hpp src/node.cpp src/node.hpp src/symbolTable.cpp src/symbolTable.hpp src/project.cpp src/project.hpp src/package.cpp src/package.hpp src/codegen.cpp src/codegen.hpp src/compiler.cpp src/compiler.hpp)
+add_executable(nifty main.cpp src/util/str.cpp src/util/str.hpp src/token.cpp src/token.hpp src/common.hpp src/lexer.cpp src/lexer.hpp src/parser.cpp src/parser.hpp src/node.cpp src/node.hpp src/symbolTable.cpp src/symbolTable.hpp src/project.cpp src/project.hpp src/package.cpp src/package.hpp src/codegen.cpp src/codegen.hpp)
 
 target_link_libraries(nifty ${llvm_libs} ${lld_libs})
