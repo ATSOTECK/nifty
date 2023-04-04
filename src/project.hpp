@@ -79,7 +79,7 @@ struct ProjectInfo {
 class Project {
 public:
     static void create(const CreateProjectInfo &info);
-    static void build(const String &targetName);
+    static bool build(const String &targetName);
     static void run(const String &targetName);
     static void listTargets();
     static void print(const CreateProjectInfo &info);

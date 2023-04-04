@@ -149,8 +149,11 @@ void Project::create(const CreateProjectInfo &info) {
     db("Created project '" << info.name << "'.\nExiting.");
 }
 
-void Project::build(const String &targetName) {
+bool Project::build(const String &targetName) {
     let projectInfo = Project::getProjectInfo();
+    if (projectInfo.projectName.empty()) {
+        return false;
+    }
     
     String entryPoint = "";
     if (!targetName.empty()) {
@@ -162,7 +165,7 @@ void Project::build(const String &targetName) {
         
         if (entryPoint.empty()) {
             std::cout << "Build error: No such target '" << targetName << "' in " << NIFTY_BUILD_FILE << ".\n";
-            return;
+            return false;
         }
     } else {
         entryPoint = projectInfo.targets[projectInfo.defaultTargetIdx].entryPoint;
@@ -171,15 +174,24 @@ void Project::build(const String &targetName) {
     Lexer lexer(entryPoint);
     Parser parser = Parser(&lexer);
     parser.parse();
+    return true;
 }
 
 void Project::run(const String &targetName) {
-    build(targetName);
+    bool success = build(targetName);
+    if (!success) {
+        return;
+    }
+    
+    db("run");
     // TODO: Run.
 }
 
 void Project::listTargets() {
     let projectInfo = Project::getProjectInfo();
+    if (projectInfo.projectName.empty()) {
+        return;
+    }
     
     let maxWidth = 0;
     for (const let& t : projectInfo.targets) {
@@ -244,6 +256,7 @@ ProjectInfo Project::getProjectInfo() {
             targetInfo.targetName = k.data();
             targetInfo.outputName = v.at_path("outputName").value_or("");
             targetInfo.entryPoint = v.at_path("entryPoint").value_or("");
+            targetInfo.optimization = v.at_path("optimization").value_or("none");
             targetInfo.description = v.at_path("description").value_or("");
             targetInfo.isDebugMode = v.at_path("debug").value_or(false);
             targetInfo.isDefaltTarget = v.at_path("default").value_or(false);
@@ -298,7 +311,15 @@ ProjectInfo Project::getProjectInfo() {
 }
 
 bool Project::verifyProjectInfo(const ProjectInfo &info) {
-    #define invalid(v, k, t) db("Invalid value '" << (v) << "' for " << (k) << " in target '" << (t) << "'.")
+    #define invalid(v, k, t) db("Config error: Invalid value '" << (v) << "' for " << (k) << " in target '" << (t) << "'.")
+    
+    if (info.projectName.empty()) {
+        db("Config error: Nifty projects must have a name.");
+        db("To set the project name use:");
+        db("project = \"name\"");
+        db("The project name must be set before the targets.");
+        return false;
+    }
     
     for (const let& target : info.targets) {
         if (target.optimization != "none" && target.optimization != "fast" && target.optimization != "size"
