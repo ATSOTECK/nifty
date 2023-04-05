@@ -1,6 +1,6 @@
 package nice
 
-using "fmt"
+using <fmt>
 
 fn isPrime(n: int): bool {
     if (n < 2) {

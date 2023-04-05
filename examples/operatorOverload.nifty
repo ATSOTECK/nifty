@@ -20,75 +20,75 @@
  |
 -/
 
-package operator_overload;
+package operator_overload
 
-using "nsl.fmt";
+using <fmt>
 
 // The following operators are overloadable:
 // +, -, *, /, <<, >>, !, [], []=, [:], +=, -=, *=, /=, ==, !=, >, <, >=, <=, =, ++, --, in
 // Unary +, -, and ++, -- are special cases.
 
-type Point struct {x, y: f32;}
+type Point struct {x, y: f32}
 
-impl Point;
+impl Point
 
 #[overloads("+=")]
 md addEqInt(n: int) {
-    x += n;
-    y += n;
+    x += n
+    y += n
 }
 
 #[overloads("+=")]
 md addEqOther(other: Point) {
-    x += other.x;
-    y += other.y;
+    x += other.x
+    y += other.y
 }
 
 #[overloads("+unary")]
 md positive() {
-    x = +x;
-    y = +y;
+    x = +x
+    y = +y
 }
 
 #[overloads("-unary")]
 md negate() {
-    x = -x;
-    y = -y;
+    x = -x
+    y = -y
 }
 
 #[overloads("++postfix")]
 md postInc[p: Point](): Point {
-    p.x++;
-    p.y++;
+    p.x++
+    p.y++
     
-    return p;
+    return p
 }
 
 #[overloads("++prefix")]
 md preInc[p: Point](): Point {
-    ret := p;
-    p.x++;
-    p.y++;
+    ret := p
+    p.x++
+    p.y++
     
-    return ret;
+    return ret
 }
 
-endimpl;
+endimpl
 
 fn main() {
     one := Point{10, 10}
     two := Point{20, 20}
     
-    one += 5;
-    tow += one;
+    one += 5
+    tow += one
     
-    -one();
-    two.negate();
+    -one()
+    two.negate()
     
-    onePost := one++;
-    onePre := ++one;
+    onePost := one++
+    onePre := ++one
     
-    println(one.x, one.y);
-    println(onePost.x, onePost.y);
-    println(onePre.x, onePre.y);
+    println(one.x, one.y)
+    println(onePost.x, onePost.y)
+    println(onePre.x, onePre.y)
 }

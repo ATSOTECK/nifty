@@ -1,28 +1,12 @@
-// Single line comments use '//'.
-// This is a comment.
+type Color struct { r, g, b: u8 }
 
-/-
-    Multiline comments use '/-' and '-/'
-    Comments can be nested so the following is valid
--/
+impl Color does fmt::Printable
 
-/-
-    /-
-        // bla
-    -/
--/
+md str(): string {
+    return "{${r}, ${g}, ${b}}"
+}
 
-/- Multiline comments can be on just one line too -/
+endimpl
 
-/*
-    C-style comments can be used and mixed with nifty comments.
-*/
-
-/-
-    Like so
-    /*
-        and so
-    -/
-*/
-
-// Why not just use /* */? I'm lazy, but you do you.
+color := Color{51, 153, 255}
+fmt::println("The color is ${color}.")

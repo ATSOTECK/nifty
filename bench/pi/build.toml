@@ -1,0 +1,14 @@
+# Created on 11/7/2022
+
+project = "pi"
+
+[fast]
+outputName = "pi"
+entryPoint = "pi.nifty"
+optimization = "fast"
+
+[debug]
+outputName = "pi_debug"
+entryPoint = "pi.nifty"
+optimization = "debug"
+default = true

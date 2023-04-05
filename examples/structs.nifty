@@ -20,9 +20,9 @@
  |
 -/
 
-package structs;
+package structs
 
-using "nsl.fmt";
+using <fmt>
 
 // In the behavior/impl I'm using md instead of fn, this is short for method. This can only be used
 // in behavior/impl. It is optional and fn can be used instead. The idea is it can tell a programmer
@@ -30,100 +30,100 @@ using "nsl.fmt";
 
 type Animal behavior {
     md speak() {
-        println("Not implemented!");
+        println("Not implemented!")
     }
     
-    eat();
+    eat()
     
-    name: string;
-    weight: f32;
+    name: string
+    weight: f32
 }
 
 type Cat struct {
-    furColor: string;
-    _lives: int = 9;
+    furColor: string
+    _lives: int = 9
 }
 
-impl Cat does Animal;
+impl Cat does Animal
 
 md speak() {
-    println("${name} says meow!");
+    println("${name} says meow!")
 }
 
 md eat() {
-    println("Eats cat food.");
+    println("Eats cat food.")
 }
 
 md getLives(): int {
-    return _lives;
+    return _lives
 }
 
-endimpl;
+endimpl
 
 type Dog struct {
-    breed: string;
+    breed: string
 }
 
-impl Dog does Animal;
+impl Dog does Animal
 
 md bark() {
-    println("Woof!");
+    println("Woof!")
 }
 
 md eat() {
-    println("Eats dog food.");
+    println("Eats dog food.")
 }
 
-endimpl Dog; // Optional struct name used here.
+endimpl Dog // Optional struct name used here.
 
-type Point struct {x, y: f32;}
+type Point struct {x, y: f32}
 
 type Foo struct {
-    _x: int;
-    _y: int;
+    _x: int
+    _y: int
 }
 
-impl Foo;
+impl Foo
 
 md add[foo: Foo](a, b: int) {
-    foo._x += a;
-    foo._y += b;
+    foo._x += a
+    foo._y += b
 }
 
 md sub[foo: ^Foo](a, b: int) {
-    foo->_x -= a;
-    foo->_y -= b;
+    foo->_x -= a
+    foo->_y -= b
 }
 
 md print() {
-    println(_x, _y);
+    println(_x, _y)
 }
 
-endimpl;
+endimpl
 
 fn main() {
-    cat := Cat{name: "Mittens", weight: 12, furColor: "brown"};
-    dog := Dog{name: "Fido", weight: 100, breed: "Golden"};
+    cat := Cat{name: "Mittens", weight: 12, furColor: "brown"}
+    dog := Dog{name: "Fido", weight: 100, breed: "Golden"}
     
-    cat.speak();
-    dog.speak();
+    cat.speak()
+    dog.speak()
     
-    cat.eat();
-    dog.eat();
+    cat.eat()
+    dog.eat()
     
-    // println(cat._lives); // Uncomment this and see what happens.
-    println(cat.getLives());
-    dog.bark();
+    // println(cat._lives) // Uncomment this and see what happens.
+    println(cat.getLives())
+    dog.bark()
     
-    p := point{12.f, 42.f};
-    println(p.x, p.y);
+    p := point{12.f, 42.f}
+    println(p.x, p.y)
     
     p.x += 42
     p.y += 12
-    println(p.x, p.y);
+    println(p.x, p.y)
     
-    let foo: Foo;
-    foo.add(12, 42);
-    foo.sub(10, 92);
-    foo.print();
+    let foo: Foo
+    foo.add(12, 42)
+    foo.sub(10, 92)
+    foo.print()
 }

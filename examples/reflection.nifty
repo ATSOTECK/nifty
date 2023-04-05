@@ -22,44 +22,44 @@
 
 package main;
 
-use "nsl.fmt";
-use "nsl.reflection";
+use <fmt>
+use <reflection>
 
 type Foo struct {
-    x: int    #[attribute1];
-    y: string #[json("y_field")];
-    z: bool;
+    x: int    #[attribute1]
+    y: string #[json("y_field")]
+    z: bool
 }
 
 fn main() {
-    id         := typeid_of(Foo);
-    names      := reflection::structFieldNames(id);
-    types      := reflection::structFieldTypes(id);
-    attributes := reflection::structFieldAttibutes(id);
+    id         := typeid_of(Foo)
+    names      := reflection::structFieldNames(id)
+    types      := reflection::structFieldTypes(id)
+    attributes := reflection::structFieldAttibutes(id)
     
-    assert(names.len() == types.len() && names.len() == attributes.len());
+    assert(names.len() == types.len() && names.len() == attributes.len())
     
-    fmt::println("type Foo struct {");
+    fmt::println("type Foo struct {")
     for (val attrib, i in attributes) {
-        let name, type_ := name[i], types[i];
+        let name, type_ := name[i], types[i]
         
         if (!attrib.isEmpty()) {
-            fmt::println("\t${name}: ${type_} #[${attrib}]");
+            fmt::println("\t${name}: ${type_} #[${attrib}]")
         } else {
-            fmt::println("\t${name}: ${type_}");
+            fmt::println("\t${name}: ${type_}")
         }
     }
-    fmt::println("}");
+    fmt::println("}")
     
     for (val attrib, i in attributes) {
         if (value, ok := reflection::structAttributeLookup(attrib, "json"); ok) {
-            fmt::println("json: ${names[i]} -> ${value}");
+            fmt::println("json: ${names[i]} -> ${value}")
         }
         
         // Or if it returns an optional:
-        value := reflection::structAttributeLookup(attrib, "json") else { "" };
+        value := reflection::structAttributeLookup(attrib, "json") else { "" }
         if (!value.isEmpty()) {
-            fmt::println("json: ${names[i]} -> ${value}");
+            fmt::println("json: ${names[i]} -> ${value}")
         }
     }
 }

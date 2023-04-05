@@ -1,6 +1,6 @@
 package pi
 
-use <fmt>
+using <fmt>
 use <math.random>
 use <time>
 
@@ -31,8 +31,8 @@ fn main() {
         stop  ::= time::unixMilli()
         time  ::= stop - start
         avgTime += cast(time, f64) / 1000
-        fmt::println("pi is ${pi} took ${cast(time, f64) / 1000} seconds to compute.")
+        println("pi is ${pi} took ${cast(time, f64) / 1000} seconds to compute.")
     }
     
-    fmt::println("On average pi took ${avgTime / 10} seconds to compute.")
+    println("On average pi took ${avgTime / 10} seconds to compute.")
 }

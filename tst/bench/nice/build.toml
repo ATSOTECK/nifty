@@ -11,3 +11,4 @@ optimization = "fast"
 outputName = "nice_debug_nifty"
 entryPoint = "nice.nifty"
 optimization = "debug"
+default = true

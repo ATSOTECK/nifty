@@ -20,40 +20,40 @@
  |
 -/
 
-package variables;
+package variables
 
-using "nsl.fmt";
+using <fmt>
 
 fn returnsTwoVars(): int, int {
-    return 12, 42;
+    return 12, 42
 }
 
 fn main() {
-    let a: int = 12;
-    let b = 42; // int
-    c := 19.f; // float/f32
+    let a: int = 12
+    let b = 42 // int
+    c := 19.f // float/f32
     
     // Runtime consts.
-    val d: f64 = 100; //double/f64
-    val e = returnsDouble(); // double/f64
-    f ::= returns20(); // int
+    val d: f64 = 100 //double/f64
+    val e = returnsDouble() // double/f64
+    f ::= returns20() // int
     
     // Compiletime consts.
-    const g: int = 100;
-    const h = 42;
-    i ::= 0;
+    const g: int = 100
+    const h = 42
+    i ::= 0
     
-    let j: int; // Deafults to 0.
-    let k: int = undefined; // Explicitly uninitialized.
-    l := k; // Valid, but undefined behavior. May warn.
+    let j: int // Deafults to 0.
+    let k: int = undefined // Explicitly uninitialized.
+    l := k // Valid, but undefined behavior. May warn.
     
     // Immutables must have their values set.
-    // val m: int; // Invalid.
-    // val n: int  = undefined; // Invalid.
+    // val m: int // Invalid.
+    // val n: int  = undefined // Invalid.
     // o ::= undefined // Invalid.
     
     // Variables must have a type.
-    // p := undefined; // Invalid.
+    // p := undefined // Invalid.
     
     // Variables can not later be set to undefined.
     // a = undefined // Invalid.
@@ -61,7 +61,7 @@ fn main() {
     // Can not check for undefined.
     /-
     if (a == undefined) {
-        println("undefined");
+        println("undefined")
     }
     -/
     
@@ -74,16 +74,16 @@ fn main() {
         let z: string
     }
     
-    println(x, y, z); // Valid, but undefined behavior. May warn.
+    println(x, y, z) // Valid, but undefined behavior. May warn.
     
-    q, r := returnsTwoVars();
-    unused, s := returnsTwoVars();
-    t, unused := returnsTwoVars();
+    q, r := returnsTwoVars()
+    unused, s := returnsTwoVars()
+    t, unused := returnsTwoVars()
     
-    // u := unused; // Invalid.
+    // u := unused // Invalid.
     
     #[static]
-    aa := 12;
+    aa := 12
     
     #[threadStatic]
     bb := 42

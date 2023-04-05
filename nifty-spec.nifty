@@ -169,6 +169,16 @@ x: int = undefined // Valid
     let z: string
 }
 
+// Or should this also use the undefined keyword?
+
+undefined {
+    let x: int
+    let y: float
+    let z: string
+}
+
+// This is more searchable and requires one less keyword.
+
 // x, y, and z are all defined but uninitialized.
 
 // It is important to know that undefined is only used for declaring variables. 
@@ -1575,6 +1585,21 @@ type Point struct {
 let p: Point = undefined
 x := p.x // Undefined behavior, x can be anything.
 
+type Point struct: undefined {
+    x: int = 10
+    y, z: int
+}
+
+// or should it be ???
+
+#[undefined]
+type Point struct {
+    x: int = 10
+    y, z: int
+}
+
+// y and z will default to undefined while x will default to 10
+
 // If fields in a struct are of the same type then they can be on the same line.
 
 type Point3D struct { x, y, z: f64 }
@@ -1601,7 +1626,7 @@ type Packed struct {
 }
 
 // Preconditions can be stated. Where possible this will be checked at compile time. In debug mode
-// asster statements will be inserted to verify the precondition.
+// asstert_db statements will be inserted to verify the precondition.
 
 #[require {min <= max}]
 type Range struct { min, max: int }
@@ -1609,12 +1634,11 @@ type Range struct { min, max: int }
 range := Range{2, 1} // Invalid
 
 range := Range{x, y}
-assert(range.min <= range.max) // Added if in debug mode.
+assert_db(range.min <= range.max) // Added if in debug mode.
 
 /- Built-in struct attributes
 packed
 align(alignment: int)
-noAutoInit
 
 require {code}
 -/
@@ -1652,7 +1676,7 @@ md constructor(size := 0) {
 // Unlike c++ a struct can only have one constructor. The constructor does not return anything.
 // Nifty does not have default constructors/destructors.
 
-// Optional destructor, called when the struct is freed. Takes no arguments, return nothing.
+// Optional destructor, called when the struct is freed. Takes no arguments, returns nothing.
 md destructor() { /- ... -/ }
 
 md add(num: int) {
@@ -1660,10 +1684,8 @@ md add(num: int) {
     _calculateAverage()
 }
 
-// Functions can be marked as const, meaning they can't modify the struct at all.
-// This is done with an attibute for consistency. A 'const' keyword does exist but then'const' would
-// be the only modifier to a function that doesn't use the attibute syntax.
-#[const]
+// Functions can be marked as read only, meaning they can't modify the struct at all.
+#[readOnly]
 md average(): float {
     return _average
 }
@@ -1706,7 +1728,7 @@ collection->add(12) // Valid
 // Is effectively the same as (but is not the same as)
 add(collection, 12) // Invalid
 
-// The calling object is implicetly passed in as 'this'.
+// The calling object is implicetly passed in like 'this'.
 
 collection = null
 collection->add(12) // The function add will not be called. This will panic.
@@ -1760,8 +1782,9 @@ endimpl
 
 impl some_lib::SomeStruct // Compiler error.
 
-// Multiple constimpl can be used in a single file. With generics there are cases where it may make
-// sence to have seperate implementations for different types.
+// Multiple constimpl can be used within the orginal file the struct is defined in. 
+// With generics there are cases where it may make sence to have seperate implementations
+// for different types.
 
 // To print a struct type use the fmt::Printable behavior.
 
@@ -1770,7 +1793,7 @@ type Color struct { r, g, b: u8 }
 impl Color does fmt::Printable
 
 md str(): string {
-    return `{${r}, ${g}, ${b}}`
+    return "{${r}, ${g}, ${b}}"
 }
 
 endimpl
@@ -1813,7 +1836,7 @@ md printX[t: Thing]() {
     t.x = 12 // Invalid
 }
 
-// Pass receiver by value.
+// Pass receiver by mutable value.
 md localSetX[let t: Thing]() {
     fmt::println(t.x)
     t.x = 12 // Valid, but done on a copy of the receiver argument.
@@ -1889,7 +1912,7 @@ circle := Circle{10, "circle"}
 fmt::println(rect.kind) // Because Rect does Geometry it "inherits" the kind variable. 
 // I use the word inherits here but that is not entirly correct. The kind variable gets added to
 // the end of the implementing struct in the order the behaviors were listed at compile time.
-// Or should it be at the beginning?
+// Or should it be at the beginning? Should this be configurable?
 
 // Behaviors can be used as parameters to define a function that can take many types that all share
 // that behavior.
