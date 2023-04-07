@@ -13,8 +13,9 @@
 // [SLICES]
 // [MAP]
 // [STRUCTS]
-// [OOP]
+// [STRUCT METHODS]
 // [BEHAVIORS]
+// [TYPE METHODS]
 // [ENUMS]
 // [OPERATOR OVERLOADING]
 // [UNION TYPES]
@@ -1652,9 +1653,7 @@ type Person struct {
     createdAt: time::Time #[json("created_at")]
 }
 
-// [OOP] ------------------------------------------------------------------------------------------
-
-// Nifty doesn't have true OOP but I didn't know what else to call this section ¯\_(ツ)_/¯ OOP lite?
+// [STRUCT METHODS] -------------------------------------------------------------------------------
 
 // For methods the md keyword is used so that if the impl keyword is missed by a 
 // programmer or a programmer jumps to the middle of the file it is obvious that
@@ -1850,6 +1849,42 @@ thing.yeet()
 thing.yert()
 thing.yote(12)
 thing.printX()
+
+// [TYPE METHODS] ---------------------------------------------------------------------------------
+
+// Methods can be added to any type.
+
+#[distinct, initTo(1)] type Month as int
+
+impl Month does fmt::Printable
+
+md str[m: Month](): string {
+    when (m) {
+        1: return "January"
+        2: return "February"
+        // etc...
+        else: return "???"
+    }
+}
+
+endimpl
+
+let month: Month
+fmt::println(month) // Prints January.
+
+impl int
+
+md isEven[n: int](): string {
+    return ~n & 1
+}
+
+endimpl
+
+let x = 12
+// ...
+if (x.isEven()) {
+    // Do something.
+}
 
 
 // [BEHAVIORS] ------------------------------------------------------------------------------------
