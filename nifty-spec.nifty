@@ -1871,10 +1871,12 @@ endimpl
 
 let month: Month
 fmt::println(month) // Prints January.
+month++
+fmt::println(month) // Prints February.
 
 impl int
 
-md isEven[n: int](): string {
+md isEven[n: int](): bool {
     return ~n & 1
 }
 
@@ -3316,6 +3318,22 @@ assert(x == 0)
 x := math::MAX_INT
 x @+= 1
 assert(x == math::MAX_INT) // true
+
+// #[unpredictable] is used to indicate that a branch condition is unpredictable by hardware
+// mechanisms such as branch prediction logic
+
+#[unpredictable]
+if (unpredictableCondition) {
+    // ...
+}
+
+#[unpredictable]
+when (x) {
+    // ...
+}
+
+#[unreachable]
+// code
 
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 

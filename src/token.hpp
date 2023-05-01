@@ -196,7 +196,7 @@ enum Tokens {
     TK_LESS,					// <
     TK_LESSEQU,					// <=
 
-    TK_XOR,                     // ^
+    TK_CARET,                   // ^
     TK_BITNOT,                  // ~
     TK_BITAND,                  // &
     TK_BITOR,                   // |

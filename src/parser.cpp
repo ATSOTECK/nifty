@@ -312,6 +312,31 @@ fn Parser::parseExpression() -> Node* {
     return parseBinOpRhs(0, lhs);
 }
 
+fn Parser::parseUnary() -> Node * {
+    if (!isTokenType(_current.type)) {
+        return parsePrimary();
+    }
+    
+    if (_current.type == TK_INC) {
+        eat();
+        return newIncDec(true, true, parsePrimary());
+    }
+    if (_current.type == TK_DEC) {
+        eat();
+        return newIncDec(false, true, parsePrimary());
+    }
+    
+    Token opcode = _current;
+    eat();
+    
+    Node *operand = parsePrimary();
+    if (operand != nullptr) {
+        return newUnary(opcode, operand);
+    }
+    
+    return nullptr;
+}
+
 fn Parser::parseBinOpRhs(int precedence, Node *lhs) -> Node* {
     for (;;) {
         int tokenPrec = getTokenPrecedence(_current.type);
@@ -322,16 +347,13 @@ fn Parser::parseBinOpRhs(int precedence, Node *lhs) -> Node* {
 
         Token binOp = _current;
         eat();
-
-        /*
-        if (isTokenOpPrePostFix(binOp.type)) {
-            if (binOp.type == TK_INC) {
-                return new PostIncNode(lhs);
-            } else {
-                return new PostDecNode(lhs);
-            }
+        
+        if (binOp.type == TK_INC) {
+            return newIncDec(true, false, lhs);
         }
-        */
+        if (binOp.type == TK_DEC) {
+            return newIncDec(false, false, lhs);
+        }
 
         Node *rhs = parsePrimary();
         if (rhs == nullptr) {
@@ -356,6 +378,7 @@ fn Parser::parseNumber() -> Node* {
 
     eat();
 
+    // TODO: Hex, Oct, Bin.
     if (num.contains('d') || num.contains('D')) {
         return newFloat(64, num);
     } else if (num.contains('f') || num.contains('F') || num.contains('.')) {
@@ -374,7 +397,55 @@ fn Parser::parseBool(bool value) -> Node* {
     return newBool(32, value);
 }
 
+fn Parser::parseBlock() -> BlockNode* {
+    eat(); // eat the '{'
+    
+    Nodes statements;
+    while (_current.type != TK_RBRACE) {
+        let statement = parsePrimary();
+        if (statement == nullptr) {
+            return nullptr;
+        }
+        
+        statements.push_back(statement);
+    }
+    
+    eat(); // eat the '}'
+    return newBlock(statements);
+}
+
+fn Parser::parsePtrType() -> Node* {
+    return nullptr;
+}
+
+fn Parser::parseFnType() -> Node* {
+    return nullptr;
+}
+
+fn Parser::parseArrayType() -> Node* {
+    return nullptr;
+}
+
 fn Parser::parseType() -> Node* {
+    // name
+    // ^name
+    // fn(type, type, ...): type
+    // []name
+    // type_from(name)
+    // check if type name is known
+    
+    if (_current.type == TK_CARET) {
+        return parsePtrType();
+    }
+    if (_current.type == TK_FN) {
+        return parseFnType();
+    }
+    if (_current.type == TK_LBRACKET) {
+        return parseArrayType();
+    }
+    
+    // other types here
+    
     return nullptr;
 }
 
@@ -400,7 +471,7 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
             }
             
             if (_current.type == TK_COLON) {
-                let arg = parseExpression();
+                let arg = parseExpression(); // parseType();
                 if (arg != nullptr) {
                     args.push_back(arg);
                 }
@@ -420,17 +491,19 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     }
 
     eat(); // Eat the )
-    expectAfter(TK_COLON, ":", ")");
 
     if (check(TK_LBRACE)) {
         returnTypes.push_back(newVoid());
-    } else {
+    } else if (match(TK_COLON)) {
+        // expectAfter(TK_COLON, ":", ")");
         do {
-            //
+            returnTypes.push_back(parseType());
         } while (match(TK_COMMA));
+    } else {
+        parseError(":", ")");
     }
 
-    return nullptr;
+    return newPrototype(name, args, returnTypes);
 }
 
 fn Parser::parseFunction() -> Node* {
@@ -445,9 +518,11 @@ fn Parser::parseFunction() -> Node* {
     _currentFnName = name;
 
     expectAfter(TK_LPAREN, "(", "name");
+    eat(); // eat the (
     PrototypeNode *prototype = parsePrototype(name);
+    BlockNode *body = parseBlock();
 
-    return nullptr;
+    return newFunction(prototype, body);
 }
 
 fn Parser::parseReturn() -> Node* {

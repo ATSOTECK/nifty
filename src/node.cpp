@@ -75,6 +75,14 @@ fn newChar(uint32 value) -> Node* {
     return recast(node, Node*);
 }
 
+fn newUnary(const Token &op, Node *operand) -> Node* {
+    let node = new UnaryNode{};
+    node->node.type = UnaryNodeType;
+    node->op = op;
+    node->operand = operand;
+    return recast(node, Node*);
+}
+
 fn newBinary(const Token &op, Node *lhs, Node *rhs) -> Node* {
     let node = new BinaryNode{};
     node->node.type = BinaryNodeType;
@@ -92,20 +100,20 @@ fn newCall(const String &calle, Nodes args) -> Node* {
     return recast(node, Node*);
 }
 
-fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> Node* {
+fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> PrototypeNode* {
     let node = new PrototypeNode{};
     node->node.type = PrototypeNodeType;
     node->name = name;
     node->args = std::move(args);
     node->returnTypes = std::move(returnTypes);
-    return recast(node, Node*);
+    return node;
 }
 
-fn newBlock(Nodes statements) -> Node* {
+fn newBlock(Nodes statements) -> BlockNode* {
     let node = new BlockNode{};
     node->node.type = BlockNodeType;
     node->statements = std::move(statements);
-    return recast(node, Node*);
+    return node;
 }
 
 fn newNamedBlock(const String &name, Nodes statements) -> Node* {
@@ -138,6 +146,15 @@ fn newVar(const String &name, Node *type, Node *value, VarKind kind) -> Node* {
     node->type = type;
     node->value = value;
     node->kind = kind;
+    return recast(node, Node*);
+}
+
+fn newIncDec(bool isInc, bool isPre, Node *expression) -> Node* {
+    let node = new IncDecNode{};
+    node->node.type = IncDecNodeType;
+    node->isInc = isInc;
+    node->isPre = isPre;
+    node->expression = expression;
     return recast(node, Node*);
 }
 

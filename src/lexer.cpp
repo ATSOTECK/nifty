@@ -464,7 +464,7 @@ Token Lexer::next() {
                     eat(2);
                     return t;
                 } else {
-                    t.type = TK_XOR;
+                    t.type = TK_CARET;
                     t.lexeme = cpstr(_currentChar);
                     eat();
                     return t;

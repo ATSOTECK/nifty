@@ -74,9 +74,14 @@ private:
     fn parsePrimary() -> Node*;
     fn parsePackage() -> void;
     fn parseExpression() -> Node*;
+    fn parseUnary() -> Node*;
     fn parseBinOpRhs(int precedence, Node *lhs) -> Node*;
     fn parseNumber() -> Node*;
     fn parseBool(bool value) -> Node*;
+    fn parseBlock() -> BlockNode*;
+    fn parsePtrType() -> Node*;
+    fn parseFnType() -> Node*;
+    fn parseArrayType() -> Node*;
     fn parseType() -> Node*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
     fn parseFunction() -> Node*;

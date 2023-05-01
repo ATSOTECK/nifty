@@ -38,6 +38,7 @@ enum NodeType {
     BoolNodeType,
     StringNodeType,
     CharNodeType,
+    UnaryNodeType,
     BinaryNodeType,
     ArgNodeType,
     CallNodeType,
@@ -47,6 +48,21 @@ enum NodeType {
     FunctionNodeType,
     ReturnNodeType,
     VarNodeType,
+    IncDecNodeType,
+};
+
+enum TypeKind {
+    NumberType,
+    PointerType,
+    FunctionType,
+    ArrayType,
+    StructType,
+    BehaviorType,
+    EnumType,
+    EnumElementType,
+    NoType,
+    VoidType,
+    NullType,
 };
 
 enum VarKind {
@@ -100,6 +116,12 @@ struct StringNode {
 struct CharNode {
    Node node;
    uint32 value;
+};
+
+struct UnaryNode {
+    Node node;
+    Token op;
+    Node *operand;
 };
 
 struct BinaryNode {
@@ -157,6 +179,13 @@ struct VarNode {
     VarKind kind;
 };
 
+struct IncDecNode {
+    Node node;
+    bool isInc;
+    bool isPre;
+    Node *expression;
+};
+
 fn newVoid() -> Node*;
 fn newType(const String &typeStr) -> Node*;
 fn newInt(int bits, const String &value, bool isSigned) -> Node*;
@@ -164,13 +193,15 @@ fn newFloat(int bits, const String &value) -> Node*;
 fn newBool(int bits, bool value) -> Node*;
 fn newString(bool isCString, const String &value) -> Node*;
 fn newChar(uint32 value) -> Node*;
+fn newUnary(const Token &op, Node *operand) -> Node*;
 fn newBinary(const Token &op, Node *lhs, Node *rhs) -> Node*;
 fn newCall(const String &calle, Nodes args) -> Node*;
-fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> Node*;
-fn newBlock(Nodes statements) -> Node*;
+fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> PrototypeNode*;
+fn newBlock(Nodes statements) -> BlockNode*;
 fn newNamedBlock(const String &name, Nodes statements) -> Node*;
 fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node*;
 fn newReturn(Nodes statements) -> Node*;
 fn newVar(const String &name, Node *type, Node *value, VarKind kind) -> Node*;
+fn newIncDec(bool isInc, bool isPre, Node *expression) -> Node*;
 
 #endif //__NIFTY_NODE_HPP__
