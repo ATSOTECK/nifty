@@ -52,23 +52,59 @@ enum NodeType {
 };
 
 enum TypeKind {
-    NumberType,
-    PointerType,
-    FunctionType,
-    ArrayType,
-    StructType,
-    BehaviorType,
-    EnumType,
-    EnumElementType,
-    NoType,
-    VoidType,
-    NullType,
+    NumberKind,
+    PointerKind,
+    FunctionKind,
+    ArrayKind,
+    StructKind,
+    BehaviorKind,
+    EnumKind,
+    EnumElementKind,
+    NoKind,
+    VoidKind,
+    NullKind,
+};
+
+enum NumberTypeKind {
+    S8,
+    S16,
+    S32, // int
+    S64,
+    S128,
+    U8,
+    U16,
+    U32, // char, uint
+    U64,
+    U128,
+    f16,
+    f32, // float
+    f64, // double
+    f128,
 };
 
 enum VarKind {
     Let,
     Val,
     Const,
+};
+
+struct NiftyType {
+    TypeKind kind;
+};
+
+struct NumberType {
+    NiftyType type;
+    NumberTypeKind numberKind;
+};
+
+struct PointerType {
+    NiftyType type;
+    NiftyType *pointerType;
+};
+
+struct Argument {
+    NiftyType *type;
+    String name;
 };
 
 struct Node {
@@ -145,8 +181,9 @@ struct CallNode {
 struct PrototypeNode {
     Node node;
     String name;
-    Nodes args;
-    Nodes returnTypes;
+    std::vector<Argument> args;
+    std::vector<NiftyType> returnTypes;
+    bool isExtern;
 };
 
 struct BlockNode {
@@ -185,6 +222,9 @@ struct IncDecNode {
     bool isPre;
     Node *expression;
 };
+
+fn newNumberType(NumberTypeKind numberKind) -> NiftyType*;
+fn newPointerType(NiftyType *pointerType) -> NiftyType*;
 
 fn newVoid() -> Node*;
 fn newType(const String &typeStr) -> Node*;

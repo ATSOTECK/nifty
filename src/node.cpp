@@ -22,6 +22,20 @@
 
 #include "node.hpp"
 
+fn newNumberType(NumberTypeKind numberKind) -> NiftyType* {
+    let type = new NumberType{};
+    type->type.kind = TypeKind::NumberKind;
+    type->numberKind = numberKind;
+    return recast(type, NiftyType*);
+}
+
+fn newPointerType(NiftyType *pointerType) -> NiftyType* {
+    let type = new PointerType{};
+    type->type.kind = TypeKind::PointerKind;
+    type->pointerType = pointerType;
+    return recast(type, NiftyType*);
+}
+
 fn newVoid() -> Node* {
     let node = new VoidNode{};
     node->node.type = VoidNodeType;
@@ -100,12 +114,13 @@ fn newCall(const String &calle, Nodes args) -> Node* {
     return recast(node, Node*);
 }
 
-fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> PrototypeNode* {
+fn newPrototype(const String &name, std::vector<Argument> args, std::vector<NiftyType> returnTypes) -> PrototypeNode* {
     let node = new PrototypeNode{};
     node->node.type = PrototypeNodeType;
     node->name = name;
     node->args = std::move(args);
     node->returnTypes = std::move(returnTypes);
+    node->isExtern = false; // TODO(Skyler): Support extern functions.
     return node;
 }
 

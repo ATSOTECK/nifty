@@ -414,25 +414,29 @@ fn Parser::parseBlock() -> BlockNode* {
     return newBlock(statements);
 }
 
-fn Parser::parsePtrType() -> Node* {
+fn Parser::parsePtrType() -> NiftyType* {
     return nullptr;
 }
 
-fn Parser::parseFnType() -> Node* {
+fn Parser::parseFnType() -> NiftyType* {
     return nullptr;
 }
 
-fn Parser::parseArrayType() -> Node* {
+fn Parser::parseArrayType() -> NiftyType* {
     return nullptr;
 }
 
-fn Parser::parseType() -> Node* {
+fn Parser::parseType() -> NiftyType* {
     // name
     // ^name
     // fn(type, type, ...): type
     // []name
     // type_from(name)
     // check if type name is known
+    // name?
+    // name!
+    // name<name>
+    // name::name
     
     if (_current.type == TK_CARET) {
         return parsePtrType();

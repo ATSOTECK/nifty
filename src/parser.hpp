@@ -79,10 +79,10 @@ private:
     fn parseNumber() -> Node*;
     fn parseBool(bool value) -> Node*;
     fn parseBlock() -> BlockNode*;
-    fn parsePtrType() -> Node*;
-    fn parseFnType() -> Node*;
-    fn parseArrayType() -> Node*;
-    fn parseType() -> Node*;
+    fn parsePtrType() -> NiftyType*;
+    fn parseFnType() -> NiftyType*;
+    fn parseArrayType() -> NiftyType*;
+    fn parseType() -> NiftyType*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
     fn parseFunction() -> Node*;
     fn parseReturn() -> Node*;
