@@ -162,23 +162,13 @@ let x: int = undefined
 x := undefined // Invalid, no type given
 x: int = undefined // Valid
 
-// Multiple variables can be explicitly undefined with #noAutoInit
-
-#noAutoInit {
-    let x: int
-    let y: float
-    let z: string
-}
-
-// Or should this also use the undefined keyword?
+// Multiple variables can be explicitly undefined with 'undefined'
 
 undefined {
     let x: int
     let y: float
     let z: string
 }
-
-// This is more searchable and requires one less keyword.
 
 // x, y, and z are all defined but uninitialized.
 
@@ -193,7 +183,7 @@ x := 12
 x = undefined // Invalid
 
 buf: u32 = undefined
-bufNum := buf // Invalid buf has not been set (???)
+bufNum := buf // Valid but undefined behavior. buf could be anything. Should this warn?
 
 // Immutable variables can not be set to undefined.
 val y: int = undefined // Invalid, immutable variables must have their value specified.
@@ -307,11 +297,16 @@ let b: int
 takeCustom(a)
 takeCustom(b) // Valid
 
+if (a == b) // Valid
+
 // To force Custom to be distinct from int use the distinct attribute.
 #[distinct] type Custom as int
 
 takeCustom(a)
 takeCustom(b) // Invalid
+
+if (a == b) // Invalid, implicit casting not supported.
+if (cast(a, int) == b) //Valid
 
 // A new default value can be given for distinct types.
 #[distinct, initTo(1)] type Month as int
@@ -927,19 +922,19 @@ fn otherFunc() {
 #[attribName, attribName2(value)]
 fn bar() { /- ... -/ }
 
-#[depreciated("Function 'foo' is depreciated, use 'bar' instead.")]
+#[deprecated("Function 'foo' is deprecated, use 'bar' instead.")]
 fn foo() { /- ... -/ }
 
-#[depreciated("DO NOT USE")]
+#[deprecated("DO NOT USE")]
 fn badFunc() { /- ... -/ }
 
-// With deprecatedAfter the depreciated warning will onlt be shown after the given date.
+// With deprecatedAfter the deprecated warning will onlt be shown after the given date.
 #[deprecated("Use X instead."), deprecatedAfter("2023-10-20")] // yyyy-mm-dd
-fn eventuallyDepreciated() { /- ... -/ }
+fn eventuallydeprecated() { /- ... -/ }
 
 // deprecatedAfter can be used on its own. The equivalent of using deprecated with no message specified.
 #[deprecatedAfter("2023-10-20")] // yyyy-mm-dd
-fn eventuallyDepreciated() { /- ... -/ }
+fn eventuallydeprecated() { /- ... -/ }
 
 #[warning("ABANDON ALL HOPE YE WHO ENTER HERE")]
 fn reallyBadFunc() { /- ... -/ }
@@ -1343,6 +1338,7 @@ Hello world
 // an Errorable then it would always be called because the function would always have to return an
 // Errorable. In that case defer should be used. defer_err is run in a FILO fashion as well.
 
+// defer_success
 fn someFunc(str: string): ^Value! {
     someVar := new Value(str)
     defer_err delete someVar
@@ -1412,7 +1408,7 @@ x := arr[y] // Runtime error.
 // To get the length of an array use the included len() function.
 assert(arr.len() == 5) // true
 // To get the capacity (size - length) of an array use the included cap() function.
-assert(arr.cap() == 5) // true
+assert(arr.cap() == 0) // true
 // To get the size of an array use the included size() function.
 assert(arr.size() == 5) // true
 
@@ -1601,6 +1597,17 @@ type Point struct {
 
 // y and z will default to undefined while x will default to 10
 
+// Fields on a struct can be marked as required. Meaning that field must be specified when creating
+// an instance of the struct.
+type Foo struct {
+    bar: int #[required]
+    baz: int
+}
+
+foo := Foo{} // Invalid
+foo := Foo{bar: 100} // Valid
+foo := Foo{bar: 100, baz: 200} // Valid
+
 // If fields in a struct are of the same type then they can be on the same line.
 
 type Point3D struct { x, y, z: f64 }
@@ -1609,6 +1616,37 @@ point := Point3D{y: 12.f, Z: 42.f} // Valid
 // You can also set fields on the same line to the same value.
 type Point3D struct { x, y, z: f64 = 100.f }
 type Point3D struct { x, y, z: f64 = undefined }
+
+// Nifty supports embedded structs.
+type Size struct { w, h: int }
+type Position struct { x, y: f32 }
+
+// Size and Position are embedded into Button
+type Button struct {
+    ...Size
+    ...Position
+    title: string
+}
+
+button := Button{x: 100, y: 100: w: 256, h: 64, title: "Yeet"}
+
+// Spread operator on struct instances.
+type Person struct {
+    name: string
+    age: int
+    job: string
+}
+
+fn assignJob(person: Person, job: string): Person {
+    return Person{
+        ...person,
+        job: job
+    }
+}
+
+p := Person{name: "Joe", age: 27}
+p = assignJob(p, "Programmer")
+fmt::println(p.job) // Programmer
 
 // Struct pointer ownership
 
@@ -2119,7 +2157,7 @@ type EvensForSomeReason enum {
     unused = #jot * 2,
     First,  // 2
     Second, // 4
-    Third,  // 8
+    Third,  // 6
 }
 
 type EvensForSomeReason enum {
@@ -3079,7 +3117,6 @@ someVar := OTHER_CONST_MACRO // Invalid
 
 #noBoundsCheck     // does not check bounds in the given block or statement
 #checkBounds       // will always check bounds in the given block or statement
-#noAutoInit        // does not auto init variables for the given block
 
 #strictIEEE        // ignores IEEE breaking optimizations for the code block. If an algorith relies
                    // on IEEE correctness then this should be used while the optimizations can be 
@@ -3117,6 +3154,11 @@ const ARR = #embedBytes("/dev/urandom", 128) // Type is [N]u8 where N is the num
 
 let str: string = #embedString("hello.txt");
 println(str) // hello.txt contents
+
+#env(var: string): string // Used to get environment variables at compiletime. Returns empty string if not found.
+compileTimeEnv := #env("SOME_VAR")
+
+#buildIf(#env("IS_CI") == "true") { /- ... -/ }
 
 #error(msg: string) // Causes the compiler to error with the given message.
 #warn(msg: string) // Causes the compiler to emit a warning with the given message.
@@ -3335,6 +3377,20 @@ when (x) {
 #[unreachable]
 // code
 
+// Windows only. Use the console attribute to force the console to always be open for graphical
+// programs. This attribute is only valid on the main function. On non-windows platforms this
+// attribute does nothing.
+#[console]
+fn main() {
+    // ...
+}
+
+// Same as above but only in debug mode.
+#[debugConsole]
+fn main() {
+    // ...
+}
+
 // [BUILDING] [CONFIG] ----------------------------------------------------------------------------
 
 // The build file is done with TOML. The default build file name is 'build.toml'.
@@ -3357,8 +3413,8 @@ cmdOnly = bool
 // Set to true if there is no code to compile for the target. Defaults to false.
 commands = [[string], [string]]
 // List of commands to be executed. Can only be used if cmdOnly is true.
-noDepreciated = bool 
-// Error if a function marked depreciated is used. Disabled by default.
+noDeprecated = bool 
+// Error if a function marked deprecated is used. Disabled by default.
 noGoto = bool 
 // Error if goto is used. Enabled by default.
 debug = bool 
@@ -3398,7 +3454,7 @@ executeAfter = [["all"], ["bla"]]
 // Where bsd is a superset of freeBsd, openBsd.
 deprecatedAfterWarnWithin = int
 // If deprecatedAfter is used on a function this will start emitting a warning x number of days before
-// the date given to deprecatedAfter that the function will be depreciated soon. Disabled if <= 0. Defaults to 0.
+// the date given to deprecatedAfter that the function will be deprecated soon. Disabled if <= 0. Defaults to 0.
 noUnusedOnErrorReturn = bool
 // Don't allow unused to be used on functions that return errors or results. Disabled by default.
 fastMath = bool
@@ -3564,7 +3620,7 @@ explicit little/big endian types (?)
 matrix type (?)
 map type (?)
 
-coroutines/channels (?)
+coroutines/channels/processes (?)
 compiletime code execution with #run (JIT)
 insert code from a string or code at compiletime with #insert
 #expand to turn functions into macros (?)
@@ -3582,6 +3638,7 @@ undefined behavior for unsigned integer overflow
 build artifact caching
 unreachable (?)
 something like NORM for graphql (?)
+anonymous structs (?)
 
 build system done in nifty instead of a toml project file, build.nifty
 
