@@ -426,6 +426,38 @@ fn Parser::parseArrayType() -> NiftyType* {
     return nullptr;
 }
 
+fn Parser::parseIdentType() -> NiftyType* {
+    // Can be struct, enum, custom type, union type
+    return nullptr;
+}
+
+fn Parser::parseNumberType() const -> NiftyType* {
+    switch (_current.type) {
+        case TK_INT: return newNumberType(NumberTypeKind::S32);
+        case TK_UINT: return newNumberType(NumberTypeKind::U32);
+        case TK_FLOAT: return newNumberType(NumberTypeKind::F32);
+        case TK_DOUBLE: return newNumberType(NumberTypeKind::F64);
+        case TK_CHAR_TYPE: return newNumberType(NumberTypeKind::U32);
+        case TK_U8: return newNumberType(NumberTypeKind::U8);
+        case TK_U16: return newNumberType(NumberTypeKind::U16);
+        case TK_U32: return newNumberType(NumberTypeKind::U32);
+        case TK_U64: return newNumberType(NumberTypeKind::U64);
+        case TK_U128: return newNumberType(NumberTypeKind::U128);
+        case TK_S8: return newNumberType(NumberTypeKind::S8);
+        case TK_S16: return newNumberType(NumberTypeKind::S16);
+        case TK_S32: return newNumberType(NumberTypeKind::S32);
+        case TK_S64: return newNumberType(NumberTypeKind::S64);
+        case TK_S128: return newNumberType(NumberTypeKind::S128);
+        case TK_F16: return newNumberType(NumberTypeKind::F16);
+        case TK_F32: return newNumberType(NumberTypeKind::F32);
+        case TK_F64: return newNumberType(NumberTypeKind::F64);
+        case TK_F128: return newNumberType(NumberTypeKind::F128);
+        case TK_UINTPTR: return newNumberType(NumberTypeKind::U64);
+        default:
+            return nullptr;
+    }
+}
+
 fn Parser::parseType() -> NiftyType* {
     // name
     // ^name
@@ -438,31 +470,54 @@ fn Parser::parseType() -> NiftyType* {
     // name<name>
     // name::name
     
-    if (_current.type == TK_CARET) {
-        return parsePtrType();
+    switch (_current.type) {
+        case TK_VOID: return newVoidType();
+        case TK_CARET: return parsePtrType();
+        case TK_FN: return parseFnType();
+        case TK_LBRACKET: return parseArrayType();
+        case TK_IDENT: return parseIdentType();
     }
-    if (_current.type == TK_FN) {
-        return parseFnType();
+    let numType = parseNumberType();
+    if (numType != nullptr) {
+        return numType;
     }
-    if (_current.type == TK_LBRACKET) {
-        return parseArrayType();
-    }
-    
-    // other types here
     
     return nullptr;
 }
 
+fn Parser::parseArg() -> Argument* {
+    if (_current.type != TK_IDENT) {
+        parseError("identifier");
+        return nullptr;
+    }
+    
+    let name = _current.lexeme;
+    eat();
+    if (_current.type != TK_COLON) {
+        parseError(":", "identifier");
+        return nullptr;
+    }
+    
+    eat();
+    let type = parseType();
+    if (type == nullptr) {
+        error("Unexpected token"); // TODO: Better error message.
+        return nullptr;
+    }
+    eat();
+    
+    return newArg(name, type);
+}
+
 fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     int arity = 0;
-    Nodes args;
-    Nodes returnTypes;
+    std::vector<Argument*> args;
+    std::vector<NiftyType*> returnTypes;
     std::vector<String> argNames;
     if (!check(TK_RPAREN)) {
         while (_current.type != TK_RPAREN) {
             expect(TK_IDENT, "name");
             String argName = _current.lexeme; // TODO: Check if this exists already.
-            eat();
 
             if (std::find(argNames.begin(), argNames.end(), argName) != argNames.end()) {
                 redefinitionErrorArg(argName);
@@ -473,13 +528,13 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
             if (++arity > 16) {
                 error("A function can't have more than 16 arguments.");
             }
+    
+            let arg = parseArg(); // parseType();
+            if (arg != nullptr) {
+                args.push_back(arg);
+            }
             
-            if (_current.type == TK_COLON) {
-                let arg = parseExpression(); // parseType();
-                if (arg != nullptr) {
-                    args.push_back(arg);
-                }
-            } else if (_current.type == TK_COMMA) {
+            if (_current.type == TK_COMMA) {
                 // name, name: type
             } else if (_current.type == TK_LET_DECL) {
                 // name := value
@@ -491,13 +546,14 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
             //TODO: name: type = value, etc
             //TODO: name := value, etc
             //TODO: name, name: type, etc
+            //TODO: name?: ^type
         }
     }
 
     eat(); // Eat the )
 
     if (check(TK_LBRACE)) {
-        returnTypes.push_back(newVoid());
+        returnTypes.push_back(newVoidType());
     } else if (match(TK_COLON)) {
         // expectAfter(TK_COLON, ":", ")");
         do {

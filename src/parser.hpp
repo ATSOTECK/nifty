@@ -82,7 +82,10 @@ private:
     fn parsePtrType() -> NiftyType*;
     fn parseFnType() -> NiftyType*;
     fn parseArrayType() -> NiftyType*;
+    fn parseIdentType() -> NiftyType*;
+    use_fn parseNumberType() const -> NiftyType*;
     fn parseType() -> NiftyType*;
+    fn parseArg() -> Argument*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
     fn parseFunction() -> Node*;
     fn parseReturn() -> Node*;

@@ -118,6 +118,7 @@ enum Tokens {
     TK_F128,
     TK_VOID,
     TK_RAWPTR,
+    TK_UINTPTR,
     TK_TYPEID,
 
     TK_NULL,

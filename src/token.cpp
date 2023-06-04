@@ -114,6 +114,7 @@ std::map<String, Tokens> Token::keywords = {
         {"f128", TK_F128},
         {"void", TK_VOID},
         {"rawptr", TK_RAWPTR},
+        {"uintptr", TK_UINTPTR},
         {"typeid", TK_TYPEID},
 
         {"null", TK_NULL},
@@ -134,7 +135,6 @@ String tokenToString(const Token &t) {
     }
 
     let it = Token::keywords.find(t.lexeme);
-
     if (it != Token::keywords.end()) {
         return fmtTTS("TK_" + t.lexeme.toUpper(), t.lexeme);
     }
@@ -209,13 +209,13 @@ bool isTokenType(int type) {
         case TK_S16:
         case TK_S32:
         case TK_S64:
-        case TK_S128: {
+        case TK_S128:
+        case TK_RAWPTR:
+        case TK_UINTPTR:
+        case TK_TYPEID:
             return true;
-        }
-
-        default: {
+        default:
             return false;
-        }
     }
 }
 
@@ -244,13 +244,10 @@ bool isTokenOp(int type) {
         case TK_AND:
         case TK_OR:
         case TK_BITAND:
-        case TK_BITOR: {
+        case TK_BITOR:
             return true;
-        }
-
-        default: {
+        default:
             return false;
-        }
     }
 }
 
@@ -276,26 +273,20 @@ bool isTokenBinOp(int type) {
         case TK_AND:
         case TK_OR:
         case TK_BITAND:
-        case TK_BITOR: {
+        case TK_BITOR:
             return true;
-        }
-
-        default: {
+        default:
             return false;
-        }
     }
 }
 
 bool isTokenOpPrePostFix(int type) {
     switch (type) {
         case TK_INC:
-        case TK_DEC: {
+        case TK_DEC:
             return true;
-        }
-
-        default: {
+        default:
             return false;
-        }
     }
 }
 
@@ -303,83 +294,55 @@ bool isTokenUnaryOp(int type) {
     switch (type) {
         case TK_INC:
         case TK_DEC:
-        case TK_NOT: {
+        case TK_NOT:
             return true;
-        }
-
-        default: {
+        default:
             return false;
-        }
     }
 }
 
 int getTokenPrecedence(int type) {
     switch (type) {
         case TK_INC:
-        case TK_DEC: {
+        case TK_DEC:
             return 100;
-        }
-
         case TK_NOT:
-        case TK_BITNOT: {
+        case TK_BITNOT:
             return 90;
-        }
-
         case TK_MUL:
         case TK_DIV:
-        case TK_MOD: {
+        case TK_MOD:
             return 80;
-        }
-
         case TK_ADD:
-        case TK_SUB: {
+        case TK_SUB:
             return 70;
-        }
-
         case TK_LESS:
         case TK_LESSEQU:
         case TK_GREATER:
-        case TK_GREATEREQU: {
+        case TK_GREATEREQU:
             return 60;
-        }
-
         case TK_EQU:
-        case TK_NOTEQU: {
+        case TK_NOTEQU:
             return 50;
-        }
-
-        case TK_BITAND: {
+        case TK_BITAND:
             return 40;
-        }
-
-        case TK_BITOR: {
+        case TK_BITOR:
             return 30;
-        }
-
-        case TK_AND: {
+        case TK_AND:
             return 20;
-        }
-
-        case TK_OR: {
+        case TK_OR:
             return 10;
-        }
-
         case TK_ASSIGN:
         case TK_ADDEQU:
         case TK_SUBEQU:
         case TK_MULEQU:
         case TK_DIVEQU:
-        case TK_MODEQU: {
+        case TK_MODEQU:
             return 9;
-        }
-
-        case TK_COMMA: {
+        case TK_COMMA:
             return 1;
-        }
-
-        default: {
+        default:
             return -1;
-        }
     }
 }
 

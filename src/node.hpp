@@ -76,10 +76,10 @@ enum NumberTypeKind {
     U32, // char, uint
     U64,
     U128,
-    f16,
-    f32, // float
-    f64, // double
-    f128,
+    F16,
+    F32, // float
+    F64, // double
+    F128,
 };
 
 enum VarKind {
@@ -90,6 +90,10 @@ enum VarKind {
 
 struct NiftyType {
     TypeKind kind;
+};
+
+struct VoidType {
+    NiftyType type;
 };
 
 struct NumberType {
@@ -181,8 +185,8 @@ struct CallNode {
 struct PrototypeNode {
     Node node;
     String name;
-    std::vector<Argument> args;
-    std::vector<NiftyType> returnTypes;
+    std::vector<Argument*> args;
+    std::vector<NiftyType*> returnTypes;
     bool isExtern;
 };
 
@@ -223,8 +227,11 @@ struct IncDecNode {
     Node *expression;
 };
 
+fn newVoidType() -> NiftyType*;
 fn newNumberType(NumberTypeKind numberKind) -> NiftyType*;
 fn newPointerType(NiftyType *pointerType) -> NiftyType*;
+
+fn newArg(const String &name, NiftyType *type) -> Argument*;
 
 fn newVoid() -> Node*;
 fn newType(const String &typeStr) -> Node*;
@@ -236,7 +243,7 @@ fn newChar(uint32 value) -> Node*;
 fn newUnary(const Token &op, Node *operand) -> Node*;
 fn newBinary(const Token &op, Node *lhs, Node *rhs) -> Node*;
 fn newCall(const String &calle, Nodes args) -> Node*;
-fn newPrototype(const String &name, Nodes args, Nodes returnTypes) -> PrototypeNode*;
+fn newPrototype(const String &name, std::vector<Argument*> args, std::vector<NiftyType*> returnTypes) -> PrototypeNode*;
 fn newBlock(Nodes statements) -> BlockNode*;
 fn newNamedBlock(const String &name, Nodes statements) -> Node*;
 fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node*;

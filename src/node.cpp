@@ -22,6 +22,12 @@
 
 #include "node.hpp"
 
+fn newVoidType() -> NiftyType* {
+    let type = new VoidType{};
+    type->type.kind = TypeKind::VoidKind;
+    return recast(type, NiftyType*);
+}
+
 fn newNumberType(NumberTypeKind numberKind) -> NiftyType* {
     let type = new NumberType{};
     type->type.kind = TypeKind::NumberKind;
@@ -34,6 +40,13 @@ fn newPointerType(NiftyType *pointerType) -> NiftyType* {
     type->type.kind = TypeKind::PointerKind;
     type->pointerType = pointerType;
     return recast(type, NiftyType*);
+}
+
+fn newArg(const String &name, NiftyType *type) -> Argument* {
+    let arg = new Argument{};
+    arg->name = name;
+    arg->type = type;
+    return arg;
 }
 
 fn newVoid() -> Node* {
@@ -114,7 +127,7 @@ fn newCall(const String &calle, Nodes args) -> Node* {
     return recast(node, Node*);
 }
 
-fn newPrototype(const String &name, std::vector<Argument> args, std::vector<NiftyType> returnTypes) -> PrototypeNode* {
+fn newPrototype(const String &name, std::vector<Argument*> args, std::vector<NiftyType*> returnTypes) -> PrototypeNode* {
     let node = new PrototypeNode{};
     node->node.type = PrototypeNodeType;
     node->name = name;
