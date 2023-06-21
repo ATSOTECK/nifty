@@ -30,6 +30,66 @@ fn Codegen::initModules() {
 fn Codegen::genCode(Node *ast) -> llvm::Value* {
     return _builder->getInt32(42);
 }
+
+fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function* {
+    std::vector<llvm::Type*> arguments(prototype->args.size());
+    for (const let arg : prototype->args) {
+        arguments.push_back(toLLVMType(arg->type));
+    }
+    
+    let returnType = toLLVMType(prototype->returnTypes[0]); // TODO: Multiple return types.
+    let functionType = llvm::FunctionType::get(returnType, arguments, prototype->hasVarargs);
+    let functionName = prototype->name.stdString();
+    let linkage = prototype->isExtern || functionName == "main" ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
+    let function = llvm::Function::Create(functionType, linkage, functionName, _modules[0].get());
+    
+    int index = 0;
+    for (let &arg : function->args()) {
+        if (index >= prototype->args.size()) {
+            break;
+        }
+        arg.setName(prototype->args[index++]->name.stdString());
+    }
+    
+    return function;
+}
+
+fn Codegen::toLLVMType(NiftyType *niftyType) -> llvm::Type* {
+    TypeKind kind = niftyType->kind;
+    if (kind == NumberKind) {
+        let numberType = recast(niftyType, NumberType*);
+        NumberTypeKind numberKind = numberType->numberKind;
+        switch (numberKind) {
+            case NumberTypeKind::I1: return llvm::Type::getInt1Ty(*_ctx);
+            case NumberTypeKind::S8:
+            case NumberTypeKind::U8: return llvm::Type::getInt8Ty(*_ctx);
+            case NumberTypeKind::S16:
+            case NumberTypeKind::U16: return llvm::Type::getInt16Ty(*_ctx);
+            case NumberTypeKind::S32:
+            case NumberTypeKind::U32: return llvm::Type::getInt32Ty(*_ctx);
+            case NumberTypeKind::S64:
+            case NumberTypeKind::U64: return llvm::Type::getInt64Ty(*_ctx);
+            case NumberTypeKind::S128:
+            case NumberTypeKind::U128: return llvm::Type::getInt128Ty(*_ctx);
+            case NumberTypeKind::F16: return llvm::Type::getHalfTy(*_ctx);
+            case NumberTypeKind::F32: return llvm::Type::getFloatTy(*_ctx);
+            case NumberTypeKind::F64: return llvm::Type::getDoubleTy(*_ctx);
+            case NumberTypeKind::F128: return llvm::Type::getFP128Ty(*_ctx);
+        }
+    } else if (kind == VoidKind) {
+        return llvm::Type::getVoidTy(*_ctx);
+    } else if (kind == PointerKind) {
+        let pointerType = recast(niftyType, PointerType*);
+        if (pointerType->pointerBaseType->kind == VoidKind) {
+            // rawptr
+            return llvm::Type::getInt8PtrTy(*_ctx);
+        }
+        let llvmPointerType = toLLVMType(pointerType->pointerBaseType);
+        return llvm::PointerType::get(llvmPointerType, 0);
+    }
+    return nullptr;
+}
+
 /*
 fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function {
     //

@@ -38,7 +38,7 @@ fn newNumberType(NumberTypeKind numberKind) -> NiftyType* {
 fn newPointerType(NiftyType *pointerType) -> NiftyType* {
     let type = new PointerType{};
     type->type.kind = TypeKind::PointerKind;
-    type->pointerType = pointerType;
+    type->pointerBaseType = pointerType;
     return recast(type, NiftyType*);
 }
 
@@ -134,6 +134,8 @@ fn newPrototype(const String &name, std::vector<Argument*> args, std::vector<Nif
     node->args = std::move(args);
     node->returnTypes = std::move(returnTypes);
     node->isExtern = false; // TODO(Skyler): Support extern functions.
+    node->isInline = false; // TODO(Skyler): Get this from parser.
+    node->hasVarargs = false; // TODO(Skyler): Get this from parser.
     return node;
 }
 

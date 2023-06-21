@@ -66,6 +66,7 @@ enum TypeKind {
 };
 
 enum NumberTypeKind {
+    I1,
     S8,
     S16,
     S32, // int
@@ -103,7 +104,7 @@ struct NumberType {
 
 struct PointerType {
     NiftyType type;
-    NiftyType *pointerType;
+    NiftyType *pointerBaseType;
 };
 
 struct Argument {
@@ -187,7 +188,9 @@ struct PrototypeNode {
     String name;
     std::vector<Argument*> args;
     std::vector<NiftyType*> returnTypes;
+    bool isInline;
     bool isExtern;
+    bool hasVarargs;
 };
 
 struct BlockNode {

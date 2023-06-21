@@ -32,6 +32,7 @@
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
 
 class Codegen {
 public:
@@ -43,9 +44,11 @@ private:
     fn initModules();
 
     fn genCode(Node *ast) -> llvm::Value*;
-    fn genPrototype(PrototypeNode *prototype) -> llvm::Function;
+    fn genPrototype(PrototypeNode *prototype) -> llvm::Function*;
     fn genFunction(FunctionNode *function) -> llvm::Function*;
     fn genBlock(BlockNode *block);
+    
+    fn toLLVMType(NiftyType *niftyType) -> llvm::Type*;
 
     std::unique_ptr<llvm::LLVMContext> _ctx;
     std::vector<std::unique_ptr<llvm::Module>> _modules;

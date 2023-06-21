@@ -173,7 +173,13 @@ bool Project::build(const String &targetName) {
     
     Lexer lexer(entryPoint);
     Parser parser = Parser(&lexer);
-    parser.parse();
+    Nodes ast = parser.parse();
+    if (parser.finishedWithErrors()) {
+        return false;
+    }
+    
+    
+    
     return true;
 }
 

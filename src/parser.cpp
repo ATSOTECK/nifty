@@ -286,6 +286,7 @@ fn Parser::parsePrimary() -> Node* {
     switch (_current.type) {
         case TK_NUMBER: return parseNumber();
         case TK_FN: return parseFunction();
+        case TK_RETURN: return parseReturn();
         case TK_TRUE: return parseBool(true);
         case TK_FALSE: return parseBool(false);
     }
@@ -431,31 +432,36 @@ fn Parser::parseIdentType() -> NiftyType* {
     return nullptr;
 }
 
-fn Parser::parseNumberType() const -> NiftyType* {
+fn Parser::parseNumberType() -> NiftyType* {
+    NiftyType *type = nullptr;
     switch (_current.type) {
-        case TK_INT: return newNumberType(NumberTypeKind::S32);
-        case TK_UINT: return newNumberType(NumberTypeKind::U32);
-        case TK_FLOAT: return newNumberType(NumberTypeKind::F32);
-        case TK_DOUBLE: return newNumberType(NumberTypeKind::F64);
-        case TK_CHAR_TYPE: return newNumberType(NumberTypeKind::U32);
-        case TK_U8: return newNumberType(NumberTypeKind::U8);
-        case TK_U16: return newNumberType(NumberTypeKind::U16);
-        case TK_U32: return newNumberType(NumberTypeKind::U32);
-        case TK_U64: return newNumberType(NumberTypeKind::U64);
-        case TK_U128: return newNumberType(NumberTypeKind::U128);
-        case TK_S8: return newNumberType(NumberTypeKind::S8);
-        case TK_S16: return newNumberType(NumberTypeKind::S16);
-        case TK_S32: return newNumberType(NumberTypeKind::S32);
-        case TK_S64: return newNumberType(NumberTypeKind::S64);
-        case TK_S128: return newNumberType(NumberTypeKind::S128);
-        case TK_F16: return newNumberType(NumberTypeKind::F16);
-        case TK_F32: return newNumberType(NumberTypeKind::F32);
-        case TK_F64: return newNumberType(NumberTypeKind::F64);
-        case TK_F128: return newNumberType(NumberTypeKind::F128);
-        case TK_UINTPTR: return newNumberType(NumberTypeKind::U64);
-        default:
-            return nullptr;
+        case TK_INT: type = newNumberType(NumberTypeKind::S32); break;
+        case TK_UINT: type = newNumberType(NumberTypeKind::U32); break;
+        case TK_FLOAT: type = newNumberType(NumberTypeKind::F32); break;
+        case TK_DOUBLE: type = newNumberType(NumberTypeKind::F64); break;
+        case TK_CHAR_TYPE: type = newNumberType(NumberTypeKind::U32); break;
+        case TK_U8: type = newNumberType(NumberTypeKind::U8); break;
+        case TK_U16: type = newNumberType(NumberTypeKind::U16); break;
+        case TK_U32: type = newNumberType(NumberTypeKind::U32); break;
+        case TK_U64: type = newNumberType(NumberTypeKind::U64); break;
+        case TK_U128: type = newNumberType(NumberTypeKind::U128); break;
+        case TK_S8: type = newNumberType(NumberTypeKind::S8); break;
+        case TK_S16: type = newNumberType(NumberTypeKind::S16); break;
+        case TK_S32: type = newNumberType(NumberTypeKind::S32); break;
+        case TK_S64: type = newNumberType(NumberTypeKind::S64); break;
+        case TK_S128: type = newNumberType(NumberTypeKind::S128); break;
+        case TK_F16: type = newNumberType(NumberTypeKind::F16); break;
+        case TK_F32: type = newNumberType(NumberTypeKind::F32); break;
+        case TK_F64: type = newNumberType(NumberTypeKind::F64); break;
+        case TK_F128: type = newNumberType(NumberTypeKind::F128); break;
+        case TK_UINTPTR: type = newNumberType(NumberTypeKind::U64); break;
     }
+    
+    if (type != nullptr) {
+        eat();
+    }
+    
+    return type;
 }
 
 fn Parser::parseType() -> NiftyType* {
@@ -516,8 +522,8 @@ fn Parser::parsePrototype(const String &name) -> PrototypeNode* {
     std::vector<String> argNames;
     if (!check(TK_RPAREN)) {
         while (_current.type != TK_RPAREN) {
-            expect(TK_IDENT, "name");
-            String argName = _current.lexeme; // TODO: Check if this exists already.
+//            expect(TK_IDENT, "name");
+            String argName = _current.lexeme;
 
             if (std::find(argNames.begin(), argNames.end(), argName) != argNames.end()) {
                 redefinitionErrorArg(argName);

@@ -83,7 +83,7 @@ private:
     fn parseFnType() -> NiftyType*;
     fn parseArrayType() -> NiftyType*;
     fn parseIdentType() -> NiftyType*;
-    use_fn parseNumberType() const -> NiftyType*;
+    fn parseNumberType() -> NiftyType*;
     fn parseType() -> NiftyType*;
     fn parseArg() -> Argument*;
     fn parsePrototype(const String &name) -> PrototypeNode*;
