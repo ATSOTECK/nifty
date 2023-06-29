@@ -20,47 +20,37 @@
  *
  */
 
-#ifndef NIFTY_CODEGEN_HPP
-#define NIFTY_CODEGEN_HPP
-
-/*
+#ifndef __NIFTY_CODEGENC_HPP__
+#define __NIFTY_CODEGENC_HPP__
 
 #include "common.hpp"
 #include "node.hpp"
 
-#include <memory>
-#include <vector>
+#include <fstream>
 
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Type.h>
-
-class Codegen {
+class CodegenC {
 public:
-    fn generate(Node *ast);
-
-    fn saveIRToFile();
-private:
-    fn initTarget();
-    fn initModules();
-
-    fn genCode(Node *ast) -> llvm::Value*;
-    fn genPrototype(PrototypeNode *prototype) -> llvm::Function*;
-    fn genFunction(FunctionNode *function) -> llvm::Function*;
-    fn genBlock(BlockNode *block);
-    fn genReturn(ReturnNode *ret) -> llvm::ReturnInst*;
-    fn genInt(IntNode *intNode) -> llvm::ConstantInt*;
-    fn genFloat();
-    fn genBool(BoolNode *boolNode);
+    fn generate(const Nodes &ast) -> void; // TODO: Use a package obj.
     
-    fn toLLVMType(NiftyType *niftyType) -> llvm::Type*;
-
-    std::unique_ptr<llvm::LLVMContext> _ctx;
-    std::unique_ptr<llvm::Module> _module;
-    std::unique_ptr<llvm::IRBuilder<>> _builder;
+private:
+    fn insertNL(int count = 1) -> void;
+    fn insertTab(int count = 1) -> void;
+    fn insertTimestamp() -> void;
+    fn insertBuiltinTypes() -> void;
+    
+    fn insertMainFunctionDef() -> void;
+    
+    fn codegen(Node *node) -> void;
+    fn genNumberType(NumberType *numberType) -> void;
+    fn genType(NiftyType *niftyType) -> void;
+    fn genPrototype(PrototypeNode *prototype, const String &rename = "") -> void;
+    fn genBlock(BlockNode *block, int level = 0) -> void;
+    fn genFunction(FunctionNode *function) -> void;
+    fn genReturn(ReturnNode *returnNode) -> void;
+    
+    String _package;
+    std::fstream _file;
 };
 
-*/
 
-#endif //NIFTY_CODEGEN_HPP
+#endif //__NIFTY_CODEGENC_HPP__

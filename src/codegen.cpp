@@ -3,6 +3,7 @@
 //
 
 #include "codegen.hpp"
+/*
 
 fn Codegen::generate(Node *ast) {
     let ir = genCode(ast);
@@ -41,7 +42,7 @@ fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function* {
     let functionType = llvm::FunctionType::get(returnType, arguments, prototype->hasVarargs);
     let functionName = prototype->name.stdString();
     let linkage = prototype->isExtern || functionName == "main" ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
-    let function = llvm::Function::Create(functionType, linkage, functionName, _modules[0].get());
+    let function = llvm::Function::Create(functionType, linkage, functionName, _module.get());
     
     int index = 0;
     for (let &arg : function->args()) {
@@ -52,6 +53,21 @@ fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function* {
     }
     
     return function;
+}
+
+fn Codegen::genReturn(ReturnNode *ret) -> llvm::ReturnInst* {
+    // TODO: Emit any defer statements before return statements.
+    int returnCount = (int)ret->statements.size();
+    
+    if (returnCount == 0) {
+        return _builder->CreateRetVoid();
+    }
+}
+
+fn Codegen::genInt(IntNode *intNode) -> llvm::ConstantInt* {
+    llvm::IntegerType *intType = llvm::IntegerType::get(*_ctx, intNode->bits); // TODO: Do I need to remake this every time?
+    let value = std::stoll(intNode->value.c_str(), nullptr, 10); // TODO: Support hex/oct/bin
+    return llvm::ConstantInt::get(intType, value, intNode->isSigned);
 }
 
 fn Codegen::toLLVMType(NiftyType *niftyType) -> llvm::Type* {
@@ -89,6 +105,8 @@ fn Codegen::toLLVMType(NiftyType *niftyType) -> llvm::Type* {
     }
     return nullptr;
 }
+ 
+*/
 
 /*
 fn Codegen::genPrototype(PrototypeNode *prototype) -> llvm::Function {

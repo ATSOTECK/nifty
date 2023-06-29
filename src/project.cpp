@@ -25,6 +25,7 @@
 #include "common.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "codegenC.hpp"
 
 #include <iomanip>
 #include <filesystem>
@@ -174,11 +175,11 @@ bool Project::build(const String &targetName) {
     Lexer lexer(entryPoint);
     Parser parser = Parser(&lexer);
     Nodes ast = parser.parse();
+    CodegenC codegenC;
+    codegenC.generate(ast);
     if (parser.finishedWithErrors()) {
         return false;
     }
-    
-    
     
     return true;
 }

@@ -56,8 +56,10 @@
 #define until(x) while(!(x))
 
 #define NIFTY_VERSION "0.0.0"
-#define NIFTY_DATE "1 - April - 2023"
+#define NIFTY_DATE "30 - June - 2023"
 #define NIFTY_BUILD_FILE "build.toml"
+#define NIFTY_ENTRY "__nifty_start"
+#define NIFTY_GENERATED_FILE "_nifty_generated_c.c"
 
 typedef int8_t  int8;
 typedef int16_t int16;

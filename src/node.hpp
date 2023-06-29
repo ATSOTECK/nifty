@@ -208,6 +208,7 @@ struct FunctionNode {
     Node node;
     PrototypeNode *prototype;
     BlockNode *body;
+    bool isEntry;
 };
 
 struct ReturnNode {
@@ -249,7 +250,7 @@ fn newCall(const String &calle, Nodes args) -> Node*;
 fn newPrototype(const String &name, std::vector<Argument*> args, std::vector<NiftyType*> returnTypes) -> PrototypeNode*;
 fn newBlock(Nodes statements) -> BlockNode*;
 fn newNamedBlock(const String &name, Nodes statements) -> Node*;
-fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node*;
+fn newFunction(PrototypeNode *prototype, BlockNode *body, bool isEntry = false) -> Node*;
 fn newReturn(Nodes statements) -> Node*;
 fn newVar(const String &name, Node *type, Node *value, VarKind kind) -> Node*;
 fn newIncDec(bool isInc, bool isPre, Node *expression) -> Node*;

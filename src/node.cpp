@@ -154,11 +154,12 @@ fn newNamedBlock(const String &name, Nodes statements) -> Node* {
     return recast(node, Node*);
 }
 
-fn newFunction(PrototypeNode *prototype, BlockNode *body) -> Node* {
+fn newFunction(PrototypeNode *prototype, BlockNode *body, bool isEntry) -> Node* {
     let node = new FunctionNode{};
     node->node.type = FunctionNodeType;
     node->prototype = prototype;
     node->body = body;
+    node->isEntry = isEntry;
     return recast(node, Node*);
 }
 

@@ -587,8 +587,9 @@ fn Parser::parseFunction() -> Node* {
     eat(); // eat the (
     PrototypeNode *prototype = parsePrototype(name);
     BlockNode *body = parseBlock();
-
-    return newFunction(prototype, body);
+    
+    // TODO: Should the main function need to be in a main package?
+    return newFunction(prototype, body, name == "main");
 }
 
 fn Parser::parseReturn() -> Node* {
