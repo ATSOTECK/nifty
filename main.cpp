@@ -28,6 +28,10 @@
 #include <filesystem>
 #include <fstream>
 
+#ifdef N_MAC
+#   include <mach-o/dyld.h>
+#endif
+
 void unknownCmd(const String &cmd) {
     if (!cmd.empty()) {
         db("Unknown command '" << cmd << "'.");
@@ -302,14 +306,16 @@ int main(int argc, char **argv) {
             GetModuleFileNameA(nullptr, loc, 1024);
             installedLocation = loc;
             free(loc);
-#elif N_MAC
+#endif
+#ifdef N_MAC
             uint32 size = 1024;
             char *loc = (char*)malloc(sizeof(char) * size);
-            if (_NSGetExecutablePath(path, &size) == 0) {
+            if (_NSGetExecutablePath(loc, &size) == 0) {
                 installedLocation = loc;
                 free(loc);
             }
-#elif N_LINUX
+#endif
+#ifdef N_LINUX
             installedLocation = std::filesystem::canonical("/proc/self/exe").string();
 #endif
             

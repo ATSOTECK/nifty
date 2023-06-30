@@ -71,7 +71,6 @@ std::map<String, Tokens> Token::keywords = {
         {"does", TK_DOES},
         {"behavior", TK_BEHAVIOR},
         {"enum", TK_ENUM},
-        {"interface", TK_INTERFACE},
 
         {"and", TK_AND},
         {"or", TK_OR},

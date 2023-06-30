@@ -37,6 +37,10 @@
 #	include <Windows.h>
 #endif
 
+#ifdef N_MAC
+#   include <unistd.h>
+#endif
+
 void Project::create(const CreateProjectInfo &info) {
     std::ofstream buildFile;
     buildFile.open(NIFTY_BUILD_FILE, std::ios_base::out);
@@ -394,6 +398,25 @@ void Project::callClang(const String &exeName) {
         WaitForSingleObject(pi.hProcess, INFINITE);
     }
 #   endif
+
+#   ifdef N_MAC
+    let pid = fork();
+    if (pid == 0) {
+        let r = execl("/usr/local/opt/llvm/bin/clang",
+                            "/usr/local/opt/llvm/bin/clang",
+                            NIFTY_GENERATED_FILE,
+                            "-o",
+                            exeName.c_str(),
+                            (char*)nullptr);
+
+        if (r == -1) {
+            perror("Error: ");
+        }
+    } else {
+        int returnStatus;
+        waitpid(pid, &returnStatus, 0);
+    }
+#   endif
 }
 
 void Project::callGeneratedExe(const String &exeName) {
@@ -423,6 +446,22 @@ void Project::callGeneratedExe(const String &exeName) {
                         &pi))
     {
         db("Could not call " << exeName << ".exe!");
+    }
+#   endif
+
+#   ifdef N_MAC
+    let pid = fork();
+    if (pid == 0) {
+        let r = execl(exeName.c_str(),
+                            exeName.c_str(),
+                             NIFTY_GENERATED_FILE,
+                             "-o",
+                            exeName.c_str(),
+                            (char*)nullptr);
+
+        if (r == -1) {
+            perror("Error: ");
+        }
     }
 #   endif
 }

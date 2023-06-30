@@ -50,7 +50,6 @@ enum Tokens {
     TK_DOES,
     TK_BEHAVIOR,
     TK_ENUM,
-    TK_INTERFACE, // Remove?
 
     TK_DEFER,
     TK_DEFER_ERR,
