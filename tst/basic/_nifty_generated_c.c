@@ -5,9 +5,9 @@
 //  !!! All changes made to this file will be overwritten. !!!
 //
 
-#include <inttypes>
+#include <inttypes.h>
 #ifndef __cplusplus
-#	include <stdbool>
+#	include <stdbool.h>
 #endif
 
 typedef uint8_t nifty_u8;
@@ -32,8 +32,12 @@ typedef uint64_t nifty_b64;
 int __nifty_start();
 
 int __nifty_start() {
-    return }
+    return 2 + 2;
+}
+
+#include <stdio.h>
 
 int main(void) {
+	printf("Calling __nifty_start()...\n");
 	return __nifty_start();
 }

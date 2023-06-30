@@ -47,6 +47,8 @@ private:
     fn genBlock(BlockNode *block, int level = 0) -> void;
     fn genFunction(FunctionNode *function) -> void;
     fn genReturn(ReturnNode *returnNode) -> void;
+    fn genBinOp(BinaryNode *binaryNode) -> void;
+    fn genIntNode(IntNode *intNode) -> void;
     
     String _package;
     std::fstream _file;

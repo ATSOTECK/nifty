@@ -297,19 +297,19 @@ int main(int argc, char **argv) {
             db(NIFTY_VERSION);
         } else if (cmd == "info" || cmd == "-i") {
             String installedLocation = "???";
-#ifdef VWIN
+#ifdef N_WIN
             char *loc = (char*)malloc(sizeof(char) * 1024);
             GetModuleFileNameA(nullptr, loc, 1024);
             installedLocation = loc;
             free(loc);
-#elif VMAC
+#elif N_MAC
             uint32 size = 1024;
             char *loc = (char*)malloc(sizeof(char) * size);
             if (_NSGetExecutablePath(path, &size) == 0) {
                 installedLocation = loc;
                 free(loc);
             }
-#elif VLINUX
+#elif N_LINUX
             installedLocation = std::filesystem::canonical("/proc/self/exe").string();
 #endif
             

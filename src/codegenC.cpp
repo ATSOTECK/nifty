@@ -48,9 +48,15 @@ fn CodegenC::generate(const Nodes &ast) -> void {
         codegen(node);
     }
     
+    _file << "#include <stdio.h>"; // TODO: Get rid of this.
+    insertNL(2);
+    
     _file << "int main(void) {\n";
+    _file << "\tprintf(\"Calling " << NIFTY_ENTRY << "()...\\n\");\n";
     _file << "\treturn " << NIFTY_ENTRY << "();\n";
     _file << "}\n";
+    
+    _file.close();
 }
 
 fn CodegenC::insertNL(int count) -> void {
@@ -78,9 +84,9 @@ fn CodegenC::insertTimestamp() -> void {
 }
 
 fn CodegenC::insertBuiltinTypes() -> void {
-    _file << "#include <inttypes>\n";
+    _file << "#include <inttypes.h>\n";
     _file << "#ifndef __cplusplus\n";
-    _file << "#\tinclude <stdbool>\n";
+    _file << "#\tinclude <stdbool.h>\n";
     _file << "#endif\n";
     _file << "\n";
     _file << "typedef uint8_t nifty_u8;\n";
@@ -107,6 +113,8 @@ fn CodegenC::codegen(Node *node) -> void {
     switch (node->type) {
         case FunctionNodeType: genFunction(recast(node, FunctionNode*)); break;
         case ReturnNodeType: genReturn(recast(node, ReturnNode*)); break;
+        case BinaryNodeType: genBinOp(recast(node, BinaryNode*)); break;
+        case IntNodeType: genIntNode(recast(node, IntNode*)); break;
         default: db("Not yet implemented."); break;
     }
 }
@@ -179,5 +187,20 @@ fn CodegenC::genReturn(ReturnNode *returnNode) -> void {
     } else {
         _file << " ";
         codegen(recast(returnNode->statements[0], Node*));
+        _file << ";\n";
     }
+}
+
+fn CodegenC::genBinOp(BinaryNode *binaryNode) -> void {
+    codegen(binaryNode->lhs);
+    _file << " ";
+    
+    _file << binaryNode->op.lexeme; // TODO: Handle operators c doesn't have.
+    
+    _file << " ";
+    codegen(binaryNode->rhs);
+}
+
+fn CodegenC::genIntNode(IntNode *intNode) -> void {
+    _file << intNode->value;
 }

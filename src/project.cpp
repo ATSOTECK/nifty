@@ -33,6 +33,10 @@
 #define TOML_EXCEPTIONS 0
 #include <toml.hpp>
 
+#ifdef N_WIN
+#	include <Windows.h>
+#endif
+
 void Project::create(const CreateProjectInfo &info) {
     std::ofstream buildFile;
     buildFile.open(NIFTY_BUILD_FILE, std::ios_base::out);
@@ -67,7 +71,7 @@ void Project::create(const CreateProjectInfo &info) {
     
     time_t t = std::time(nullptr);
     struct tm time{};
-#ifdef VWIN
+#ifdef N_WIN
     localtime_s(&time, &t);
 #else
     localtime_r(&t, &time);
@@ -156,30 +160,18 @@ bool Project::build(const String &targetName) {
         return false;
     }
     
-    String entryPoint = "";
-    if (!targetName.empty()) {
-        for (const let& target : projectInfo.targets) {
-            if (target.targetName == targetName) {
-                entryPoint = target.entryPoint;
-            }
-        }
-        
-        if (entryPoint.empty()) {
-            std::cout << "Build error: No such target '" << targetName << "' in " << NIFTY_BUILD_FILE << ".\n";
-            return false;
-        }
-    } else {
-        entryPoint = projectInfo.targets[projectInfo.defaultTargetIdx].entryPoint;
-    }
+    let target = getTargetInfo(targetName);
     
-    Lexer lexer(entryPoint);
+    Lexer lexer(target.entryPoint);
     Parser parser = Parser(&lexer);
     Nodes ast = parser.parse();
-    CodegenC codegenC;
-    codegenC.generate(ast);
     if (parser.finishedWithErrors()) {
         return false;
     }
+    
+    CodegenC codegenC;
+    codegenC.generate(ast);
+    callClang(target.outputName);
     
     return true;
 }
@@ -190,8 +182,8 @@ void Project::run(const String &targetName) {
         return;
     }
     
-    db("run");
-    // TODO: Run.
+    let target = getTargetInfo(targetName);
+    callGeneratedExe(target.outputName);
 }
 
 void Project::listTargets() {
@@ -351,4 +343,86 @@ bool Project::verifyProjectInfo(const ProjectInfo &info) {
     #undef invalid
     
     return true;
+}
+
+TargetInfo Project::getTargetInfo(const String &targetName) {
+    let projectInfo = Project::getProjectInfo();
+    
+    if (!targetName.empty()) {
+        for (const let& target : projectInfo.targets) {
+            if (target.targetName == targetName) {
+                return target;
+            }
+        }
+        
+        std::cout << "Build error: No such target '" << targetName << "' in " << NIFTY_BUILD_FILE << ".\n";
+        exit(1);
+    }
+    
+    return projectInfo.targets[projectInfo.defaultTargetIdx];
+}
+
+void Project::callClang(const String &exeName) {
+#   ifdef N_WIN
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    
+    String clangPath = "C:\\bin\\clang.exe";
+    String args = clangPath + " " + NIFTY_GENERATED_FILE + " -o " + exeName + ".exe";
+    
+    let size = sizeof(char) * args.size();
+    char *cargs = (char*)malloc(size);
+    strncpy(cargs, args.c_str(), size);
+    
+    if (!CreateProcessA("C:\\bin\\clang.exe",
+                        cargs,
+                        nullptr,
+                        nullptr,
+                        FALSE,
+                        0,
+                        nullptr,
+                        nullptr,
+                        reinterpret_cast<LPSTARTUPINFOA>(&si),
+                        &pi))
+    {
+        db("Could not call clang!");
+    } else {
+        WaitForSingleObject(pi.hProcess, INFINITE);
+    }
+#   endif
+}
+
+void Project::callGeneratedExe(const String &exeName) {
+#   ifdef N_WIN
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+    
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+    
+    String args = ".\\" + exeName + ".exe";
+    
+    let size = sizeof(char) * args.size();
+    char *cargs = (char*)malloc(size);
+    strncpy(cargs, args.c_str(), size);
+    
+    if (!CreateProcessA(cargs,
+                        nullptr,
+                        nullptr,
+                        nullptr,
+                        FALSE,
+                        0,
+                        nullptr,
+                        nullptr,
+                        reinterpret_cast<LPSTARTUPINFOA>(&si),
+                        &pi))
+    {
+        db("Could not call " << exeName << ".exe!");
+    }
+#   endif
 }

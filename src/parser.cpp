@@ -44,8 +44,8 @@ fn Parser::eat() -> void {
     _current = _lookahead;
 
     _lookahead = _lex->nextToken();
-    String tok = tokenToString(_current);
-    db(tok);
+    // String tok = tokenToString(_current);
+    // db(tok);
 }
 
 fn Parser::expectAfter(int type, const String &expected, const String &after) -> void {
@@ -296,7 +296,7 @@ fn Parser::parsePrimary() -> Node* {
 
 fn Parser::parsePackage() -> void {
     expectAfter(TK_IDENT, "identifier", "package");
-    std::cout << "current package is now: " << _current.lexeme << std::endl;
+//    std::cout << "current package is now: " << _current.lexeme << std::endl;
     _currentPackage = _current.lexeme;
     eat(); // Eat the package name.
     let *package = new SymbolTable();

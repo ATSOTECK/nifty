@@ -87,6 +87,10 @@ public:
 private:
     static ProjectInfo getProjectInfo();
     static bool verifyProjectInfo(const ProjectInfo &info);
+    static TargetInfo getTargetInfo(const String &targetName);
+    
+    static void callClang(const String &exeName);
+    static void callGeneratedExe(const String &exeName);
 };
 
 

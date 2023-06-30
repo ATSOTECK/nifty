@@ -24,7 +24,7 @@
 
 #include <fstream>
 
-#ifndef VWIN
+#ifndef N_WIN
 namespace {
 
     inline void strcpy_s(char *dst, size_t dstsz, const char *src) {
@@ -36,7 +36,7 @@ namespace {
     }
 
 }
-#endif //VWIN
+#endif //N_WIN
 
 int64 strsize(const char *str) {
     int64 size = 1;

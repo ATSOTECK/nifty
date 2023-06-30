@@ -32,18 +32,18 @@
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
-#   define VWIN
+#   define N_WIN
 #   include <Windows.h>
 #   undef max
 #   undef min
 #endif
 
 #if defined(__APPLE__) || defined(__MACH__)
-#   define VMAC
+#   define N_MAC
 #endif
 
 #if defined(__linux__)
-#   define VLINUX
+#   define N_LINUX
 #endif
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
@@ -118,7 +118,7 @@ typedef uint64      uchar64;
 #define hlp(x) db(std::setfill('-') << std::left << std::setw(32) << std::string("    ") + x)
 #define hlp2(x) db(std::setfill(' ') << std::left << std::setw(32) << std::string("    ") + x)
 
-#ifdef VWIN
+#ifdef N_WIN
 #   define GreenColor  10
 #   define PurpleColor 13
 #   define TextColor   15
