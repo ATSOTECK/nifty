@@ -18,28 +18,21 @@
  |    misrepresented as being the original software.
  | 3. This notice may not be removed or altered from any source distribution.
  |
- -/
+-/
 
-package array
+package string
 
+use <ascii>
 use <iter>
-use <mem>
 
-type Array<T> struct {
-    _data: [^]T
-    _len: int
-    _cap: int
+type String struct {
+    _len: int // Number of characters in the string
+    _allocated: int // 
+    _size: int
+    _str: [^]u8
 }
 
-fn newArray<T>(cap := 0): Array<T> {
-    return Array{
-        _data: mem::alloc(size_of(T) * cap)
-        _len: 0,
-        _cap: cap
-    }
-}
-
-impl Array<T> does iter::Iterable<T>
+impl String does iter::Iterable<char>
 
 md len(): int {
     return _len
@@ -49,41 +42,49 @@ md cap(): int {
     return _cap
 }
 
-md push(item: T) {
-    ++_len
+md size(): int {
+    return _size
 }
 
-md pop(): T {
-    item := _data[_len - 1]
-    --_len
-    
-    return item
+md isEmpty(): bool {
+    return _len == 0
 }
 
-md get(idx: int): T {
-    return _data[idx]
-}
-
-md set(idx: int, item: T) {
-    _data[idx] = item
-}
-
-md fill(item: T) {
-    for (i := 0; i < _cap; ++i) {
-        _data[i] = item
+md isUpper[str: string](): bool {
+    for (val c in str) {
+        if (!ascii::isUpper(c)) {
+            return false
+        }
     }
     
-    _len = _cap
+    return true
 }
 
-md _mapNoIdx(callback: fn(T): T): []T {
-    //    
+#[overloads("==")]
+md equal(other: string): bool {
+    if (_len != other._len) {
+        return false
+    }
+    
+    //strcmp? memcmp?
+    return true
 }
 
-md _mapIdx(callback: fn(T, int): T): []T {
+md offsetForCharIndex(index: int): s64 {
+    if (index > _len) {
+        return -1
+    }
+    
+    if (index == 0) {
+        return 0
+    }
+    
+    let c, i, l: int = undefined
+    for (l = 0, i = 0; i < _size)
+}
+
+md at(index: int): char {
     //
 }
-
-md map overloads{_mapNoIdx, _mapIdx}
 
 endimpl

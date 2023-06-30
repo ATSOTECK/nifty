@@ -23,16 +23,138 @@
 package math
 
 TAU          ::= 6.28318530717958647692528676655900576
-PI           ::= 3.14159265358979323846264338327950288
-E            ::= 2.71828182845904523536
-SQRT_TWO     ::= 1.41421356237309504880168872420969808
-SQRT_THREE   ::= 1.73205080756887729352744634150587236
-SQRT_FIVE    ::= 2.23606797749978969640917366873127623
+PI           ::= 3.14159265358979323846264338327950288419716939937510
+E            ::= 2.71828182845904523536028747135266249775724709369995
+SQRT_2       ::= 1.41421356237309504880168872420969808
+SQRT_3       ::= 1.73205080756887729352744634150587236
+SQRT_5       ::= 2.23606797749978969640917366873127623
+SQRT_1_2     ::= 0.707106781186547524400844362104849039
 LN2          ::= 0.693147180559945309417232121458176568
 LN10         ::= 2.30258509299404568401799145468436421
+LOG2E        ::= 1.442695040888963407359924681001892137
 RAD_PER_DEG  ::= TAU / 360.0
 DEG_PER_RAD  ::= 360.0 / TAU
+PHI          ::= 1.6180339887498948482045868343656381177203091798057628621
 
 MAX_FLOAT_64 ::= 0x1p1023 * (1 + (1 - 0x1p - 52)) // 1.79769313486231570814527423731704356798070e+308
 
-fn 
+extern fn sinf32(theta: f32): f32 undefined
+extern fn sinf64(theta: f64): f64 undefined
+fn sin overloads { sinf32, sinf64 }
+
+extern fn cosf32(theta: f32): f32 undefined
+extern fn cosf64(theta: f64): f64 undefined
+fn cos overloads { cosf32, cosf64 }
+
+extern fn tanf32(theta: f32): f32 undefined
+extern fn tanf64(theta: f64): f64 undefined
+fn tan overloads { tanf32, tanf64 }
+
+extern fn asinf32(theta: f32): f32 undefined
+extern fn asinf64(theta: f64): f64 undefined
+fn asin overloads { asinf32, asinf64 }
+
+extern fn acosf32(theta: f32): f32 undefined
+extern fn acosf64(theta: f64): f64 undefined
+fn acos overloads { acosf32, acosf64 }
+
+extern fn atanf32(theta: f32): f32 undefined
+extern fn atanf64(theta: f64): f64 undefined
+fn atan overloads { atanf32, atanf64 }
+
+extern fn atan2f32(theta: f32): f32 undefined
+extern fn atan2f64(theta: f64): f64 undefined
+fn atan2 overloads { atan2f32, atan2f64 }
+
+extern fn sinhf32(theta: f32): f32 undefined
+extern fn sinhf64(theta: f64): f64 undefined
+fn sinh overloads { sinhf32, sinhf64 }
+
+extern fn coshf32(theta: f32): f32 undefined
+extern fn coshf64(theta: f64): f64 undefined
+fn cosh overloads { coshf32, coshf64 }
+
+extern fn tanhf32(theta: f32): f32 undefined
+extern fn tanhf64(theta: f64): f64 undefined
+fn tanh overloads { tanhf32, tanhf64 }
+
+extern fn asinhf32(theta: f32): f32 undefined
+extern fn asinhf64(theta: f64): f64 undefined
+fn asinh overloads { asinhf32, asinhf64 }
+
+extern fn acoshf32(theta: f32): f32 undefined
+extern fn acoshf64(theta: f64): f64 undefined
+fn acosh overloads { acoshf32, acoshf64 }
+
+extern fn atanhf32(theta: f32): f32 undefined
+extern fn atanhf64(theta: f64): f64 undefined
+fn atanh overloads { atanhf32, atanhf64 }
+
+extern fn sqrtf32(x: f32): f32 undefined
+extern fn sqrtf64(x: f64): f64 undefined
+fn sqrt overloads { sqrtf32, sqrtf64 }
+
+extern fn expf32(x: f32): f32 undefined
+extern fn expf64(x: f64): f64 undefined
+fn exp overloads { expf32, expf64 }
+
+extern fn lnf32(x: f32): f32 undefined
+extern fn lnf64(x: f64): f64 undefined
+fn ln overloads { lnf32, lnf64 }
+
+extern fn log10f32(x: f32): f32 undefined
+extern fn log10f64(x: f64): f64 undefined
+fn log10 overloads { log10f32, log10f64 }
+
+extern fn log2f32(x: f32): f32 undefined
+extern fn log2f64(x: f64): f64 undefined
+fn log2 overloads { log2f32, log2f64 }
+
+NAN_U16 ::= cast(0x7C01, u16)
+
+QNAN_U16 ::= cast(0x7E00, u16)
+
+NAN_U32 ::= cast(0x7F800001, u32)
+NAN_F32 ::= recast(NAN_U32, f32)
+
+QNAN_U32 ::= cast(0x7FC00000, u32)
+QNAN_F32 ::= recast(QNAN_U32, f32)
+
+NAN_U64 ::= cast(0x7FF << 52, u64) | 1
+NAN_F64 ::= recast(NAN_U64, f64)
+
+QNAN_U64 ::= cast(0x7ff8000000000000, u64)
+QNAN_F64 ::= recast(QNAN_U64, f64)
+
+#[inline]
+fn isNan<T: #number>(x: T): bool {
+    return x != x // By definition a NaN can't equal itself.
+}
+
+#[inline]
+fn isSignalingNan<T: #number>(x: T): bool {
+    return x != x // May change someday.
+}
+
+#[inline]
+fn clamp<T: #number>(n, min, max: T): T {
+    if (n < min) {
+        return min
+    }
+    
+    if (n > max) {
+        return max
+    }
+    
+    return n
+}
+
+#[inline]
+fn min<T: #number>(a, b: T): T {
+    return a <= b ? a : b
+}
+
+#[inline]
+fn max<T: #number>(a, b: T): T {
+    return a >= b ? a : b
+}

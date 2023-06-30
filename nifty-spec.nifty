@@ -3642,6 +3642,15 @@ anonymous structs (?)
 
 build system done in nifty instead of a toml project file, build.nifty
 
+pipe operator
+foo(bar(baz(new_function(other_function()))))
+becomes
+other_function() |> new_function() |> baz() |> bar() |> foo()
+
+Shoould x be marked as write only until it's written to?
+let x: int = undefined
+y := x // Error? Warning?
+
 -/
 
 // Include c code and use it. 

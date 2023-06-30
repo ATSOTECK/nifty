@@ -1,0 +1,31 @@
+package runtime
+
+type SourceCodeLocation struct {
+    fileName: string
+    functionName: string
+    line, pos: int
+}
+
+type Context struct {
+    allocator: does Allocator
+    allocatorTmp: does Allocator
+    assertionFailure: fn(prefix, msg: string, loc: SourceLocation)
+    logger: does Logger
+    
+    userData: rawptr
+    userIndex: int
+    
+    internal: rawptr #[compilerOnly]
+}
+
+#[noContext]
+fn defaultContext(): Context {
+    let c: ^Context = undefined
+    _initContext(&c)
+    return c
+}
+
+#[noContext]
+fn _initContext(context: ^Context) {
+    //
+}

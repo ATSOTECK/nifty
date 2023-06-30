@@ -1,0 +1,11 @@
+package mem
+
+type Allocator behavior {
+    
+}
+
+type AllocatorFn as fn()
+
+fn defaultAllocator(): Allocator {
+    
+}

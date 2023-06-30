@@ -1,0 +1,6 @@
+package iter
+
+type Iterable<T> behavior {
+    len(): int
+    at(int): T
+}
