@@ -221,6 +221,7 @@ unused, y := returnsTwoInts()
 
 // Because unused is a reserved identifier it can be redefined
 unused := someOtherFunc()
+unused = someOtherFunc()
 
 // unused can't be constant.
 unused ::= anotherFunc() // Invalid
@@ -258,8 +259,8 @@ x ::= 12
 
 // Basic Types:
 char // same as u32 defaults to '\0'
-int // same as s32 defaults to 0
-uint // same as u32 defaults to 0
+int // usually same as s32 defaults to 0
+uint // usually same as u32 defaults to 0
 float // same as f32 defaults to 0.f
 double // same as f64 defaults to 0.d
 
@@ -394,7 +395,7 @@ fn main() {
 
 // If no package is specified for a file then the default 'default' package is used.
 
-using <fmt> // the same as using "nsl.fmt"
+using <fmt>
 use "foo"
 
 fn main() {
@@ -413,7 +414,7 @@ fn main() {
 
 use <fmt>
 use <math> as M
-use <math.random>
+use <math/random>
 
 fn main() {
     fmt::println(M::PI) // math::PI is invalid
@@ -467,10 +468,9 @@ fn main() {
 }
 
 // Packages included in the nifty standard library (nsl) can be used with '<' and '>' while user made
-// packages are included with double quotes. nsl packages can be used with double quotes as well.
-use "nsl.fmt"
-// Is the same as
-use <fmt>
+// packages are included with double quotes.
+use <fmt> // nsl package
+use "foo/bar" // non-nsl package (user made)
 
 // Specific functions and types can be used from a package as well.
 
@@ -487,7 +487,7 @@ fn main() {
 // The 'as' keyword can still be used
 use { println as pln } in <fmt> as F // println is now pln, fmt is now F
 
-use { int64, float64 } in <math.random> // Multiple can be used at once.
+use { int64, float64 } in <math/random> // Multiple can be used at once.
 
 // When importing specifics like this the 'using' keyword can not be used.
 
@@ -554,9 +554,12 @@ fn otherFunc() {
 // Using a package with an api file works like using any other package.
 // Everything listed in an api file must be defined and implemented in the package.
 
+// TODO: Should there be an option to generate the api file for a given package automatically?
+// This would only included exported symbols in the package.
+
 api game // The game package must be defined and implemented.
 
-use <math.matrix> // Other packages can be used to show that this package depends on it. using can be
+use <math/matrix> // Other packages can be used to show that this package depends on it. using can be
 // used as well.
 
 // Items should be defined as they are in the package.
@@ -851,8 +854,7 @@ fn min(a, b: s32): s32 {
 // In debug mode the above two functions would effectively be:
 #[require {x > 0 && x < 1_000}, ensure{return > 0}]
 fn someFunc(x: int): int {
-    assert_db(x > 0)
-    assert_db(x < 1000)
+    assert_db(x > 0 && x < 1_000)
     _return := x * 10
     assert_db(_return > 0)
     return _return
@@ -862,11 +864,11 @@ fn someFunc(x: int): int {
 fn min(a, b: s32): s32 {
     if (a < b) {
         _return := a
-        assert_db(_return <= a)
+        assert_db(_return <= a && _return <= b)
         return _return
     }
     _return := b
-    assert_db(_return <= b)
+    assert_db(_return <= a && _return <= b)
     return _return
 }
 
@@ -1278,11 +1280,15 @@ count2 := #outerBlock! {
 1 ..= 5 // [1, 5] 1, 2, 3, 4, 5
 1 ..< 5 // [1, 5) 1, 2, 3, 4
 
-rangeVar := 0 ..= 10 // type range
+range := 0 ..= 10 // type range
 x := 12
 
 if (x in range) {
     // Do something
+}
+
+for (val v in range) {
+    fmt::println("v ", v)
 }
 
 fmt::println(range.low, ", ", range.high) // 0, 10
@@ -2725,7 +2731,7 @@ delete person2 undefined
 
 package custom_alloc
 
-use "nsl.mem"
+use <mem>
 
 type CustomAlloc struct {} // The struct doesn't (technically) need any fields.
 
@@ -2942,28 +2948,77 @@ idx := someFunc() else { panic(error) }
 // Nifty has built-in testing. Test files are not compiled into the executable in neither debug nor
 // release modes.
 
-#test("name of the test") {
-    // code here
+using <test> // For functions like expect, expectEq, etc
+
+fn add(x, y: int): int {
+    return x + y
 }
 
-#test("basic while test") {
+test "add 2, 2" {
+    try expectEq(add(2, 2), 4)
+}
+
+test "basic while test" {
     x := 0
     while (x <= 100) {
         ++x
     }
     
-    expectEq(x, 100)
+    try expectEq(x, 100)
 }
 
 // To skip a test prefix the test name with "skip:".
-#test("skip:this will be skipped") {
-    expect(true)
+test skip "this will be skipped" {
+    try expect(true)
 }
 
-// expect(), expectEq() is like assert and is built-in to test files. Unlike assert it will not
-// panic on failure, it will just cause that test to fail and return early from the test.
+skip test "this will be skipped" {
+    try expect(true)
+}
 
-// Tests have to be written in a test file. Test files have the format of *.test.nifty
+// Tets don't have to have a name
+
+test {
+    try expectEq(add(2, 2), 4)
+}
+
+// Unnamed tests can be skipped
+
+skip test {
+    try expect(false)
+}
+
+// or
+
+test skip {
+    try expect(false)
+}
+
+// skip can't be used on it's own
+
+skip "this will be skipped" { // Invalid
+    try expect(false)
+}
+
+skip { // Invalid
+    try expect(false)
+}
+
+fn someFunc(data: SomeStruct): !bool {
+    // ...
+}
+
+test "test error" {
+    badData ::= SomeStruct{}
+    res ::= someFunc(badData)
+    try expectError(res)
+    try expectErrorToBe(res, Error("bad data"))
+    
+}
+
+// expect(), expectEq() return bool!.
+
+// Tests can be written in to any nify file. They can also be in their own files in the format of *.test.nifty
 
 // To run the tests
 // nifty test
@@ -2974,6 +3029,10 @@ idx := someFunc() else { panic(error) }
 
 // To run a specific test in a specific test file
 // nifty test while.test.nifty "basic while test"
+
+// To run tests starting with a specific string
+// nifty test filter "math"
+// Unnamed tests are still ran.
 
 // [IMPLICIT CONTEXTS] ----------------------------------------------------------------------------
 
@@ -3234,7 +3293,7 @@ type Person struct {
 }
 
 use <fmt>
-use "nsl.sqlite"
+use <sqlite>
 
 // Norm allows queries to be type checked.
 
@@ -3599,6 +3658,10 @@ fn
 md
 type
 emit
+
+// Keywords that can be used as variables/function names
+test
+skip
 
 // Built in functions
 assert() // In debug and release mode.

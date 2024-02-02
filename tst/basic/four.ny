@@ -1,5 +1,9 @@
 package four
 
+fn add(x: int, y: int): int {
+    return x + y
+}
+
 fn main(): int {
-    return 2 + 2
+    return add(2, 2)
 }
