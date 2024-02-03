@@ -16,6 +16,8 @@
 #endif
 
 typedef enum { false, true } bool;
+typedef char* string;
+typedef const char* conststr;
 
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #   define N_WIN
@@ -35,5 +37,12 @@ typedef enum { false, true } bool;
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #   define N_BSD
 #endif
+
+#ifdef N_WIN
+#   include <io.h>
+#   define F_OK 0
+#   define access _access
+#endif
+
 
 #endif //NIFTY_COMMON_H

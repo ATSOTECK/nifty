@@ -7,10 +7,20 @@
 #include <string.h>
 #include <stdlib.h>
 
-char *str_new(const char *s, int *len) {
-    int length = (int)strlen(s);
-    char *ret = (char*)malloc(length * sizeof(char) + 1);
-    strcpy(ret, s);
+int str_len(conststr str) {
+    register conststr s;
+    for (s = str; *s; ++s);
+    return (int)(s - str);
+}
+
+inline void str_cpy(register string dst, register conststr src) {
+    for (; (*dst = *src); ++src, ++dst);
+}
+
+string str_new(conststr s, int *len) {
+    int length = str_len(s);
+    char *ret = (string)malloc(length * sizeof(char) + 1);
+    str_cpy(ret, s);
 
     if (len != nullptr) {
         *len = length;
@@ -19,13 +29,13 @@ char *str_new(const char *s, int *len) {
     return ret;
 }
 
-char *str_new_empty(size_t size) {
-    char *ret = (char*)malloc(size * sizeof(char) + 1);
+string str_new_empty(size_t size) {
+    string ret = (string)malloc(size * sizeof(char) + 1);
     ret[0] = '\0';
     return ret;
 }
 
-void str_delete(char *s) {
+void str_delete(string s) {
     if (s == nullptr) {
         return;
     }
@@ -34,7 +44,7 @@ void str_delete(char *s) {
     s = nullptr;
 }
 
-bool str_eq(const char *s1, const char *s2) {
+bool str_eq(conststr s1, conststr s2) {
     while (*s1 == *s2++) {
         if (*s1++ == '\0') {
             return true;
@@ -43,6 +53,15 @@ bool str_eq(const char *s1, const char *s2) {
     return false;
 }
 
-int str_copy(char *dst, const char *src) {
-    return 0;
+string str_copy(string dst, conststr src) {
+    int srcLen = str_len(src);
+    int dstLen = str_len(dst);
+    
+    string ret = dst;
+    if (srcLen > dstLen) {
+        ret = realloc(dst, sizeof(char) * srcLen + 1);
+    }
+    
+    str_cpy(ret, src);
+    return ret;
 }

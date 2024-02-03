@@ -9,13 +9,16 @@
 
 #include <stddef.h>
 
-char *str_new(const char *s, int *len);
-char *str_new_empty(size_t size);
+int str_len(conststr str);
+inline void str_cpy(register string dst, register conststr src);
 
-void str_delete(char *s);
+string str_new(conststr s, int *len);
+string str_new_empty(size_t size);
 
-bool str_eq(const char *s1, const char *s2);
+void str_delete(string s);
 
-int str_copy(char *dst, const char *src);
+bool str_eq(conststr s1, conststr s2);
+
+string str_copy(string dst, conststr src);
 
 #endif //NIFTY_STR_H
