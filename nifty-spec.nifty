@@ -11,6 +11,7 @@
 // [DEFER]
 // [ARRAYS]
 // [SLICES]
+// [STRING]
 // [MAP]
 // [STRUCTS]
 // [STRUCT METHODS]
@@ -1475,6 +1476,15 @@ arr := [5]int{0} // [0, 0, 0, 0, 0]
 slice := arr[1:5] // [0, 0, 0, 0]
 
 slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
+
+// [STRING]
+
+str := "hello " .. "world"
+str := "hello " + "world"
+str := "hello " ++ "world"
+
+str.len()
+str.size()
 
 // [MAP] ------------------------------------------------------------------------------------------
 
@@ -2967,7 +2977,7 @@ test "basic while test" {
     try expectEq(x, 100)
 }
 
-// To skip a test prefix the test name with "skip:".
+// To skip a test use the skip keyword.
 test skip "this will be skipped" {
     try expect(true)
 }

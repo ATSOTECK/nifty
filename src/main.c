@@ -13,20 +13,28 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "project.h"
+
 void printHelp() {
     printf("you want help\n");
 }
 
 int main(int argc, char **argv) {
     bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
+    ProjectInfo projectInfo = { .loaded = false };
+    if (buildFileFound) {
+        projectInfo = loadProject();
+        printf("%s\n", projectInfo.targets[1].targetName);
+    }
+
     if (argc >= 2) {
         string cmd = argv[1];
 
-        if (str_eq(cmd, "help") || str_eq(cmd, "-h")) {
+        if (str_eq2(cmd, "help", "-h")) {
             printHelp();
-        } else if (str_eq(cmd, "version") || str_eq(cmd, "-v")) {
+        } else if (str_eq2(cmd, "version", "-v")) {
             printf("%s\n", NIFTY_VERSION);
-        } else if (str_eq(cmd, "info") || str_eq(cmd, "-i")) {
+        } else if (str_eq2(cmd, "info", "-i")) {
             string installedLocation = str_new("unknown", nullptr);
 #ifdef N_WIN
             uint32_t size = 1024;
@@ -39,7 +47,7 @@ int main(int argc, char **argv) {
             uint32_t size = 1024;
             string loc = str_new_empty(size);
             if (_NSGetExecutablePath(loc, &size) == 0) {
-                str_copy(installedLocation, loc);
+                installedLocation = str_copy(installedLocation, loc);
                 str_delete(loc);
             }
 #endif
@@ -47,6 +55,21 @@ int main(int argc, char **argv) {
             printf("Nifty version %s\nBuilt on %s\n", NIFTY_VERSION, NIFTY_DATE);
             printf("Installed location: %s\n", installedLocation);
             str_delete(installedLocation);
+        } else if (str_eq2(cmd, "list", "-l")) {
+            for (int i = 0; i < projectInfo.targetCount; ++i) {
+                TargetInfo target = projectInfo.targets[i];
+                printf("[%s]\n", target.targetName);
+            }
+        } else if (str_eq2(cmd, "build", "-b")) {
+            build(argv[2], projectInfo);
+        } else if (str_eq2(cmd, "run", "-r")) {
+            run(argv[2], projectInfo);
+        } else if (str_eq2(cmd, "new", "-n")) {
+            newProject();
+        } else if (str_eq2(cmd, "test", "-t")) {
+            printf("test\n");
+        } else {
+            printf("unknown\n");
         }
     } else {
         if (!buildFileFound) {

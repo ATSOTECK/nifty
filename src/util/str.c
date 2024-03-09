@@ -53,6 +53,10 @@ bool str_eq(conststr s1, conststr s2) {
     return false;
 }
 
+bool str_eq2(conststr s1, conststr s2, conststr s3) {
+    return str_eq(s1, s2) || str_eq(s1, s3);
+}
+
 string str_copy(string dst, conststr src) {
     int srcLen = str_len(src);
     int dstLen = str_len(dst);
