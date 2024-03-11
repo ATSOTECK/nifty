@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int str_len(conststr str) {
     register conststr s;
@@ -68,4 +69,26 @@ string str_copy(string dst, conststr src) {
     
     str_cpy(ret, src);
     return ret;
+}
+
+bool str_empty(conststr s) {
+    return s == nullptr || str_len(s) == 0;
+}
+
+void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width) {
+    if (s1 == nullptr) {
+        return;
+    }
+
+    if (s2 == nullptr) {
+        printf("%s\n", s1);
+        return;
+    }
+
+    printf("%s ", s1);
+    int s1Len = str_len(s1);
+    for (int i = 0; i < width - s1Len; ++i) {
+        printf("%c", spacer);
+    }
+    printf(" %s\n", s2);
 }

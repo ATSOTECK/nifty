@@ -61,7 +61,8 @@ ProjectInfo loadProject() {
         free(projectName.u.s);
     }
 
-    info.targets = (TargetInfo*)malloc(sizeof(TargetInfo));
+    info.targets = (TargetInfo**)malloc(sizeof(TargetInfo*));
+    info.targets[0] = (TargetInfo*)malloc(sizeof(TargetInfo));
     info.targetCount = 0;
 
     for (int i = 0;; ++i) {
@@ -75,9 +76,10 @@ ProjectInfo loadProject() {
             ++info.targetCount;
 
             if (info.targetCount > 1) {
-                info.targets = (TargetInfo*)realloc(info.targets, sizeof(TargetInfo) * info.targetCount);
+                info.targets = (TargetInfo**)realloc(info.targets, sizeof(TargetInfo*) * info.targetCount);
+                info.targets[info.targetCount - 1] = (TargetInfo*)malloc(sizeof(TargetInfo));
             }
-            TargetInfo *target = &info.targets[info.targetCount - 1];
+            TargetInfo *target = info.targets[info.targetCount - 1];
 
             target->targetName = str_new(key, nullptr);
 
@@ -93,13 +95,12 @@ ProjectInfo loadProject() {
         }
     }
 
-    toml_free(conf);
-
-    for (int i = 0; i < info.targetCount; ++i) {
-        TargetInfo target = info.targets[i];
-        printf("[%s]\n", target.targetName);
+    if (info.defaultTargetIdx < 0) {
+        info.defaultTargetIdx = 0;
+        info.targets[0]->isDefaltTarget = true;
     }
-    printf("\n\n");
+
+    toml_free(conf);
 
     info.loaded = true;
     return info;
@@ -119,4 +120,29 @@ void run(conststr target, ProjectInfo info) {
 
 void newProject() {
     printf("new\n");
+}
+
+void listTargets(ProjectInfo info) {
+    printf("Targets in project %s:\n", info.name);
+
+    int longestTargetName = str_len(info.targets[0]->targetName);
+    for (int i = 1; i < info.targetCount; ++i) {
+        int len = str_len(info.targets[i]->targetName);
+        if (len > longestTargetName) {
+            longestTargetName = len;
+        }
+    }
+
+    for (int i = 0; i < info.targetCount; ++i) {
+        TargetInfo *target = info.targets[i];
+        if (target->isDefaltTarget) {
+            printf("\x1B[32m*"); // Green *
+        } else {
+            printf(" ");
+        }
+        printStrsWithSpacer(target->targetName, '-', target->description, longestTargetName + 5);
+        if (target->isDefaltTarget) {
+            printf("\x1B[0m"); // Reset color
+        }
+    }
 }

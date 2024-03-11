@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
     ProjectInfo projectInfo = { .loaded = false };
     if (buildFileFound) {
         projectInfo = loadProject();
-        printf("%s\n", projectInfo.targets[1].targetName);
     }
 
     if (argc >= 2) {
@@ -56,10 +55,7 @@ int main(int argc, char **argv) {
             printf("Installed location: %s\n", installedLocation);
             str_delete(installedLocation);
         } else if (str_eq2(cmd, "list", "-l")) {
-            for (int i = 0; i < projectInfo.targetCount; ++i) {
-                TargetInfo target = projectInfo.targets[i];
-                printf("[%s]\n", target.targetName);
-            }
+            listTargets(projectInfo);
         } else if (str_eq2(cmd, "build", "-b")) {
             build(argv[2], projectInfo);
         } else if (str_eq2(cmd, "run", "-r")) {

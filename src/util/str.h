@@ -22,4 +22,8 @@ bool str_eq2(conststr s1, conststr s2, conststr s3);
 
 string str_copy(string dst, conststr src);
 
+bool str_empty(conststr s);
+
+void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width);
+
 #endif //NIFTY_STR_H

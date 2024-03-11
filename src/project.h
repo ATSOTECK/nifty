@@ -44,7 +44,7 @@ typedef struct {
     string name;
     int defaultTargetIdx;
     int targetCount;
-    TargetInfo *targets;
+    TargetInfo **targets;
 } ProjectInfo;
 
 ProjectInfo loadProject();
@@ -56,7 +56,7 @@ void newProject();
 void createProject(CreateProjectInfo info);
 bool buildTarget(string target);
 void runTarget(string target);
-void listTargets();
+void listTargets(ProjectInfo info);
 void printProject(CreateProjectInfo info);
 
 ProjectInfo getProjectInfo();
