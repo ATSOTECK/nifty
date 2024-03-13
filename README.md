@@ -1,8 +1,8 @@
 # Nifty Language
-Nifty is a new, work in progress, programming language.
+Nifty is a new, work in progress, programming language. Everything is subject to change.
 
 ```rs
-using "nsl.fmt"
+using <fmt>
 
 fn main() {
     println("Hello world!")
@@ -27,6 +27,7 @@ Install the nifty-lang VSCode extension in the highlighting folder to make it ea
 # Building
 
 ## macOS
+TODO
 
 Make sure XCode, the command line tools, and CMake are installed.  
 LLVM can be installed with homebrew via  
