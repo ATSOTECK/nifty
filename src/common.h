@@ -44,5 +44,7 @@ typedef const char* conststr;
 #   define access _access
 #endif
 
+#define GREEN "\033[32m"
+#define RESET_COLOR "\033[0m"
 
 #endif //NIFTY_COMMON_H

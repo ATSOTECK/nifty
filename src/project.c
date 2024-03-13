@@ -88,8 +88,8 @@ ProjectInfo loadProject() {
             target->entryPoint = loadStringForKey(tab, "entryPoint", nullptr);
 
             target->isDebugMode = loadBoolForKey(tab, "debug", false);
-            target->isDefaltTarget = loadBoolForKey(tab, "default", false);
-            if (target->isDefaltTarget && info.defaultTargetIdx < 0) {
+            target->isDefaultTarget = loadBoolForKey(tab, "default", false);
+            if (target->isDefaultTarget && info.defaultTargetIdx < 0) {
                 info.defaultTargetIdx = info.targetCount - 1;
             }
         }
@@ -97,10 +97,12 @@ ProjectInfo loadProject() {
 
     if (info.defaultTargetIdx < 0) {
         info.defaultTargetIdx = 0;
-        info.targets[0]->isDefaltTarget = true;
+        info.targets[0]->isDefaultTarget = true;
     }
 
     toml_free(conf);
+    
+    info.disableColors = getenv("NIFTY_DISABLE_COLORS") != nullptr;
 
     info.loaded = true;
     return info;
@@ -135,14 +137,18 @@ void listTargets(ProjectInfo info) {
 
     for (int i = 0; i < info.targetCount; ++i) {
         TargetInfo *target = info.targets[i];
-        if (target->isDefaltTarget) {
-            printf("\x1B[32m*"); // Green *
+        if (target->isDefaultTarget) {
+            if (!info.disableColors) {
+                printf(GREEN "*");
+            } else {
+                printf("*");
+            }
         } else {
             printf(" ");
         }
         printStrsWithSpacer(target->targetName, '-', target->description, longestTargetName + 5);
-        if (target->isDefaltTarget) {
-            printf("\x1B[0m"); // Reset color
+        if (target->isDefaultTarget && !info.disableColors) {
+            printf(RESET_COLOR);
         }
     }
 }

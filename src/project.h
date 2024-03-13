@@ -22,7 +22,7 @@ typedef struct {
     bool isDebugMode;
     string optimization;
     string description;
-    bool isDefaltTarget;
+    bool isDefaultTarget;
     bool noMain;
     bool cmdOnly;
     bool noDepreciated;
@@ -45,6 +45,8 @@ typedef struct {
     int defaultTargetIdx;
     int targetCount;
     TargetInfo **targets;
+    
+    bool disableColors;
 } ProjectInfo;
 
 ProjectInfo loadProject();
