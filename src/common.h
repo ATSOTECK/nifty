@@ -6,7 +6,7 @@
 #define NIFTY_COMMON_H
 
 #define NIFTY_VERSION "0.0.1"
-#define NIFTY_DATE "1 - February - 2024"
+#define NIFTY_DATE "14 - March - 2024"
 #define NIFTY_BUILD_FILE "build.toml"
 #define NIFTY_ENTRY "__nifty_start"
 #define NIFTY_GENERATED_FILE "_nifty_generated_c.c"

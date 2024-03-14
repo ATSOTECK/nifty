@@ -42,7 +42,6 @@ void str_delete(string s) {
     }
 
     free(s);
-    s = nullptr;
 }
 
 bool str_eq(conststr s1, conststr s2) {

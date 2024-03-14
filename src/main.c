@@ -17,7 +17,7 @@
 
 int main(int argc, char **argv) {
     bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
-    ProjectInfo projectInfo = { .loaded = false };
+    ProjectInfo *projectInfo = nullptr;
     if (buildFileFound) {
         projectInfo = loadProject();
     }
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
         if (str_eq2(cmd, "help", "-h")) {
             printHelp(argv[2]);
         } else if (str_eq2(cmd, "version", "-v")) {
-            printf("%s\n", NIFTY_VERSION);
+            println("%s", NIFTY_VERSION);
         } else if (str_eq2(cmd, "info", "-i")) {
             string installedLocation = str_new("unknown", nullptr);
 #ifdef N_WIN
@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
             }
 #endif
 
-            printf("Nifty version %s\nBuilt on %s\n", NIFTY_VERSION, NIFTY_DATE);
-            printf("Installed location: %s\n", installedLocation);
+            println("Nifty version %s\nBuilt on %s", NIFTY_VERSION, NIFTY_DATE);
+            println("Installed location: %s", installedLocation);
             str_delete(installedLocation);
         } else if (str_eq2(cmd, "list", "-l")) {
             listTargets(projectInfo);
@@ -59,16 +59,18 @@ int main(int argc, char **argv) {
         } else if (str_eq2(cmd, "new", "-n")) {
             newProject();
         } else if (str_eq2(cmd, "test", "-t")) {
-            printf("test\n");
+            println("test");
         } else {
-            printf("unknown\n");
+            println("unknown");
         }
     } else {
         if (!buildFileFound) {
-            printf("No '%s' file found.\n", NIFTY_BUILD_FILE);
-            printf("Run 'nifty help' for help.\nExiting.\n");
+            println("No '%s' file found.", NIFTY_BUILD_FILE);
+            println("Run 'nifty help' for help.\nExiting.");
         }
     }
+
+    freeProject(projectInfo);
 
     return 0;
 }
