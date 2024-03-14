@@ -46,6 +46,14 @@ void str_delete(string s) {
 }
 
 bool str_eq(conststr s1, conststr s2) {
+    if (s1 == s2) {
+        return true;
+    }
+
+    if (s1 == nullptr || s2 == nullptr) {
+        return false;
+    }
+
     while (*s1 == *s2++) {
         if (*s1++ == '\0') {
             return true;
@@ -73,6 +81,18 @@ string str_copy(string dst, conststr src) {
 
 bool str_empty(conststr s) {
     return s == nullptr || str_len(s) == 0;
+}
+
+void println(conststr fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    printf("\n");
+}
+
+void dbln() {
+    printf("\n");
 }
 
 void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width) {

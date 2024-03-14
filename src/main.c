@@ -10,14 +10,10 @@
 #   include <unistd.h>
 #endif
 
-#include <stdlib.h>
 #include <stdint.h>
 
 #include "project.h"
-
-void printHelp() {
-    printf("you want help\n");
-}
+#include "util/help.h"
 
 int main(int argc, char **argv) {
     bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
@@ -30,7 +26,7 @@ int main(int argc, char **argv) {
         string cmd = argv[1];
 
         if (str_eq2(cmd, "help", "-h")) {
-            printHelp();
+            printHelp(argv[2]);
         } else if (str_eq2(cmd, "version", "-v")) {
             printf("%s\n", NIFTY_VERSION);
         } else if (str_eq2(cmd, "info", "-i")) {
