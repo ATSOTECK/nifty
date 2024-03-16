@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
         } else if (str_eq2(cmd, "run", "-r")) {
             run(argv[2], projectInfo);
         } else if (str_eq2(cmd, "new", "-n")) {
-            newProject();
+            newProject(buildFileFound);
         } else if (str_eq2(cmd, "test", "-t")) {
             println("test");
         } else {
@@ -65,8 +65,9 @@ int main(int argc, char **argv) {
         }
     } else {
         if (!buildFileFound) {
+            println("Nifty v%s :: %s", NIFTY_VERSION, NIFTY_DATE);
             println("No '%s' file found.", NIFTY_BUILD_FILE);
-            println("Run 'nifty help' for help.\nExiting.");
+            println("Run 'nifty help' for a list of commands. Exiting.");
         }
     }
 

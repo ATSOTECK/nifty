@@ -18,6 +18,11 @@ inline void str_cpy(register string dst, register conststr src) {
     for (; (*dst = *src); ++src, ++dst);
 }
 
+inline void str_cpyn(register string dst, register int n, register conststr src) {
+    for (int i = 0; i < n && (*dst = *src); ++src, ++dst, ++i);
+    dst[n] = '\0';
+}
+
 string str_new(conststr s, int *len) {
     int length = str_len(s);
     char *ret = (string)malloc(length * sizeof(char) + 1);
@@ -80,6 +85,62 @@ string str_copy(string dst, conststr src) {
 
 bool str_empty(conststr s) {
     return s == nullptr || str_len(s) == 0;
+}
+
+void str_clear(string s) {
+    if (str_empty(s)) {
+        return;
+    }
+
+    s[0] = '\0';
+}
+
+void str_tolower(string s) {
+    if (str_empty(s)) {
+        return;
+    }
+
+    for (char *c = s; *c != '\0'; ++c) {
+        if (*c >= 'A' && *c <= 'Z') {
+            *c |= (1 << 5);
+        }
+    }
+}
+
+void str_toupper(string s) {
+    if (str_empty(s)) {
+        return;
+    }
+
+    for (char *c = s; *c != '\0'; ++c) {
+        if (*c >= 'a' && *c <= 'z') {
+            *c &= ~(1 << 5);
+        }
+    }
+}
+
+void str_clip_nl(string s) {
+    if (str_empty(s)) {
+        return;
+    }
+
+    s[strcspn(s, "\r\n")] = '\0';
+}
+
+void str_fgets(string s, int len, struct __sFILE *f, conststr defaultAnswer) {
+    if (s == nullptr) {
+        return;
+    }
+
+    fgets(s, len, f);
+    str_clip_nl(s);
+    if (str_empty(s)) {
+        if (defaultAnswer != nullptr) {
+            str_cpyn(s, len, defaultAnswer);
+        } else {
+            str_empty(s);
+        }
+    }
 }
 
 void println(conststr fmt, ...) {

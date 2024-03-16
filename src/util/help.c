@@ -72,7 +72,7 @@ void printHelp(conststr cmd) {
         }
 
         println("Usage: nifty new <flags>");
-        printStrsWithSpacer("\tnifty new", '-', "Creates a new nifty project.", width);
+        printStrsWithSpacer("\tnifty new", '-', "Creates a new nifty project in the current directory.", width);
         dbln();
         println("Project Info:");
         printStrsWithSpacer("\tProject name", '-', "Name of the project. May not contain whitespace.", width);
@@ -242,7 +242,7 @@ void printHelp(conststr cmd) {
     printStrsWithSpacer("\trun ", '-', "Build and run the default or specified target.", width);
     printStrsWithSpacer("\tclean ", '-', "Delete compiled files for the project or target.", width);
     printStrsWithSpacer("\thelp ", '-', "Show this help information or information on the specified command.", width);
-    printStrsWithSpacer("\tnew ", '-', "Create new Nifty project.", width);
+    printStrsWithSpacer("\tnew ", '-', "Create new Nifty project in the current directory.", width);
     printStrsWithSpacer("\ttest ", '-', "Build and run all tests in the default or specified target.", width);
     printStrsWithSpacer("\tdocs ", '-', "Generate documentation from the default or specified target.", width);
     printStrsWithSpacer("\tversion ", '-', "Prints Nifty version info.", width);

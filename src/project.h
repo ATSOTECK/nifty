@@ -54,13 +54,11 @@ void freeProject(ProjectInfo *info);
 
 void build(conststr target, ProjectInfo *info);
 void run(conststr target, ProjectInfo *info);
-void newProject();
+void newProject(bool exists);
+void createProject(CreateProjectInfo *info);
 
-void createProject(CreateProjectInfo info);
-bool buildTarget(string target);
-void runTarget(string target);
 void listTargets(ProjectInfo *info);
-void printProject(CreateProjectInfo info);
+void printProject(CreateProjectInfo *info);
 
 ProjectInfo getProjectInfo();
 bool verifyProjectInfo(CreateProjectInfo info);

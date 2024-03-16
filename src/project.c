@@ -7,6 +7,7 @@
 #include <toml/toml.h>
 
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "util/str.h"
 
@@ -151,8 +152,130 @@ void run(conststr target, ProjectInfo *info) {
     printf("run\n");
 }
 
-void newProject() {
-    printf("new\n");
+void newProject(bool exists) {
+    string answer = str_new_empty(100);
+
+    if (exists) {
+        println("A Nifty project already exists in this directory.");
+        printf("Would you like to overwrite it? (no) > ");
+        fgets(answer, 4, stdin);
+        str_clip_nl(answer);
+        str_tolower(answer);
+
+        if (str_empty(answer) || str_eq2(answer, "no", "n")) {
+            return;
+        }
+
+        if (!str_eq2(answer, "yes", "y")) {
+            println("Unknown answer '%s'. Exiting.", answer);
+            return;
+        }
+
+        dbln();
+    }
+
+    println("This utility will help you make a new Nifty project.");
+    println("Run 'nifty help new' for more information.");
+    dbln();
+
+    CreateProjectInfo *info = (CreateProjectInfo*)malloc(sizeof(CreateProjectInfo));
+
+    printf("Project name: (Untitled) > ");
+    str_fgets(answer, 101, stdin, "Untitled");
+    info->name = str_new(answer, nullptr);
+
+    printf("Project version: (0.1.0) > ");
+    str_fgets(answer, 101, stdin, "0.1.0");
+    info->version = str_new(answer, nullptr);
+
+    printf("Entry point: (main.nifty) > ");
+    str_fgets(answer, 101, stdin, "main.nifty");
+    info->entryPoint = str_new(answer, nullptr);
+
+    printf("Author: > ");
+    str_fgets(answer, 101, stdin, nullptr);
+    info->author = str_new(answer, nullptr);
+
+    printf("License: (zlib) > ");
+    str_fgets(answer, 101, stdin, "zlib");
+    info->license = str_new(answer, nullptr);
+
+    const int width = 25;
+    printStrsWithSpacer("Project name", '-', info->name, width);
+    printStrsWithSpacer("Project version", '-', info->version, width);
+    printStrsWithSpacer("Entry point", '-', info->entryPoint, width);
+    if (!str_empty(info->author)) {
+        printStrsWithSpacer("Author", '-', info->author, width);
+    }
+    printStrsWithSpacer("License", '-', info->license, width);
+
+    dbln();
+    printf("Is this ok? (yes) > ");
+    str_fgets(answer, 4, stdin, "yes");
+    str_tolower(answer);
+
+    if (str_eq2(answer, "yes", "y")) {
+        createProject(info);
+    }
+
+    free(info->name);
+    free(info->version);
+    free(info->entryPoint);
+    free(info->author);
+    free(info->license);
+    free(info);
+}
+
+void createProject(CreateProjectInfo *info) {
+    FILE *file = fopen(NIFTY_BUILD_FILE, "w");
+    if (file == nullptr) {
+        println("Could not open %s for writing. Exiting.", NIFTY_BUILD_FILE);
+        return;
+    }
+
+    fprintf(file, "project = \"%s\"\n\n", info->name);
+
+    fprintf(file, "[%s]\n", info->name);
+    fprintf(file, "description = \"%s debug build.\"\n", info->name);
+    fprintf(file, "outputName = \"%s\"\n", info->name);
+    fprintf(file, "entryPoint = \"src/%s\"\n", info->entryPoint);
+    fprintf(file, "debug = true\n");
+    fprintf(file, "default = true\n");
+
+    fprintf(file, "\n");
+
+    fprintf(file, "[%s_release]\n", info->name);
+    fprintf(file, "description = \"%s release build.\"\n", info->name);
+    fprintf(file, "outputName = \"%s\"\n", info->name);
+    fprintf(file, "entryPoint = \"src/%s\"\n", info->entryPoint);
+    fprintf(file, "optimization = \"fast\"\n");
+
+    fclose(file);
+
+    struct stat st = {0};
+    if (stat("src", &st)) {
+        if (mkdir("src", 0755) != 0) {
+            println("Could not create src folder. Exiting.");
+            return;
+        }
+    }
+
+    string fileName = str_new_empty(100);
+    sprintf(fileName, "src/%s", info->entryPoint);
+    file = fopen(fileName, "w");
+    if (file == nullptr) {
+        println("Could not open src/%s for writing. Exiting.", info->entryPoint);
+        return;
+    }
+
+    fprintf(file, "using <fmt>\n\n");
+    fprintf(file, "fn main() {\n");
+    fprintf(file, "    println(\"Hello world!\")\n");
+    fprintf(file, "}\n");
+
+    fclose(file);
+
+    println("Created %s for project %s.", NIFTY_BUILD_FILE, info->name);
 }
 
 void listTargets(ProjectInfo *info) {
