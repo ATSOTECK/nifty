@@ -158,8 +158,7 @@ void newProject(bool exists) {
     if (exists) {
         println("A Nifty project already exists in this directory.");
         printf("Would you like to overwrite it? (no) > ");
-        fgets(answer, 4, stdin);
-        str_clip_nl(answer);
+        str_fgets(answer, 101, stdin, "no");
         str_tolower(answer);
 
         if (str_empty(answer) || str_eq2(answer, "no", "n")) {
@@ -201,6 +200,7 @@ void newProject(bool exists) {
     info->license = str_new(answer, nullptr);
 
     const int width = 25;
+    dbln();
     printStrsWithSpacer("Project name", '-', info->name, width);
     printStrsWithSpacer("Project version", '-', info->version, width);
     printStrsWithSpacer("Entry point", '-', info->entryPoint, width);
@@ -233,7 +233,13 @@ void createProject(CreateProjectInfo *info) {
         return;
     }
 
-    fprintf(file, "project = \"%s\"\n\n", info->name);
+
+    if (!str_empty(info->author)) {
+        fprintf(file, "project = \"%s\"\n", info->name);
+        fprintf(file, "author = \"%s\"\n\n", info->author);
+    } else {
+        fprintf(file, "project = \"%s\"\n\n", info->name);
+    }
 
     fprintf(file, "[%s]\n", info->name);
     fprintf(file, "description = \"%s debug build.\"\n", info->name);
@@ -275,7 +281,7 @@ void createProject(CreateProjectInfo *info) {
 
     fclose(file);
 
-    println("Created %s for project %s.", NIFTY_BUILD_FILE, info->name);
+    println("Created project %s.", info->name);
 }
 
 void listTargets(ProjectInfo *info) {
