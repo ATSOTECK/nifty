@@ -1,8 +1,8 @@
-package pi
+#package pi
 
-using <fmt>
-use <math/random>
-use <time>
+#using <fmt>
+#use <math/random>
+#use <time>
 
 fn estimatePi(numPoints: int): f64 {
     let x, y, rSquared: f64 = undefined

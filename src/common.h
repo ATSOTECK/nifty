@@ -63,4 +63,8 @@ typedef enum { false, true } bool;
 #define GREEN "\033[32m"
 #define RESET_COLOR "\033[0m"
 
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
 #endif //NIFTY_COMMON_H

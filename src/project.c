@@ -29,6 +29,7 @@
 #ifdef N_WIN
 #   include <direct.h>
 #endif
+#include <time.h>
 
 #include "lexer.h"
 #include "util/str.h"
@@ -356,12 +357,33 @@ void createProject(CreateProjectInfo *info) {
         println("Could not open src/%s for writing. Exiting.", info->entryPoint);
         return;
     }
-
-    fprintf(file, "using <fmt>\n\n");
+    
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    int year = tm.tm_year + 1900;
+    
+    fprintf(file, "/-\n");
+    fprintf(file, " - %s\n", info->name);
+    if (!str_empty(info->author)) {
+        fprintf(file, " - Copyright (c) %d %s\n", year, info->author);
+    }
+    fprintf(file, "-/\n\n");
+    fprintf(file, "#package %s\n\n", info->name); // TODO: Check for whitespace and convert to underscores.
+    fprintf(file, "#using <fmt>\n\n");
     fprintf(file, "fn main() {\n");
-    fprintf(file, "    println(\"Hello world!\")\n");
+    fprintf(file, "    println(\"Hullo!\")\n");
     fprintf(file, "}\n");
 
+    fclose(file);
+    
+    // TODO: Should I ask to generate README?
+    file = fopen("README.md", "w");
+    fprintf(file, "# %s\n", info->name);
+    fprintf(file, "TODO: Useful information here.\n");
+    fclose(file);
+    
+    file = fopen("license.md", "w");
+    fprintf(file, "# TODO\n");
     fclose(file);
 
     println("Created project %s.", info->name);
@@ -393,7 +415,9 @@ void listTargets(ProjectInfo *info) {
         } else {
             printf(" ");
         }
-        printStrsWithSpacer(target->targetName, '-', target->description, longestTargetName + 5);
+        
+        int width = max(longestTargetName + 5, 25);
+        printStrsWithSpacer(target->targetName, '-', target->description, width);
         if (target->isDefaultTarget && !info->disableColors) {
             printf(RESET_COLOR);
         }
