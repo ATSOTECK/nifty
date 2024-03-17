@@ -1,27 +1,20 @@
-http://cloc.sourceforge.net v 1.62  T=0.09 s (223.2 files/s, 57915.1 lines/s)
------------------------------------------------------------------------------------
-File                                 blank        comment           code
------------------------------------------------------------------------------------
-.\src\util\str.cpp                     200             34            761
-.\src\lexer.cpp                         65             21            707
-.\src\parser.cpp                       109             44            454
-.\src\token.cpp                         25             21            341
-.\main.cpp                              72             96            276
-.\src\project.cpp                       50             23            274
-.\src\token.hpp                         30             21            199
-.\src\node.hpp                          36             21            197
-.\src\node.cpp                          23             21            144
-.\src\util\str.hpp                      42             26            142
-.\src\common.hpp                        18             21             97
-.\src\parser.hpp                        18             21             70
-.\src\project.hpp                       15             26             52
-.\src\symbolTable.hpp                   14             23             41
-.\src\lexer.hpp                         12             21             33
-.\src\symbolTable.cpp                   10             23             32
-.\src\codegen.hpp                       10             21             25
-.\src\codegen.cpp                        7             12             22
-.\src\package.hpp                       10             21             17
-.\src\package.cpp                        1             21              1
------------------------------------------------------------------------------------
-SUM:                                   767            538           3885
------------------------------------------------------------------------------------
+http://cloc.sourceforge.net v 1.62  T=0.07 s (187.7 files/s, 23774.2 lines/s)
+---------------------------------------------------------------------------------------
+File                                                blank        comment           code
+---------------------------------------------------------------------------------------
+.\src\project.c                                        77             21            303
+.\src\util\help.c                                      44             21            211
+.\src\lexer.h                                          29             21            198
+.\src\util\str.c                                       39             21            152
+.\src\main.c                                           12             21             68
+.\src\project.h                                        13             21             59
+.\src\common.h                                         11             21             34
+.\src\util\str.h                                       16             21             33
+.\tst\basic\yeet_nifty_generated_c.c                    6              6             31
+.\tst\basic\four_nifty_generated_c.c                    5              6             29
+.\src\ast.h                                             5             21             12
+.\src\util\help.h                                       4             22              6
+.\src\lexer.c                                           2             21              4
+---------------------------------------------------------------------------------------
+SUM:                                                  263            244           1140
+---------------------------------------------------------------------------------------

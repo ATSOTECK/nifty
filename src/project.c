@@ -1,6 +1,24 @@
-//
-// Created by Skyler on 3/6/24.
-//
+/*
+ * Nifty - Nifty Programming Language
+ * Copyright (c) 2024 Skyler Burwell
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ *
+ */
 
 #include "project.h"
 
@@ -8,7 +26,11 @@
 
 #include <stdlib.h>
 #include <sys/stat.h>
+#ifdef N_WIN
+#   include <direct.h>
+#endif
 
+#include "lexer.h"
 #include "util/str.h"
 
 static string loadStringForKey(toml_table_t *table, conststr key, conststr defaultValue) {
@@ -40,6 +62,8 @@ ProjectInfo *loadProject() {
     info->targetCount = 0;
     info->loaded = false;
     info->defaultTargetIdx = -1;
+    
+    info->verbosity = Debug; // TODO: Remove for release.
 
     FILE *fp = fopen(NIFTY_BUILD_FILE, "r");
     if (fp == nullptr) {
@@ -53,7 +77,7 @@ ProjectInfo *loadProject() {
     fclose(fp);
 
     if (conf == nullptr) {
-        printf("cant parse build\n");
+        println("Can't parse build file.\n%s", errbuf);
         return info;
     }
 
@@ -132,24 +156,79 @@ void freeProject(ProjectInfo *info) {
     free(info);
 }
 
-void build(conststr target, ProjectInfo *info) {
-    if (info == nullptr) {
-        return;
+TargetInfo *getTargetInfo(conststr targetName, ProjectInfo *info) {
+    if (info->targetCount <= 0) {
+        println("No targets found.");
+        return nullptr;
     }
-
-    printf("build\n");
-    if (target != nullptr) {
-        printf("target: %s\n", target);
+    
+    if (str_empty(targetName)) {
+        if (info->defaultTargetIdx > -1 && info->defaultTargetIdx < info->targetCount) {
+            return info->targets[info->defaultTargetIdx];
+        }
+        
+        for (int i = 0; i < info->targetCount; ++i) {
+            TargetInfo *target = info->targets[i];
+            if (target->isDefaultTarget) {
+                return target;
+            }
+        }
+        
+        return info->targets[0];
     }
+    
+    for (int i = 0; i < info->targetCount; ++i) {
+        TargetInfo *target = info->targets[i];
+        if (str_eq(targetName, target->targetName)) {
+            return target;
+        }
+    }
+    
+    println("Could not find target '%s'.", targetName);
+    return nullptr;
 }
 
-void run(conststr target, ProjectInfo *info) {
+void build(conststr targetName, ProjectInfo *info) {
     if (info == nullptr) {
         return;
     }
+    
+    TargetInfo *target = getTargetInfo(targetName, info);
+    if (target == nullptr) {
+        return;
+    }
+    
+    if (info->verbosity >= Debug) {
+        println("Building target '%s'.", target->targetName);
+    }
+    
+    Tokens *tokens = lex(target->entryPoint);
+    if (tokens == nullptr) {
+        return;
+    }
+    
+    for (int i = 0; i < tokens->count; ++i) {
+        println("tk: %s", tokens->list[i]->lexeme);
+    }
+    
+    free(tokens);
+}
 
-    build(target, info);
-    printf("run\n");
+void run(conststr targetName, ProjectInfo *info) {
+    if (info == nullptr) {
+        return;
+    }
+    
+    TargetInfo *target = getTargetInfo(targetName, info);
+    if (target == nullptr) {
+        return;
+    }
+
+    build(targetName, info);
+    
+    if (info->verbosity >= Debug) {
+        println("Running target '%s'.", target->targetName);
+    }
 }
 
 void newProject(bool exists) {
@@ -260,7 +339,11 @@ void createProject(CreateProjectInfo *info) {
 
     struct stat st = {0};
     if (stat("src", &st)) {
+#ifdef N_WIN
+        if (_mkdir("src") != 0) {
+#else
         if (mkdir("src", 0755) != 0) {
+#endif
             println("Could not create src folder. Exiting.");
             return;
         }
