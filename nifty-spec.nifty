@@ -284,6 +284,7 @@ string
 cstring // Null terminated string. Meant for interfacing with c libraries.
 
 typeid // runtime identifier for a type
+__anytype // Begins with 2 underscores to show that this is a special type.
 
 rawptr // Like void* in c, used for compatibility with existing c code.
 
@@ -728,6 +729,7 @@ x^ = 2
 someFunc(^x) // See section on pointers for an explination.
 // x is now 12
 
+// varargs
 // Functions can be variadic, meaning they can take a variable number of arguments.
 // The variadic argument can be treated like a static array.
 fn sum(nums: ..int): int {
@@ -1431,6 +1433,9 @@ arr.append(4) // [5, 5, 5, 5, 5, 4]
 arr.append(6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 arr.prepend(12) // [12, 5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 
+// Another way to append.
+arr << 12 // [12, 5, 5, 5, 5, 5, 4, 6, 7, 8, 9, 12]
+
 arr.clear() // []
 
 // Arrays can be multidimensional.
@@ -1479,9 +1484,7 @@ slice[0] = 12 // slice is now [12, 0, 0, 0] arr is now [0, 12, 0, 0, 0]
 
 // [STRING]
 
-str := "hello " .. "world"
-str := "hello " + "world"
-str := "hello " ++ "world"
+str := "hello " ## "world" // String concatination.
 
 str.len()
 str.size()
@@ -1721,16 +1724,11 @@ type Collection struct {
 
 impl Collection
 
-// Optional constructor.
-md constructor(size := 0) {
+// Nifty does not have constructors/destructors.
+
+md init(size := 0) {
     list = []int{size: size}
 }
-
-// Unlike c++ a struct can only have one constructor. The constructor does not return anything.
-// Nifty does not have default constructors/destructors.
-
-// Optional destructor, called when the struct is freed. Takes no arguments, returns nothing.
-md destructor() { /- ... -/ }
 
 md add(num: int) {
     append(list, num)
@@ -1760,20 +1758,19 @@ endimpl Collection
 // This is just to improve readability in files with multiple struct implementations.
 // This does not allow for impl nesting.
 
-collection := new Collection() // Type is ^Collection. Calls constructor. 
-                               // If the struct does not have a constructor this will be a compiler
-                               // error. It should be ovious if the constructor is being called.
-collection := new Collection{ /- ... -/ } // Type is ^Collection also. 
-// This does not call the constructor and the fields in the struct are set to their defaults.
+collection := Collection{}
+collection.init(100)
+
+collection := new Collection{ /- ... -/ } // Type is ^Collection. 
 // The values can be specified.
 collection := new Collection // Invalid
 collection := new Collection{} // Valid
 
 // To make collection an optional pointer:
-let collection: ^Collection? = new Collection()
+let collection: ^Collection? = new Collection{}
 // Or more succinctly
-let collection? = new Collection()
-collection? := new Collection()
+let collection? = new Collection{}
+collection? := new Collection{}
 
 collection := new Collection{list: []int{}} // Private variables can't be set here.
 
@@ -1846,13 +1843,13 @@ type Color struct { r, g, b: u8 }
 impl Color does fmt::Printable
 
 md str(): string {
-    return "{${r}, ${g}, ${b}}"
+    return fmt::sprintf("{}, {}, {}", r, g, b)
 }
 
 endimpl
 
 color := Color{51, 153, 255}
-fmt::println("The color is ${color}.")
+fmt::println("The color is {}.", color)
 
 // Not sure if next section is worth the complexity or should 'this' or 'self' just be passed 
 // implicitly if used by the function.
@@ -2090,7 +2087,7 @@ type Allocator behavior {
     free()
     
     md printStats() {
-        fmt::println("Allocated ${allocated} bytes.")
+        fmt::println("Allocated {} bytes.", allocated)
     }
     
     allocated: int
@@ -2126,7 +2123,7 @@ md alloc() { /- ... -/ }
 md free() { /- ... -/ }
 
 md printStats() {
-    fmt::println("Allocated ${allocated} bytes, freed ${freed} bytes.")
+    fmt::println("Allocated {} bytes, freed {} bytes.", allocated, freed)
 }
 
 endimpl
@@ -2214,7 +2211,7 @@ type Animals enum: string {
 
 num := Numbers.PI
 name := name_of(num, Numbers)
-fmt::println("num is ${name}") // Prints 'num is PI'
+fmt::println("num is {}", name) // Prints 'num is PI'
 
 // If the value can't be found it will return an empty string.
 num = 3.4
@@ -2649,6 +2646,14 @@ if (ptr != null) {
     assert(ptr^ == 12) // True
 }
 
+// Another way to unwrap the pointer is with the '?' operator.
+assert(ptr?^ == 12) // True
+ptr = null
+assert(ptr?^ == 12) // False
+// Would the above be
+assert(null == 12) // ???
+
+
 // ptr is type Optional<^int>
 
 // To return an optional pointer '?' is used as well.
@@ -2719,7 +2724,7 @@ type AddFn as type_from(add) // Also works
 // own memory. Similar to c/c++. 
 
 // Allocate memory for a Person type and point person to that memory and wrap it in an optional.
-person? := new Person()
+person? := new Person{}
 if (person != null) {
     person->doAThing()
     delete person
@@ -2747,8 +2752,8 @@ type CustomAlloc struct {} // The struct doesn't (technically) need any fields.
 
 constimpl CustomAlloc does mem::Allocator
 
-md alloc() { /- ... -/ }
-md free()  { /- ... -/ }
+md alloc()<T> { /- ... -/ }
+md free()<T>  { /- ... -/ }
 
 endimpl
 
@@ -2758,12 +2763,17 @@ using "custom_alloc"
 
 // Custom allocators can be used with the 'new' keyword.
 
-ptr := new:customAlloc int
+ptr := new:CustomAlloc int
 
 // Memory mest bee freed with the allocator it was allocated with.
 
 delete ptr // Invalid
-delete:customAlloc ptr // Valid
+delete:CustomAlloc ptr // Valid
+
+// or
+
+customAlloc := CustomAlloc{}
+ptr := customAlloc.alloc(int)
 
 // To free all memory from an allocator mem::deleteAll can be used.
 // To reallocate use mem::realloc.
@@ -3194,6 +3204,11 @@ someVar := OTHER_CONST_MACRO // Invalid
                    // case for you then glhf.
 
 #push(context: ^NiftyContext)
+
+fn someFunc() {
+    fmt::println("This code is in {}::{}:{}() L{}", #package, #file, #function, #line)
+    // This code is in default::main:someFunc() L3
+}
 
 // The following don't expand to anything, they are either defined or not.
 #OS_MAC
@@ -3745,3 +3760,28 @@ fn main() {
         raylib::DrawText("Hello, world!", 100, 100, 20, raylib::BLACK)
     }
 }
+
+// Symbol table, takes package name and symbol name as keys
+// Have an imported table for symbold from other packages that have been brought into the current package/scope
+
+fn printValues(fmt: string, values: ..__anytype) {
+    // ...
+}
+
+fn printValue(value: __anytype) {
+    // ...
+}
+
+fn print overloads { printValues, printValue }
+
+fn printValuesLn(fmt: string, values: ..__anytype) {
+    printValues(fmt, args)
+    print("\n")
+}
+
+fn printValueLn(value: __anytype) {
+    printValue(value)
+    print("\n")
+}
+
+fn println overloads { printValuesLn, printValueLn }

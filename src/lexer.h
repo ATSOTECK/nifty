@@ -116,6 +116,7 @@ typedef enum {
     TK_RAWPTR,
     TK_UINTPTR,
     TK_TYPEID,
+    TK_ANY_TYPE,
     
     TK_NULL,
     TK_UNDEFINED,

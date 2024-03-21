@@ -1,8 +1,8 @@
-#package pi
+package pi
 
-#using <fmt>
-#use <math/random>
-#use <time>
+using <fmt>
+use <math/random>
+use <time>
 
 fn estimatePi(numPoints: int): f64 {
     let x, y, rSquared: f64 = undefined
@@ -31,8 +31,8 @@ fn main() {
         stop  ::= time::unixMilli()
         time  ::= stop - start
         avgTime += cast(time, f64) / 1000
-        println("pi is ${pi} took ${cast(time, f64) / 1000} seconds to compute.")
+        println("pi is {} and took {d:.3} seconds to compute.", pi, cast(time, f64) / 1000)
     }
     
-    println("On average pi took ${avgTime / 10} seconds to compute.")
+    println("On average pi took {d:.3} seconds to compute.", avgTime / 10)
 }

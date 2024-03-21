@@ -20,43 +20,20 @@
  *
  */
 
-#ifndef __NIFTY_AST_H__
-#define __NIFTY_AST_H__
+#ifndef NIFTY_TESTING_H
+#define NIFTY_TESTING_H
 
 #include "util/str.h"
 
-typedef struct Node Node;
+void runTests();
+void runTestFile(conststr fileName);
+void runTest(conststr name);
 
-struct Node {
-    string file;
-    int line;
-    int pos;
-    enum {
-        VoidNodeType,
+typedef struct {
+    string name;
+    string package;
+    bool didPass;
+    bool (*function)();
+} TestObject;
 
-        BlockNodeType,
-        ReturnNodeType,
-
-        AddNodeType,
-        SubNodeType,
-        MulNodeType,
-        DivNodeType,
-    } kind;
-    union {
-        struct VoidNode {} voidNode;
-
-        struct BlockNode { Node **statements; } blockNode;
-        struct ReturnNode { Node *statement; } returnNode;
-
-        struct AddNode { Node *left; Node *right; } addNode;
-        struct SubNode { Node *left; Node *right; } subNode;
-        struct MulNode { Node *left; Node *right; } mulNode;
-        struct DivNode { Node *left; Node *right; } divNode;
-    } data;
-};
-
-//typedef struct {
-//    Node node;
-//} VoidNode;
-
-#endif //__NIFTY_AST_H__
+#endif //NIFTY_TESTING_H
