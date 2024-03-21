@@ -22,6 +22,8 @@
 
 package error
 
+use <fmt>
+
 type Error struct {
     _msg: string
     _code: int
@@ -42,7 +44,7 @@ md new(message := "", code := 0) {
 
 md msg(): string {
     if (_msg.isEmpty() && _code != 0) {
-        return "${_code}"
+        return fmt::sprintf("{}", _code)
     }
     
     return _msg;

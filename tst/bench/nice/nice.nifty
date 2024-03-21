@@ -33,7 +33,7 @@ fn main() {
     const from, to: u64 = 500, 1000
     let count: u64
     
-    println("Nice primes from ${from} to ${to}.")
+    println("Nice primes from {} to {}.", from, to)
     for (n := from; n < to; ++n) {
         if (isPrime(digitalRoot(n)) && isPrime(n)) {
             ++count
@@ -46,5 +46,5 @@ fn main() {
         }
     }
     
-    println("${count} nice primes found.")
+    println("{} nice primes found.", count)
 }

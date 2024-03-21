@@ -3,10 +3,10 @@ type Color struct { r, g, b: u8 }
 impl Color does fmt::Printable
 
 md str(): string {
-    return "{${r}, ${g}, ${b}}"
+    return fmt::sprintf("{}, {}, {}", r, g, b)
 }
 
 endimpl
 
 color := Color{51, 153, 255}
-fmt::println("The color is ${color}.")
+fmt::println("The color is {}.", color)

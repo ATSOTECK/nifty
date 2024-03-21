@@ -1,6 +1,6 @@
 package binarytrees
 
-using "nsl.fmt"
+using <fmt>
 
 type Node struct { left, right: ^Node }
 
@@ -38,7 +38,7 @@ fn main() {
     stretchDepth := maxDepth + 1
     
     stretchTree := create(stretchDepth)
-    println("stretch tree of depth ${stretchDepth}\tcheck: ${check(stretchTree)}")
+    println("stretch tree of depth {}\tcheck: {}", stretchDepth, check(stretchTree))
     deleteTree(stretchTree)
     
     longLivedTree := create(maxDepth)
@@ -54,8 +54,8 @@ fn main() {
             deleteTree(tree)
         }
         
-        println("${iterations}\ttrees of depth ${depth}\tcheck: ${sum}")
+        println("{}\ttrees of depth {}\tcheck: {}", iterations, depth, sum)
     }
     
-    println("long lived tree of depth ${maxDepth}\tcheck: ${check(longLivedTree)}")
+    println("long lived tree of depth {}\tcheck: {}", maxDepth, check(longLivedTree))
 }

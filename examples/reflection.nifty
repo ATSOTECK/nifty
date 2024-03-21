@@ -44,22 +44,22 @@ fn main() {
         let name, type_ := name[i], types[i]
         
         if (!attrib.isEmpty()) {
-            fmt::println("\t${name}: ${type_} #[${attrib}]")
+            fmt::println("\t{}: {} #[{}]", name, type_, attrib)
         } else {
-            fmt::println("\t${name}: ${type_}")
+            fmt::println("\t{}: {}", name, type_)
         }
     }
     fmt::println("}")
     
     for (val attrib, i in attributes) {
         if (value, ok := reflection::structAttributeLookup(attrib, "json"); ok) {
-            fmt::println("json: ${names[i]} -> ${value}")
+            fmt::println("json: {} -> {}", names[i], value)
         }
         
         // Or if it returns an optional:
         value := reflection::structAttributeLookup(attrib, "json") else { "" }
         if (!value.isEmpty()) {
-            fmt::println("json: ${names[i]} -> ${value}")
+            fmt::println("json: {} -> {}", names[i], value)
         }
     }
 }

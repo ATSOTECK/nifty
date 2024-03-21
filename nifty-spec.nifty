@@ -3756,7 +3756,7 @@ fn main() {
         raylib::BeginDrawing()
         defer raylib::EndDrawing()
         
-        raylib::ClearBackground(ray::RAYWHITE)
+        raylib::ClearBackground(raylib::RAYWHITE)
         raylib::DrawText("Hello, world!", 100, 100, 20, raylib::BLACK)
     }
 }

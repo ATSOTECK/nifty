@@ -47,7 +47,7 @@ type Cat struct {
 impl Cat does Animal
 
 md speak() {
-    println("${name} says meow!")
+    println("{} says meow!", name)
 }
 
 md eat() {
