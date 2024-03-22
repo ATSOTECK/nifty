@@ -1,6 +1,6 @@
 /-
  | Nifty - Nifty Programming Language
- | Copyright (c) 2022 - 2023 Skyler Burwell
+ | Copyright (c) 2024 Skyler Burwell
  |
  | This software is provided 'as-is', without any express or implied
  | warranty. In no event will the authors be held liable for any damages
@@ -20,33 +20,39 @@
  |
 -/
 
-#test("while") {
+using <test>
+
+test "while" {
     x := 0
     while (x < 10) {
         x++
     }
     
-    expectEq(x, 10)
+    try expectEq(x, 10)
 }
 
-#test("open range for") {
+test "open range for" {
     x := 0
     for (0 ..= 10) {
         x++
     }
     
-    expectEq(x, 11)
+    try expectEq(x, 11)
 }
 
-#test("close range for") {
+test "close range for" {
     x := 0
     for (0 ..< 10) {
         x++
     }
     
-    expectEq(x, 10)
+    try expectEq(x, 10)
 }
 
-#test("skip:this test should be skipped") {
-    expect(false)
+test skip "this test should be skipped" {
+    try expect(false)
+}
+
+skip test "this test should also be skipped" {
+    try expect(false)
 }
