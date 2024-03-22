@@ -203,16 +203,18 @@ void build(conststr targetName, ProjectInfo *info) {
         println("Building target '%s'.", target->targetName);
     }
     
-    Tokens *tokens = lex(target->entryPoint);
-    if (tokens == nullptr) {
+    Lexer *lexer = initLexer(target->entryPoint);
+    if (lexer == nullptr) {
         return;
     }
+
+    freeLexer(lexer);
     
-    for (int i = 0; i < tokens->count; ++i) {
-        println("tk: %s", tokens->list[i]->lexeme);
-    }
-    
-    free(tokens);
+//    for (int i = 0; i < tokens->count; ++i) {
+//        println("tk: %s", tokens->list[i]->lexeme);
+//    }
+//
+//    free(tokens);
 }
 
 void run(conststr targetName, ProjectInfo *info) {

@@ -76,6 +76,7 @@ typedef enum {
     TK_USE,
     TK_USING,
     TK_PACKAGE,
+    TK_API,
     TK_EXTERN,
     
     TK_SIZE_OF,
@@ -138,32 +139,32 @@ typedef enum {
     TK_O_RANGE,                 // ..< [a, b)
     TK_VARY,                    // ..
     TK_LABEL,                   // ident:
-    TK_OWNED,                   // @
-    TK_MACRO,                   // #
+    TK_AT,                      // @
+    TK_HASH,                    // #
     TK_SCOPE,                   // ::
     TK_LET_DECL,                // :=
     TK_VAL_DECL,                // ::=    Also used for const.
     
     TK_ASSIGN,                  // =
-    TK_EQU,                     // == is
+    TK_EQ,                      // == is
     TK_AND,						// && and
     TK_OR,						// || or
-    TK_NOT,						// ! not
-    TK_NOTEQU,					// !=
+    TK_BANG,				    // ! not
+    TK_NOTEQ, 					// !=
     TK_ADD,                     // +
     TK_INC,                     // x++
-    TK_ADDEQU,                  // +=
+    TK_ADDEQ,                   // +=
     TK_SUB,                     // -
     TK_DEC,                     // x--
-    TK_SUBEQU,                  // -=
+    TK_SUBEQ,                   // -=
     TK_MUL,                     // *
-    TK_MULEQU,                  // *=
+    TK_MULEQ,                   // *=
     TK_DIV,                     // /
-    TK_DIVEQU,                  // /=
+    TK_DIVEQ,                   // /=
     TK_MOD,                     // %
-    TK_MODEQU,                  // %=
-    TK_MODMOD,                  // %%
-    TK_MODMODEQU,               // %%=
+    TK_MODEQ,                   // %=
+    TK_MODMOD,                  // %% (what is this?)
+    TK_MODMODEQ,                // %%= (what is this?)
     
     TK_ADD_W,                   // %+
     TK_SUB_W,                   // %-
@@ -189,42 +190,47 @@ typedef enum {
     TK_LSL_S,                   // @<<
     TK_LSLEQU_S,                // @<<=
     
-    TK_GREATER,					// >
-    TK_GREATEREQU,				// >=
-    TK_LESS,					// <
-    TK_LESSEQU,					// <=
+    TK_GR,  					// >
+    TK_GREQ,				    // >=
+    TK_LT,  					// <
+    TK_LTEQ,					// <=
     
     TK_CARET,                   // ^
-    TK_BITNOT,                  // ~
-    TK_BITAND,                  // &
-    TK_BITOR,                   // |
+    TK_BIT_NOT,                 // ~
+    TK_BIT_AND,                 // &
+    TK_BIT_OR,                  // |
     TK_LSL,                     // <<
     TK_LSR,                     // >>
-    TK_XOREQU,                  // ^=
-    TK_BITANDEQU,               // &=
-    TK_BITOREQU,                // |=
-    TK_LSLEQU,                  // <<=
-    TK_LSREQU,                  // >>=
+    TK_BIT_XOR_EQ,              // ^=
+    TK_BIT_ANDEQ,               // &=
+    TK_BIT_OREQ,                // |=
+    TK_LSL_EQ,                  // <<=
+    TK_LSR_EQ,                  // >>=
     
-    TK_POINT,                   // ->
+    TK_ARROW,                   // ->
+    TK_LEFT_ARROW,              // <-
     
     TK_QMRK,                    // ?
     TK_QDOT,                    // ?.
     TK_NULL_COALESCE,           // ??
     TK_NULL_COALESCE_ASSIGN,    // ??=
     TK_NULLISH_COALESCE_ASSIGN, // ||=
+
+    TK_ASSERT,
+    TK_ASSERT_DB,
     
     TK_IDENT,
     TK_STRING_LIT,
     TK_CHAR_LIT,
     TK_NUMBER,
-    
+
+    TK_INTERNAL_ERROR,
     TK_EOF
 } NiftyTokenType;
 
 typedef struct {
     NiftyTokenType type;
-    string lexeme;
+    conststr lexeme;
     int len;
     int line;
     int pos;
@@ -236,14 +242,16 @@ typedef struct {
 } Tokens;
 
 typedef struct {
+    string source;
     conststr start;
     conststr current;
     char prev;
     int line;
-    bool interpolation;
-    int interpolationDepth;
 } Lexer;
 
-Tokens *lex(conststr entryPoint);
+Lexer *initLexer(conststr entryPoint);
+void freeLexer(Lexer *lexer);
+
+Token nextToken(Lexer *lexer);
 
 #endif //__NIFTY_LEXER_H__
