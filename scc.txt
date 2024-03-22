@@ -1,20 +1,21 @@
-http://cloc.sourceforge.net v 1.62  T=0.07 s (187.7 files/s, 23774.2 lines/s)
+http://cloc.sourceforge.net v 1.62  T=0.08 s (165.0 files/s, 25404.0 lines/s)
 ---------------------------------------------------------------------------------------
 File                                                blank        comment           code
 ---------------------------------------------------------------------------------------
-.\src\project.c                                        77             21            303
+.\src\lexer.c                                          67             28            338
+.\src\project.c                                        81             27            319
 .\src\util\help.c                                      44             21            211
-.\src\lexer.h                                          29             21            198
+.\src\lexer.h                                          31             21            205
 .\src\util\str.c                                       39             21            152
 .\src\main.c                                           12             21             68
 .\src\project.h                                        13             21             59
-.\src\common.h                                         11             21             34
+.\src\common.h                                         12             21             37
 .\src\util\str.h                                       16             21             33
 .\tst\basic\yeet_nifty_generated_c.c                    6              6             31
 .\tst\basic\four_nifty_generated_c.c                    5              6             29
-.\src\ast.h                                             5             21             12
+.\src\ast.h                                            10             24             28
+.\src\testing.h                                         5             21             13
 .\src\util\help.h                                       4             22              6
-.\src\lexer.c                                           2             21              4
 ---------------------------------------------------------------------------------------
-SUM:                                                  263            244           1140
+SUM:                                                  345            281           1529
 ---------------------------------------------------------------------------------------

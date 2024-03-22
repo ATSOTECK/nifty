@@ -37,8 +37,8 @@ Lexer *initLexer(conststr entryPoint) {
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    lexer->start = (string)malloc(length);
-    if (lexer->start == nullptr) {
+    lexer->source = (string)malloc(length);
+    if (lexer->source == nullptr) {
         println("Out of memory.");
         return nullptr;
     }
