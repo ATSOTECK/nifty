@@ -147,7 +147,7 @@ static void skipWhitespace(Lexer *lexer) {
 }
 
 static NiftyTokenType checkKeyword(Lexer *lexer, int start, int len, conststr rest, NiftyTokenType type) {
-    if (lexer->current - lexer->start == start + len && memcmp(lexer->start + start, rest, len) == 0) {
+    if (lexer->current - lexer->start == start + len && str_eq_len(lexer->start + start, rest, len)) {
         return type;
     }
 
@@ -176,8 +176,95 @@ static bool match(Lexer *lexer, char expected) {
     return true;
 }
 
+static NiftyTokenType checkUInts(Lexer *lexer) {
+    if (str_eq_len(lexer->start + 1, "32", 2)) {
+        return TK_U32;
+    }
+    if (str_eq_len(lexer->start + 1, "8", 1)) {
+        return TK_U8;
+    }
+    if (str_eq_len(lexer->start + 1, "int", 3)) {
+        return TK_UINT;
+    }
+    if (str_eq_len(lexer->start + 1, "64", 2)) {
+        return TK_U64;
+    }
+    if (str_eq_len(lexer->start + 1, "16", 2)) {
+        return TK_U16;
+    }
+    if (str_eq_len(lexer->start + 1, "intptr", 6)) {
+        return TK_UINTPTR;
+    }
+    if (str_eq_len(lexer->start + 1, "128", 3)) {
+        return TK_U128;
+    }
+
+    return TK_IDENT;
+}
+
+static NiftyTokenType checkSInts(Lexer *lexer) {
+    if (str_eq_len(lexer->start + 1, "32", 2)) {
+        return TK_S32;
+    }
+    if (str_eq_len(lexer->start + 1, "64", 2)) {
+        return TK_S64;
+    }
+    if (str_eq_len(lexer->start + 1, "8", 1)) {
+        return TK_S8;
+    }
+    if (str_eq_len(lexer->start + 1, "16", 2)) {
+        return TK_S16;
+    }
+    if (str_eq_len(lexer->start + 1, "128", 3)) {
+        return TK_S128;
+    }
+
+    return TK_IDENT;
+}
+
+static NiftyTokenType checkBoolTypes(Lexer *lexer) {
+    if (str_eq_len(lexer->start + 1, "ool", 3)) {
+        return TK_BOOL;
+    }
+    if (str_eq_len(lexer->start + 1, "8", 1)) {
+        return TK_B8;
+    }
+    if (str_eq_len(lexer->start + 1, "16", 2)) {
+        return TK_B16;
+    }
+    if (str_eq_len(lexer->start + 1, "32", 2)) {
+        return TK_B32;
+    }
+    if (str_eq_len(lexer->start + 1, "64", 2)) {
+        return TK_B64;
+    }
+
+    return TK_IDENT;
+}
+
+static NiftyTokenType checkFloatTypes(Lexer *lexer) {
+    if (str_eq_len(lexer->start + 1, "32", 2)) {
+        return TK_F32;
+    }
+    if (str_eq_len(lexer->start + 1, "oat", 3)) {
+        return TK_FLOAT;
+    }
+    if (str_eq_len(lexer->start + 1, "64", 2)) {
+        return TK_F64;
+    }
+    if (str_eq_len(lexer->start + 1, "16", 2)) {
+        return TK_F16;
+    }
+    if (str_eq_len(lexer->start + 1, "128", 3)) {
+        return TK_F128;
+    }
+
+    return TK_IDENT;
+}
+
 static NiftyTokenType identType(Lexer *lexer) {
     switch (lexer->start[0]) {
+        case '_': return checkKeyword(lexer, 1, 8, "_anytype", TK_ANY_TYPE); // __anytype
         case 'a':
             // align_of
             // api
@@ -198,6 +285,217 @@ static NiftyTokenType identType(Lexer *lexer) {
                     case 'u': return checkKeyword(lexer, 2, 7, "to_cast", TK_AUTOCAST);
                 }
             }
+        case 'b': {
+            // behavior
+            // break
+            // bool b8 b16 b32 b64
+            NiftyTokenType type = checkKeyword2(lexer, 1, 4, "reak", TK_BREAK, 7, "ehavior", TK_BEHAVIOR);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            return checkBoolTypes(lexer);
+        }
+        case 'c':
+            // cast
+            // char
+            // const
+            // constimpl
+            // continue
+            // cstring
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'a': return checkKeyword(lexer, 2, 2, "st", TK_CAST);
+                    case 'h': return checkKeyword(lexer, 2, 2, "ar", TK_CHAR_TYPE);
+                    case 'o':
+                        if (lexer->start[2] == 'n' && lexer->start[3] == 's') {
+                            return checkKeyword2(lexer, 4, 1, "t", TK_CONST, 5, "timpl", TK_CONST_IMPL);
+                        } else {
+                            return checkKeyword(lexer, 3, 5, "ntinue", TK_CONTINUE);
+                        }
+                    case 's': return checkKeyword(lexer, 2, 5, "tring", TK_CSTRING_TYPE);
+                }
+            }
+        case 'd':
+            // defer
+            // defer_err
+            // delete
+            // does
+            // double
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'e':
+                        if (lexer->start[2] == 'f') {
+                            return checkKeyword2(lexer, 3, 2, "er", TK_DEFER, 6, "er_err", TK_DEFER_ERR);
+                        } else {
+                            return checkKeyword(lexer, 2, 4, "lete", TK_DELETE);
+                        }
+                    case 'o': return checkKeyword2(lexer, 2, 2, "es", TK_DOES, 4, "uble", TK_DOUBLE);
+                }
+            }
+        case 'e':
+            // else
+            // elif
+            // emit
+            // endimpl
+            // enum
+            // extern
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'l': return checkKeyword2(lexer, 2, 2, "se", TK_ELSE, 2, "if", TK_ELIF);
+                    case 'm': return checkKeyword(lexer, 2, 2, "it", TK_EMIT);
+                    case 'n': return checkKeyword2(lexer, 2, 2, "um", TK_ENUM, 3, "dimpl", TK_END_IMPL);
+                    case 'x': return checkKeyword(lexer, 2, 4, "tern", TK_EXTERN);
+                }
+            }
+        case 'f': {
+            // false
+            // float
+            // f16 f32 f64
+            // fn
+            // for
+            NiftyTokenType type = checkKeyword(lexer, 1, 1, "n", TK_FN);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            type = checkFloatTypes(lexer);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            return checkKeyword2(lexer, 1, 2, "or", TK_FOR, 4, "alse", TK_FALSE);
+        }
+        case 'g': return checkKeyword(lexer, 1, 3, "oto", TK_GOTO); // goto
+        case 'h': break;
+        case 'i':
+            // if
+            // impl
+            // in
+            // int
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'f': return checkKeyword(lexer, 2, 0, "", TK_IF);
+                    case 'm': return checkKeyword(lexer, 2, 2, "pl", TK_IMPL);
+                    case 'n': return checkKeyword2(lexer, 2, 0, "", TK_IN, 1, "t", TK_INT);
+                }
+            }
+        case 'j': break;
+        case 'k': break;
+        case 'l': return checkKeyword(lexer, 1, 2, "et", TK_LET); // let
+        case 'm': return checkKeyword(lexer, 1, 1, "d", TK_MD); // md
+        case 'n':
+            // name_of
+            // new
+            // null
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'a': return checkKeyword(lexer, 2, 5, "me_of", TK_NAME_OF);
+                    case 'e': return checkKeyword(lexer, 2, 1, "w", TK_NEW);
+                    case 'u': return checkKeyword(lexer, 2, 2, "ll", TK_NULL);
+                }
+            }
+        case 'o': break;
+        case 'p': return checkKeyword(lexer, 1, 6, "ackage", TK_PACKAGE); // package
+        case 'q': break;
+        case 'r':
+            // rawptr
+            // recast
+            // restrict
+            // return
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'a': return checkKeyword(lexer, 2, 3, "ptr", TK_RAWPTR);
+                    case 'e':
+                        switch (lexer->start[2]) {
+                            case 'c': return checkKeyword(lexer, 3, 3, "ast", TK_RECAST);
+                            case 's': return checkKeyword(lexer, 3, 6, "strict", TK_RESTRICT);
+                            case 't': return checkKeyword(lexer, 3, 3, "urn", TK_RETURN);
+                        }
+                }
+            }
+        case 's': {
+            // size_of
+            // skip
+            // string
+            // struct
+            // s8 s16 s32 s64 s128
+            NiftyTokenType type = checkSInts(lexer);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'i': return checkKeyword(lexer, 2, 5, "ze_of", TK_SIZE_OF);
+                    case 'k': return checkKeyword(lexer, 2, 2, "ip", TK_SKIP);
+                    case 't': return checkKeyword2(lexer, 2, 4, "ring", TK_STRING_TYPE, 4, "ruct", TK_STRUCT);
+                }
+            }
+        }
+        case 't':
+            // test
+            // true
+            // try
+            // type
+            // type_of
+            // type_from
+            // typeid_of
+            // typeinfo_of
+            // typeid
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'e': return checkKeyword(lexer, 2, 2, "st", TK_TEST);
+                    case 'r': return checkKeyword2(lexer, 2, 1, "y", TK_TRY, 2, "ue", TK_TRUE);
+                    case 'y': {
+                        NiftyTokenType type = checkKeyword(lexer, 2, 2, "pe", TK_TYPE);
+                        if (type != TK_IDENT) {
+                            return type;
+                        }
+                        type = checkKeyword2(lexer, 2, 5, "pe_of", TK_TYPE_OF, 7, "pe_from", TK_TYPE_FROM);
+                        if (type != TK_IDENT) {
+                            return type;
+                        }
+                        type = checkKeyword2(lexer, 2, 7, "peid_of", TK_TYPEID_OF, 9, "peinfo_of", TK_TYPEINFO_OF);
+                        if (type != TK_IDENT) {
+                            return type;
+                        }
+                        return checkKeyword(lexer, 2, 4, "peid", TK_TYPEID);
+                    }
+                }
+            }
+        case 'u': {
+            // until
+            // use
+            // using
+            // u8 u16 u32 u64 u128
+            // uint
+            // uintptr
+            // unused
+            // undefined
+            NiftyTokenType type = checkKeyword2(lexer, 1, 2, "se", TK_USE, 4, "sing", TK_USING);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            type = checkKeyword(lexer, 1, 4, "ntil", TK_UNTIL);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            type = checkUInts(lexer);
+            if (type != TK_IDENT) {
+                return type;
+            }
+            return checkKeyword2(lexer, 1, 8, "ndefined", TK_UNDEFINED, 5, "nused", TK_UNUSED);
+        }
+        case 'v':
+            // val
+            // void
+            if (lexer->current - lexer->start > 1) {
+                switch (lexer->start[1]) {
+                    case 'a': return checkKeyword(lexer, 2, 1, "l", TK_VAL);
+                    case 'o': return checkKeyword(lexer, 2, 2, "id", TK_VOID);
+                }
+            }
+        case 'w': return checkKeyword2(lexer, 1, 4, "hile", TK_WHILE, 2, "en", TK_WHEN); // when, while
+        case 'x': break;
+        case 'y': break;
+        case 'z': break;
     }
 
     return TK_IDENT;
@@ -207,10 +505,8 @@ static Token stringLit(Lexer *lexer, char strChar) {
     //TODO: Raw strings.
 
     bool overwrite = false;
-    bool skipInStr = false;
     while ((peek(lexer) != strChar || overwrite) && !atEnd(lexer)) {
         overwrite = false;
-        skipInStr = false;
 
         if (peek(lexer) == '\\' && peekNext(lexer) == strChar) {
             overwrite = true;
@@ -364,6 +660,15 @@ Token nextToken(Lexer *lexer) {
         case '.': return makeToken(lexer, TK_DOT);
         case '#': return makeToken(lexer, TK_HASH);
         case '~': return makeToken(lexer, TK_BIT_NOT);
+        case ':': {
+            if (match(lexer, '=')) {
+                return makeToken(lexer, TK_LET_DECL);
+            } else if (match(lexer, ':')) {
+                return makeToken(lexer, match(lexer, '=') ? TK_CONST_DECL : TK_SCOPE);
+            } else {
+                return makeToken(lexer, TK_COLON);
+            }
+        }
         case '+': {
             if (match(lexer, '+')) {
                 return makeToken(lexer, TK_INC);
@@ -430,4 +735,13 @@ Token nextToken(Lexer *lexer) {
     }
 
     return errorToken(lexer, "Unexpected character.");
+}
+
+void printToken(Token token) {
+    if (token.type == TK_INTERNAL_ERROR) {
+        println("TK_INTERNAL_ERROR");
+        return;
+    }
+
+    println("Token '%.*s'", token.len, token.lexeme);
 }

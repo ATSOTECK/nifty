@@ -593,7 +593,7 @@ type Collection<T> struct { /- snipped -/ }
 
 // The same for generics. (Pretend Collection is defined above, it is defined in [GENERICS] though)
 impl Collection<T>
-    md constructor(size := 0)
+    md init(size := 0)
     md add(num: T)
     md average(): float
 endimpl
@@ -1789,9 +1789,7 @@ if (collection != null) {
 
 // If you don't allocate the object on the heap this is not an issue.
 
-collection := Collection() // Type is Collection. Constructor is called. If the struct doesn't have
-                           // a constructor this will be a compiler error.
-collection := Collection{list: []int{}} // Type is Collection. Constructor is not called.
+collection := Collection{list: []int{}} // Type is Collection.
 collection := Collection // Invalid
 collection := Collection{} // Valid
 collection.add(12)
@@ -2289,6 +2287,8 @@ assert(c.isGreen()) // True
 
 // [OPERATOR OVERLOADING] -------------------------------------------------------------------------
 
+// Nifty will not have operator overloading. Leaving this section in anyways.
+
 // Still haven't decided if nifty will have operator overloading. But if it does this is how it 
 // will work. (Or it will only allow overloading related to [])
 
@@ -2358,6 +2358,7 @@ md sub(other: Vec2): Vec2 {
 endimpl
 
 // [UNION TYPES] ----------------------------------------------------------------------------------
+// tagged unions
 
 // Nifty has union types.
 
@@ -2441,7 +2442,7 @@ type Collection<T> struct {
 
 impl Collection<T>
 
-md constructor(size := 0) {
+md init(size := 0) {
     list = []T{size: size}
 }
 
@@ -2466,7 +2467,7 @@ md _calculateAverage() {
 
 endimpl
 
-collection := new Collection<f32>()
+collection := new Collection<f32>{}
 collection->add(12.f)
 
 // You can also restrict methods to a certain type.
@@ -2484,8 +2485,8 @@ endimpl
 
 // The sum function is only available for Collection<int>.
 
-collectionInt := new Collection<int>()
-collectionF32 := new Collection<f32>()
+collectionInt := new Collection<int>{}
+collectionF32 := new Collection<f32>{}
 
 // do stuff
 
@@ -2533,7 +2534,7 @@ type Vec3<T: #integer> struct { /- ... -/ }
 // These conveniences (#number, #decimal, and #integer) only work with generics.
 let num: #number = 12 // Invalid
 
-// The union types work for impl  or functions as well
+// The union types work for impl or functions as well
 
 impl Vec3<T: int | float | double>
 impl Vec3<T: IFD>
@@ -3035,6 +3036,14 @@ test "test error" {
     try expectErrorToBe(res, Error("bad data"))
     
 }
+
+#[timeout(100)] // Set the timeout for this specific test to 100 seconds.
+test "long test" {
+    // Long test here
+}
+
+// Have a timeout option for tests.
+// A timeout option for individual tests and the test command as a whole.
 
 // expect(), expectEq() return bool!.
 
@@ -3675,7 +3684,7 @@ u8 u16 u32 u64 u128
 f16 f32 f64
 void
 typeid
-rawptr
+rawptr uintptr
 let
 val
 const
@@ -3785,3 +3794,81 @@ fn printValueLn(value: __anytype) {
 }
 
 fn println overloads { printValuesLn, printValueLn }
+
+// [NSL] ------------------------------------------------------------------------------------------
+
+/-
+
+math
+    random
+    noise
+    big
+    complex
+    matrix
+    vector
+
+config
+    toml
+    json
+    yaml
+    env
+
+network
+    ftp
+    udp
+    http
+    websocket
+time
+os
+reflection
+
+compress
+    zlib
+
+crypto
+    bcrypt
+    aes
+    sha256
+    sha512
+    md5
+
+encoding
+    base32
+    base64
+    csv
+    hex
+
+fmt
+io
+hash
+fs
+    path
+
+thread
+window
+
+collection
+    map
+    queue
+    stack
+    vector
+    list (linked list)
+    btree
+
+db
+    mysql
+    
+regex
+
+Optionals
+
+sdl
+glfw
+dear_imgui
+lua
+stb
+    image
+
+vulkan
+
+-/

@@ -208,6 +208,12 @@ void build(conststr targetName, ProjectInfo *info) {
         return;
     }
 
+    Token token = nextToken(lexer);
+    while (token.type != TK_EOF) {
+        printToken(token);
+        token = nextToken(lexer);
+    }
+
     freeLexer(lexer);
     
 //    for (int i = 0; i < tokens->count; ++i) {

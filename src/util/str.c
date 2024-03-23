@@ -108,7 +108,21 @@ bool str_eq2(conststr s1, conststr s2, conststr s3) {
     return str_eq(s1, s2) || str_eq(s1, s3);
 }
 
+bool str_eq_len(conststr s1, conststr s2, int len) {
+    if (s1 == nullptr || s2 == nullptr) {
+        return false;
+    }
+
+    int i = 0;
+    for (; i < len && *s1 == *s2; ++i, ++s1, ++s2);
+    return i == len;
+}
+
 string str_copy(string dst, conststr src) {
+    if (dst == nullptr || src == nullptr) {
+        return nullptr;
+    }
+
     int srcLen = str_len(src);
     int dstLen = str_len(dst);
     

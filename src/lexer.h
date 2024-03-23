@@ -30,12 +30,14 @@ typedef enum {
     
     TK_FN,
     TK_MD,
+
+    TK_TEST,
+    TK_SKIP,
     
     TK_IF,
     TK_IF_NOT,
     TK_ELIF,
     TK_ELSE,
-    TK_DO,
     TK_IN,
     TK_AS,
     TK_CAST,
@@ -43,7 +45,7 @@ typedef enum {
     TK_AUTOCAST,
     TK_STRUCT,
     TK_IMPL,
-    TK_CONSTIMPL,
+    TK_CONST_IMPL,
     TK_END_IMPL,
     TK_DOES,
     TK_BEHAVIOR,
@@ -68,7 +70,7 @@ typedef enum {
     TK_FALSE,
     
     TK_LET, // mutable
-    TK_VAL, // immutable
+    TK_VAL, // immutable, run time
     TK_CONST, // immutable, compile time
     TK_NEW,
     TK_DELETE,
@@ -143,7 +145,7 @@ typedef enum {
     TK_HASH,                    // #
     TK_SCOPE,                   // ::
     TK_LET_DECL,                // :=
-    TK_VAL_DECL,                // ::=    Also used for const.
+    TK_CONST_DECL,              // ::=    Also used for val.
     
     TK_ASSIGN,                  // =
     TK_EQ,                      // == is
@@ -253,5 +255,7 @@ Lexer *initLexer(conststr entryPoint);
 void freeLexer(Lexer *lexer);
 
 Token nextToken(Lexer *lexer);
+
+void printToken(Token token);
 
 #endif //__NIFTY_LEXER_H__

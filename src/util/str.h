@@ -50,6 +50,7 @@ void str_delete(string s);
 
 bool str_eq(conststr s1, conststr s2);
 bool str_eq2(conststr s1, conststr s2, conststr s3);
+bool str_eq_len(conststr s1, conststr s2, int len);
 
 string str_copy(string dst, conststr src);
 
