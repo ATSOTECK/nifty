@@ -59,8 +59,6 @@ struct Node {
     NodeKind kind;
 
     union {
-        struct VoidNode {} voidNode;
-
         struct PrototypeNode { string name; } prototypeNode;
 
         struct BlockNode { Nodes statements; } blockNode;

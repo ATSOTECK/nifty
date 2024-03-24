@@ -27,22 +27,33 @@
 Lexer *initLexer(conststr entryPoint) {
     Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
 
+#ifndef N_WIN
     FILE *file = fopen(entryPoint, "r");
     if (file == nullptr) {
         println("Could not open '%s' for reading.", entryPoint);
         return nullptr;
     }
-
+#else
+    FILE *file;
+    errno_t err = fopen_s(&file, entryPoint, "rb");
+    if (file == nullptr || err != 0) {
+        println("Could not open '%s' for reading.", entryPoint);
+        return nullptr;
+    }
+#endif
+    
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    lexer->source = (string)malloc(length);
+    
+    lexer->source = (string)malloc(length + 1);
     if (lexer->source == nullptr) {
         println("Out of memory.");
         return nullptr;
     }
 
-    fread(lexer->source, 1, length, file);
+    fread(lexer->source, sizeof(char), length, file);
+    lexer->source[length] = '\0';
     fclose(file);
 
     lexer->start = lexer->source;
@@ -631,6 +642,17 @@ static Token hexNumber(Lexer *lexer) {
 }
 
 Token nextToken(Lexer *lexer) {
+    if (lexer == nullptr) {
+        Token token;
+        token.type = TK_INTERNAL_ERROR;
+        token.lexeme = nullptr;
+        token.len = 0;
+        token.line = 0;
+        token.pos = 0;
+        
+        return token;
+    }
+    
     skipWhitespace(lexer);
     lexer->start = lexer->current;
 

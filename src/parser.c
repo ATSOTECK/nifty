@@ -43,10 +43,6 @@ static Parser *initParser(conststr file, CompilerConfig *config) {
     parser->compilerConfig = config;
 
     parser->lexer = initLexer(file);
-    if (parser->lexer == nullptr) {
-        free(parser);
-        return nullptr;
-    }
 
     return parser;
 }
@@ -93,6 +89,12 @@ Ast *parseFile(conststr file, CompilerConfig *config) {
     Parser *parser = initParser(file, config);
     if (parser == nullptr) {
         println("Could not initialize parser.");
+        return nullptr;
+    }
+    if (parser->lexer == nullptr) {
+        free(parser->ast->nodes.list);
+        free(parser->ast);
+        freeParser(parser);
         return nullptr;
     }
 
