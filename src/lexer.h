@@ -35,14 +35,13 @@ typedef enum {
     TK_SKIP,
     
     TK_IF,
-    TK_IF_NOT,
     TK_ELIF,
     TK_ELSE,
     TK_IN,
     TK_AS,
     TK_CAST,
     TK_RECAST,
-    TK_AUTOCAST,
+    TK_AUTO_CAST,
     TK_STRUCT,
     TK_IMPL,
     TK_CONST_IMPL,
@@ -139,8 +138,7 @@ typedef enum {
     TK_DOT,                     // .
     TK_C_RANGE,                 // ..= [a, b]
     TK_O_RANGE,                 // ..< [a, b)
-    TK_VARY,                    // ..
-    TK_LABEL,                   // ident:
+    TK_DOT_DOT,                 // ..
     TK_AT,                      // @
     TK_HASH,                    // #
     TK_SCOPE,                   // ::
@@ -148,54 +146,50 @@ typedef enum {
     TK_CONST_DECL,              // ::=    Also used for val.
     
     TK_ASSIGN,                  // =
-    TK_EQ,                      // == is
-    TK_AND,						// && and
-    TK_OR,						// || or
-    TK_BANG,				    // ! not
-    TK_NOTEQ, 					// !=
+    TK_EQ,                      // ==
+    TK_AND,						// &&
+    TK_OR,						// ||
+    TK_BANG,				    // !
+    TK_NOT_EQ, 					// !=
     TK_ADD,                     // +
     TK_INC,                     // x++
-    TK_ADDEQ,                   // +=
+    TK_ADD_EQ,                  // +=
     TK_SUB,                     // -
     TK_DEC,                     // x--
-    TK_SUBEQ,                   // -=
+    TK_SUB_EQ,                  // -=
     TK_MUL,                     // *
-    TK_MULEQ,                   // *=
+    TK_MUL_EQ,                  // *=
     TK_DIV,                     // /
-    TK_DIVEQ,                   // /=
+    TK_DIV_EQ,                  // /=
     TK_MOD,                     // %
-    TK_MODEQ,                   // %=
-    TK_MODMOD,                  // %% (what is this?)
-    TK_MODMODEQ,                // %%= (what is this?)
-    
+    TK_MOD_EQ,                  // %=
+
+    // wrapping arithmetic
     TK_ADD_W,                   // %+
     TK_SUB_W,                   // %-
     TK_MUL_W,                   // %*
-    TK_DIV_W,                   // %/
-    TK_ADDEQU_W,                // %+=
-    TK_SUBEQU_W,                // %-=
-    TK_MULEQU_W,                // %*=
-    TK_DIVEQU_W,                // %/=
+    TK_ADD_EQ_W,                // %+=
+    TK_SUB_EQ_W,                // %-=
+    TK_MUL_EQ_W,                // %*=
     TK_INC_W,                   // %++
     TK_DEC_W,                   // %--
-    
+
+    // saturating arithmetic
     TK_ADD_S,                   // @+
     TK_SUB_S,                   // @-
     TK_MUL_S,                   // @*
-    TK_DIV_S,                   // @/
-    TK_ADDEQU_S,                // @+=
-    TK_SUBEQU_S,                // @-=
-    TK_MULEQU_S,                // @*=
-    TK_DIVEQU_S,                // @/=
+    TK_ADD_EQ_S,                // @+=
+    TK_SUB_EQ_S,                // @-=
+    TK_MUL_EQ_S,                // @*=
     TK_INC_S,                   // @++
     TK_DEC_S,                   // @--
     TK_LSL_S,                   // @<<
-    TK_LSLEQU_S,                // @<<=
+    TK_LSL_EQ_S,                // @<<=
     
     TK_GR,  					// >
-    TK_GREQ,				    // >=
+    TK_GR_EQ,				    // >=
     TK_LT,  					// <
-    TK_LTEQ,					// <=
+    TK_LT_EQ,					// <=
     
     TK_CARET,                   // ^
     TK_BIT_NOT,                 // ~
@@ -204,8 +198,8 @@ typedef enum {
     TK_LSL,                     // <<
     TK_LSR,                     // >>
     TK_BIT_XOR_EQ,              // ^=
-    TK_BIT_ANDEQ,               // &=
-    TK_BIT_OREQ,                // |=
+    TK_BIT_AND_EQ,              // &=
+    TK_BIT_OR_EQ,               // |=
     TK_LSL_EQ,                  // <<=
     TK_LSR_EQ,                  // >>=
     
@@ -237,11 +231,6 @@ typedef struct {
     int line;
     int pos;
 } Token;
-
-typedef struct {
-    int count;
-    Token **list;
-} Tokens;
 
 typedef struct {
     string source;

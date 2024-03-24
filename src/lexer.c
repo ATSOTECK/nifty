@@ -282,7 +282,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                         } else {
                             return checkKeyword(lexer, 2, 0, "", TK_AS);
                         }
-                    case 'u': return checkKeyword(lexer, 2, 7, "to_cast", TK_AUTOCAST);
+                    case 'u': return checkKeyword(lexer, 2, 7, "to_cast", TK_AUTO_CAST);
                 }
             }
         case 'b': {
@@ -657,7 +657,16 @@ Token nextToken(Lexer *lexer) {
         case ']': return makeToken(lexer, TK_RBRACKET);
         case ';': return makeToken(lexer, TK_SEMICOLON);
         case ',': return makeToken(lexer, TK_COMMA);
-        case '.': return makeToken(lexer, TK_DOT);
+        case '.':
+            if (match(lexer, '.')) {
+                if (match(lexer, '<')) {
+                    return makeToken(lexer, TK_C_RANGE);
+                } else if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_O_RANGE);
+                }
+                return makeToken(lexer, TK_DOT_DOT);
+            }
+            return makeToken(lexer, TK_DOT);
         case '#': return makeToken(lexer, TK_HASH);
         case '~': return makeToken(lexer, TK_BIT_NOT);
         case ':': {
@@ -665,70 +674,141 @@ Token nextToken(Lexer *lexer) {
                 return makeToken(lexer, TK_LET_DECL);
             } else if (match(lexer, ':')) {
                 return makeToken(lexer, match(lexer, '=') ? TK_CONST_DECL : TK_SCOPE);
-            } else {
-                return makeToken(lexer, TK_COLON);
             }
+            return makeToken(lexer, TK_COLON);
         }
         case '+': {
             if (match(lexer, '+')) {
                 return makeToken(lexer, TK_INC);
             } else if (match(lexer, '=')) {
-                return makeToken(lexer, TK_ADDEQ);
-            } else {
-                return makeToken(lexer, TK_ADD);
+                return makeToken(lexer, TK_ADD_EQ);
             }
+            return makeToken(lexer, TK_ADD);
         }
         case '-': {
             if (match(lexer, '-')) {
                 return makeToken(lexer, TK_DEC);
             } else if (match(lexer, '=')) {
-                return makeToken(lexer, TK_SUBEQ);
+                return makeToken(lexer, TK_SUB_EQ);
             } else if (match(lexer, '>')) {
                 return makeToken(lexer, TK_ARROW);
-            } else {
-                return makeToken(lexer, TK_SUB);
             }
+            return makeToken(lexer, TK_SUB);
         }
-        case '*': return makeToken(lexer, match(lexer, '=') ? TK_MULEQ : TK_MUL);
-        case '/': return makeToken(lexer, match(lexer, '=') ? TK_DIVEQ : TK_DIV);
-        case '%': return makeToken(lexer, match(lexer, '=') ? TK_MODEQ : TK_MOD);
-        case '!': return makeToken(lexer, match(lexer, '=') ? TK_NOTEQ : TK_BANG);
+        case '*': return makeToken(lexer, match(lexer, '=') ? TK_MUL_EQ : TK_MUL);
+        case '/': return makeToken(lexer, match(lexer, '=') ? TK_DIV_EQ : TK_DIV);
+        case '!': return makeToken(lexer, match(lexer, '=') ? TK_NOT_EQ : TK_BANG);
         case '=': return makeToken(lexer, match(lexer, '=') ? TK_EQ    : TK_ASSIGN);
         case '<': {
             if (match(lexer, '-')) {
                 return makeToken(lexer, TK_LEFT_ARROW);
             } else if (match(lexer, '<')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_LSL_EQ);
+                }
                 return makeToken(lexer, TK_LSL);
-            } else {
-                return makeToken(lexer, match(lexer, '=') ? TK_LTEQ : TK_LT);
             }
+            return makeToken(lexer, match(lexer, '=') ? TK_LT_EQ : TK_LT);
         }
         case '>': {
             if (match(lexer, '>')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_LSR_EQ);
+                }
                 return makeToken(lexer, TK_LSR);
-            } else {
-                return makeToken(lexer, match(lexer, '=') ? TK_GREQ : TK_GR);
             }
+            return makeToken(lexer, match(lexer, '=') ? TK_GR_EQ : TK_GR);
         }
         case '&': {
             if (match(lexer, '&')) {
                 return makeToken(lexer, TK_AND);
             } else if (match(lexer, '=')) {
-                return makeToken(lexer, TK_BIT_ANDEQ);
-            } else {
-                return makeToken(lexer, TK_BIT_AND);
+                return makeToken(lexer, TK_BIT_AND_EQ);
             }
+            return makeToken(lexer, TK_BIT_AND);
         }
         case '|': {
             if (match(lexer, '|')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_NULLISH_COALESCE_ASSIGN);
+                }
                 return makeToken(lexer, TK_OR);
             } else if (match(lexer, '=')) {
-                return makeToken(lexer, TK_BIT_OREQ);
-            } else {
-                return makeToken(lexer, TK_BIT_OR);
+                return makeToken(lexer, TK_BIT_OR_EQ);
             }
+            return makeToken(lexer, TK_BIT_OR);
         }
         case '^': return makeToken(lexer, match(lexer, '=') ? TK_BIT_XOR_EQ : TK_CARET);
+        case '?': {
+            if (match(lexer, '.')) {
+                return makeToken(lexer, TK_QDOT);
+            } else if (match(lexer, '?')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_NULL_COALESCE_ASSIGN);
+                }
+                return makeToken(lexer, TK_NULL_COALESCE);
+            }
+            return makeToken(lexer, TK_QMRK);
+        }
+        case '@': {
+            if (match(lexer, '+')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_ADD_EQ_S);
+                } else if (match(lexer, '+')) {
+                    return makeToken(lexer, TK_INC_S);
+                }
+                return makeToken(lexer, TK_ADD_S);
+            }
+            if (match(lexer, '-')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_SUB_EQ_S);
+                } else if (match(lexer, '-')) {
+                    return makeToken(lexer, TK_DEC_S);
+                }
+                return makeToken(lexer, TK_SUB_S);
+            }
+            if (match(lexer, '*')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_MUL_EQ_S);
+                }
+                return makeToken(lexer, TK_MUL_S);
+            }
+            if (match(lexer, '<') && match(lexer, '<')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_LSL_EQ_S);
+                }
+                return makeToken(lexer, TK_LSL_S);
+            }
+            return makeToken(lexer, TK_AT);
+        }
+        case '%': {
+            if (match(lexer, '+')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_ADD_EQ_W);
+                } else if (match(lexer, '+')) {
+                    return makeToken(lexer, TK_INC_W);
+                }
+                return makeToken(lexer, TK_ADD_W);
+            }
+            if (match(lexer, '-')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_SUB_EQ_W);
+                } else if (match(lexer, '-')) {
+                    return makeToken(lexer, TK_DEC_W);
+                }
+                return makeToken(lexer, TK_SUB_W);
+            }
+            if (match(lexer, '*')) {
+                if (match(lexer, '=')) {
+                    return makeToken(lexer, TK_MUL_EQ_W);
+                }
+                return makeToken(lexer, TK_MUL_W);
+            }
+            if (match(lexer, '=')) {
+                return makeToken(lexer, TK_MOD_EQ);
+            }
+            return makeToken(lexer, TK_MOD);
+        }
         case '"': return stringLit(lexer, '"');
         case '\'': return stringLit(lexer, '\'');
         default: break;
