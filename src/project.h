@@ -26,11 +26,6 @@
 #include "common.h"
 #include "util/str.h"
 
-typedef enum {
-    Debug,
-    Info
-} Verbosity;
-
 typedef struct {
     string name;
     string version;
@@ -70,8 +65,7 @@ typedef struct {
     int targetCount;
     TargetInfo **targets;
     
-    bool disableColors;
-    Verbosity verbosity;
+    CompilerConfig config;
 } ProjectInfo;
 
 ProjectInfo *loadProject();

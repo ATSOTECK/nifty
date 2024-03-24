@@ -31,7 +31,7 @@
 #endif
 #include <time.h>
 
-#include "lexer.h"
+#include "parser.h"
 #include "util/str.h"
 
 static string loadStringForKey(toml_table_t *table, conststr key, conststr defaultValue) {
@@ -64,7 +64,7 @@ ProjectInfo *loadProject() {
     info->loaded = false;
     info->defaultTargetIdx = -1;
     
-    info->verbosity = Debug; // TODO: Remove for release.
+    info->config.verbosity = Debug; // TODO: Remove for release.
 
     FILE *fp = fopen(NIFTY_BUILD_FILE, "r");
     if (fp == nullptr) {
@@ -83,7 +83,7 @@ ProjectInfo *loadProject() {
     }
 
     info->name = loadStringForKey(conf, "project", nullptr);
-    info->disableColors = loadBoolForKey(conf, "disableColors", false);
+    info->config.disableColors = loadBoolForKey(conf, "disableColors", false);
 
     info->targets = (TargetInfo**)malloc(sizeof(TargetInfo*));
     info->targets[0] = (TargetInfo*)malloc(sizeof(TargetInfo));
@@ -126,8 +126,8 @@ ProjectInfo *loadProject() {
 
     toml_free(conf);
 
-    if (!info->disableColors) {
-        info->disableColors = getenv("NIFTY_DISABLE_COLORS") != nullptr;
+    if (!info->config.disableColors) {
+        info->config.disableColors = getenv("NIFTY_DISABLE_COLORS") != nullptr;
     }
 
     info->loaded = true;
@@ -199,28 +199,11 @@ void build(conststr targetName, ProjectInfo *info) {
         return;
     }
     
-    if (info->verbosity >= Debug) {
+    if (info->config.verbosity >= Debug) {
         println("Building target '%s'.", target->targetName);
     }
-    
-    Lexer *lexer = initLexer(target->entryPoint);
-    if (lexer == nullptr) {
-        return;
-    }
 
-    Token token = nextToken(lexer);
-    while (token.type != TK_EOF) {
-        printToken(token);
-        token = nextToken(lexer);
-    }
-
-    freeLexer(lexer);
-    
-//    for (int i = 0; i < tokens->count; ++i) {
-//        println("tk: %s", tokens->list[i]->lexeme);
-//    }
-//
-//    free(tokens);
+    parseFile(target->entryPoint, &info->config);
 }
 
 void run(conststr targetName, ProjectInfo *info) {
@@ -235,7 +218,7 @@ void run(conststr targetName, ProjectInfo *info) {
 
     build(targetName, info);
     
-    if (info->verbosity >= Debug) {
+    if (info->config.verbosity >= Debug) {
         println("Running target '%s'.", target->targetName);
     }
 }
@@ -415,8 +398,8 @@ void listTargets(ProjectInfo *info) {
     for (int i = 0; i < info->targetCount; ++i) {
         TargetInfo *target = info->targets[i];
         if (target->isDefaultTarget) {
-            if (!info->disableColors) {
-                printf(GREEN "*");
+            if (!info->config.disableColors) {
+                printf(GREEN_COLOR "*");
             } else {
                 printf("*");
             }
@@ -426,7 +409,7 @@ void listTargets(ProjectInfo *info) {
         
         int width = max(longestTargetName + 5, 25);
         printStrsWithSpacer(target->targetName, '-', target->description, width);
-        if (target->isDefaultTarget && !info->disableColors) {
+        if (target->isDefaultTarget && !info->config.disableColors) {
             printf(RESET_COLOR);
         }
     }

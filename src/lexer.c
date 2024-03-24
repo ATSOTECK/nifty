@@ -23,7 +23,6 @@
 #include "lexer.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 Lexer *initLexer(conststr entryPoint) {
     Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));

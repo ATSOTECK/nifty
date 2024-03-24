@@ -20,33 +20,53 @@
  *
  */
 
-#ifndef __NIFTY_AST_H__
-#define __NIFTY_AST_H__
+#ifndef NIFTY_PARSER_H
+#define NIFTY_PARSER_H
 
-#include "util/str.h"
+#include "lexer.h"
 
 typedef struct Node Node;
 
-struct Node {
-    string file;
+typedef struct {
+    int count;
+    int capacity;
+    Node **list;
+} Nodes;
+
+typedef enum {
+    VoidNodeType,
+
+    PrototypeNodeType,
+
+    BlockNodeType,
+    ReturnNodeType,
+
+    FunctionNodeType,
+
+    AddNodeType,
+    SubNodeType,
+    MulNodeType,
+    DivNodeType,
+} NodeKind;
+
+typedef struct {
     int line;
     int pos;
-    enum {
-        VoidNodeType,
+} Location;
 
-        BlockNodeType,
-        ReturnNodeType,
+struct Node {
+    Location location;
+    NodeKind kind;
 
-        AddNodeType,
-        SubNodeType,
-        MulNodeType,
-        DivNodeType,
-    } kind;
     union {
         struct VoidNode {} voidNode;
 
-        struct BlockNode { Node **statements; } blockNode;
+        struct PrototypeNode { string name; } prototypeNode;
+
+        struct BlockNode { Nodes statements; } blockNode;
         struct ReturnNode { Node *statement; } returnNode;
+
+        struct FunctionNode { struct PrototypeNode *prototype; struct BlockNode *body; } functionNode;
 
         struct AddNode { Node *left; Node *right; } addNode;
         struct SubNode { Node *left; Node *right; } subNode;
@@ -55,8 +75,32 @@ struct Node {
     } data;
 };
 
-//typedef struct {
-//    Node node;
-//} VoidNode;
+// One ast per file.
+typedef struct {
+    conststr file;
+    Nodes nodes;
+    int errorCount;
+} Ast;
 
-#endif //__NIFTY_AST_H__
+typedef struct {
+    Lexer *lexer;
+    Token current;
+    Token next;
+    bool hadError;
+    bool panicMode;
+
+    Ast *ast;
+    CompilerConfig *compilerConfig;
+} Parser;
+
+typedef struct {
+    Token name;
+    int depth;
+    bool isConst;
+    bool isMutated; // If not const and not mutated warning on debug, error on release.
+    bool unused; // If unused warning on debug, error on release.
+} Local;
+
+Ast *parseFile(conststr file, CompilerConfig *config);
+
+#endif //NIFTY_PARSER_H

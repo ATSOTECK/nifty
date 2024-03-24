@@ -24,7 +24,7 @@
 #define NIFTY_COMMON_H
 
 #define NIFTY_VERSION "0.0.1"
-#define NIFTY_DATE "16 - March - 2024"
+#define NIFTY_DATE "23 - March - 2024"
 #define NIFTY_BUILD_FILE "build.toml"
 #define NIFTY_ENTRY "__nifty_start"
 #define NIFTY_GENERATED_FILE "_nifty_generated_c.c"
@@ -34,6 +34,16 @@
 #endif
 
 typedef enum { false, true } bool;
+
+typedef enum {
+    Debug,
+    Info
+} Verbosity;
+
+typedef struct {
+    bool disableColors;
+    Verbosity verbosity;
+} CompilerConfig;
 
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #   define N_WIN
@@ -60,7 +70,9 @@ typedef enum { false, true } bool;
 #   define access _access
 #endif
 
-#define GREEN "\033[32m"
+#define ERROR_COLOR "\033[31m"
+#define GREEN_COLOR "\033[32m"
+#define WARN_COLOR  "\033[33m"
 #define RESET_COLOR "\033[0m"
 
 #ifndef max
