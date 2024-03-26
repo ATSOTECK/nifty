@@ -24,38 +24,60 @@
 
 #include <stdlib.h>
 
-Lexer *initLexer(conststr entryPoint) {
-    Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
+static string stringFromFile(conststr filename) {
+    if (filename == nullptr) {
+        return nullptr;
+    }
 
 #ifndef N_WIN
-    FILE *file = fopen(entryPoint, "r");
+    FILE *file = fopen(filename, "r");
     if (file == nullptr) {
-        println("Could not open '%s' for reading.", entryPoint);
+        println("Could not open '%s' for reading.", filename);
         return nullptr;
     }
 #else
     FILE *file;
-    errno_t err = fopen_s(&file, entryPoint, "rb");
+    errno_t err = fopen_s(&file, filename, "rb");
     if (file == nullptr || err != 0) {
-        println("Could not open '%s' for reading.", entryPoint);
+        println("Could not open '%s' for reading.", filename);
         return nullptr;
     }
 #endif
-    
+
     fseek(file, 0, SEEK_END);
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
-    
-    lexer->source = (string)malloc(length + 1);
-    if (lexer->source == nullptr) {
+
+    string ret = (string)malloc(length + 1);
+    if (ret == nullptr) {
         println("Out of memory.");
         return nullptr;
     }
 
-    fread(lexer->source, sizeof(char), length, file);
-    lexer->source[length] = '\0';
+    fread(ret, sizeof(char), length, file);
+    ret[length] = '\0';
+    size_t offset = 0;
+    for (size_t i = 0; i < length - offset; i++) {
+        char c = ret[i + offset];
+        if (c == '\r') {
+            offset++;
+            i--;
+            continue;
+        }
+        if (offset) {
+            ret[i] = c;
+        }
+    }
+    ret[length - offset] = '\0';
     fclose(file);
 
+    return ret;
+}
+
+Lexer *initLexer(conststr filename) {
+    Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
+    
+    lexer->source = stringFromFile(filename);
     lexer->start = lexer->source;
     lexer->current = lexer->start;
     lexer->prev = '\0';

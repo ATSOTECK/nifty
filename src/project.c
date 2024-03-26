@@ -34,6 +34,22 @@
 #include "parser.h"
 #include "util/str.h"
 
+static bool createFolder(conststr folder) {
+    struct stat st = {0};
+    if (stat(folder, &st)) {
+#ifdef N_WIN
+        if (_mkdir(folder) != 0) {
+#else
+        if (mkdir(folder, 0755) != 0) {
+#endif
+            println("Could not create %s folder. Exiting.", folder);
+            return false;
+        }
+    }
+
+    return true;
+}
+
 static string loadStringForKey(toml_table_t *table, conststr key, conststr defaultValue) {
     toml_datum_t datum = toml_string_in(table, key);
     if (datum.ok) {
@@ -329,16 +345,11 @@ void createProject(CreateProjectInfo *info) {
 
     fclose(file);
 
-    struct stat st = {0};
-    if (stat("src", &st)) {
-#ifdef N_WIN
-        if (_mkdir("src") != 0) {
-#else
-        if (mkdir("src", 0755) != 0) {
-#endif
-            println("Could not create src folder. Exiting.");
-            return;
-        }
+    if (!createFolder("src")) {
+        return;
+    }
+    if (!createFolder("build-debug")) {
+        return;
     }
 
     string fileName = str_new_empty(100);

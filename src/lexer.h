@@ -240,7 +240,7 @@ typedef struct {
     int line;
 } Lexer;
 
-Lexer *initLexer(conststr entryPoint);
+Lexer *initLexer(conststr filename);
 void freeLexer(Lexer *lexer);
 
 Token nextToken(Lexer *lexer);
