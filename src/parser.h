@@ -86,6 +86,7 @@ typedef struct {
     Token next;
     bool hadError;
     bool panicMode;
+    string currentImpl;
 
     Ast *ast;
     CompilerConfig *compilerConfig;

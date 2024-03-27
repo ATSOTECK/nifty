@@ -1,0 +1,15 @@
+project = "one"
+author = "Skyler Burwell"
+
+[one]
+description = "one debug build."
+outputName = "one"
+entryPoint = "src/main.nifty"
+debug = true
+default = true
+
+[one_release]
+description = "one release build."
+outputName = "one"
+entryPoint = "src/main.nifty"
+optimization = "fast"

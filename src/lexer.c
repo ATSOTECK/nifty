@@ -85,6 +85,7 @@ Lexer *initLexer(conststr filename) {
     lexer->current = lexer->start;
     lexer->prev = '\0';
     lexer->line = 1;
+    lexer->linePos = 0;
 
     return lexer;
 }
@@ -104,6 +105,7 @@ static Token makeToken(Lexer *lexer, NiftyTokenType type) {
     token.lexeme = lexer->start;
     token.len = (int)(lexer->current - lexer->start);
     token.line = lexer->line;
+    token.pos = lexer->linePos;
 
     return token;
 }
@@ -114,6 +116,7 @@ static Token errorToken(Lexer *lexer, conststr msg) {
     token.lexeme = msg;
     token.len = (int)str_len(msg);
     token.line = lexer->line;
+    token.pos = lexer->linePos;
 
     return token;
 }
@@ -121,6 +124,7 @@ static Token errorToken(Lexer *lexer, conststr msg) {
 static char advance(Lexer *lexer) {
     lexer->prev = *lexer->current;
     lexer->current++;
+    ++lexer->linePos;
     return lexer->current[-1];
 }
 
@@ -148,6 +152,7 @@ static void skipWhitespace(Lexer *lexer) {
             case '\n':
                 ++lexer->line;
                 advance(lexer);
+                lexer->linePos = 0;
                 break;
             case '/':
                 if (peekNext(lexer) == '/') {

@@ -24,47 +24,12 @@
 
 #include <stdlib.h>
 
-static void advance(Parser *parser) {
-    parser->current = parser->next;
-    parser->next = nextToken(parser->lexer);
-}
-
-static Parser *initParser(conststr file, CompilerConfig *config) {
-    Parser *parser = (Parser*)malloc(sizeof(Parser));
-    Ast *ast = (Ast*)malloc(sizeof(Ast));
-
-    if (parser == nullptr || ast == nullptr) {
-        println("Out of memory.");
-        return nullptr;
-    }
-
-    ast->errorCount = 0;
-    ast->nodes.count = 0;
-    ast->nodes.capacity = 32;
-    ast->nodes.list = (Node**)malloc(sizeof(Node) * 32);
-    ast->file = str_new(file, nullptr);
-
-    parser->ast = ast;
-    parser->compilerConfig = config;
-
-    parser->lexer = initLexer(file);
-    
-    parser->next = nextToken(parser->lexer);
-    advance(parser);
-
-    return parser;
-}
-
-static void freeParser(Parser *parser) {
-    freeLexer(parser->lexer);
-    free(parser);
-}
-
 void errorStart(Parser *parser) {
     Ast *ast = parser->ast;
     ast->errorCount++;
+    parser->panicMode = true;
 
-    printf("%s:L %d,C%d: ", ast->file, parser->current.line, parser->current.pos);
+    printf("%s:L%d,C%d: ", ast->file, parser->current.line, parser->current.pos);
     if (!parser->compilerConfig->disableColors) {
         printf(ERROR_COLOR);
     }
@@ -88,6 +53,124 @@ void warnStart(Parser *parser) {
     }
 }
 
+static void printLineWithError(Parser *parser, Token *token) {
+    string line = str_get_line(parser->lexer->source, token->line, nullptr);
+
+    int width = 3;
+    for (int n = token->line; n > 0; n /= 10, ++width);
+
+    if (!parser->compilerConfig->disableColors) {
+        printf(GREEN_COLOR);
+    }
+    printf("%d | ", token->line);
+    if (!parser->compilerConfig->disableColors) {
+        printf(RESET_COLOR);
+    }
+    println("%s", line);
+    if (!parser->compilerConfig->disableColors) {
+        printf(GREEN_COLOR);
+    }
+    int i = 0;
+    for (; i < width - 2; ++i) {
+        printf(" ");
+    }
+    printf("| ");
+    for (; i - width + 3 < token->pos; ++i) {
+        printf("~");
+    }
+    println("^");
+    if (!parser->compilerConfig->disableColors) {
+        printf(RESET_COLOR);
+    }
+}
+
+static void errorAt(Parser *parser, Token *token, conststr msg) {
+    errorStart(parser);
+    println(msg);
+    printLineWithError(parser, token);
+}
+
+static void errorAtCurrent(Parser *parser, conststr msg) {
+    errorAt(parser, &parser->current, msg);
+}
+
+static void advance(Parser *parser) {
+    parser->current = parser->next;
+    parser->next = nextToken(parser->lexer);
+}
+
+static void eat(Parser *parser, NiftyTokenType tokenType, conststr msg) {
+    if (parser->current.type == tokenType) {
+        advance(parser);
+        return;
+    }
+
+    errorAtCurrent(parser, msg);
+}
+
+static Parser *initParser(conststr file, CompilerConfig *config) {
+    Parser *parser = (Parser*)malloc(sizeof(Parser));
+    Ast *ast = (Ast*)malloc(sizeof(Ast));
+
+    if (parser == nullptr || ast == nullptr) {
+        println("Out of memory.");
+        return nullptr;
+    }
+
+    ast->errorCount = 0;
+    ast->nodes.count = 0;
+    ast->nodes.capacity = 32;
+    ast->nodes.list = (Node**)malloc(sizeof(Node) * 32);
+    ast->file = str_new(file, nullptr);
+
+    parser->hadError = false;
+    parser->panicMode = false;
+    parser->currentImpl = nullptr;
+    parser->ast = ast;
+    parser->compilerConfig = config;
+    parser->lexer = initLexer(file);
+    parser->next = nextToken(parser->lexer);
+    advance(parser);
+
+    return parser;
+}
+
+static void freeParser(Parser *parser) {
+    freeLexer(parser->lexer);
+    free(parser);
+}
+
+static bool check(Parser *parser, NiftyTokenType tokenType) {
+    return parser->current.type == tokenType;
+}
+
+static bool match(Parser *parser, NiftyTokenType tokenType) {
+    if (!check(parser, tokenType)) {
+        return false;
+    }
+    advance(parser);
+
+    return true;
+}
+
+static void packageDeclaration(Parser *parser) {
+    eat(parser, TK_IDENT, "Expected identifier after package.");
+}
+
+static void fnDeclaration(Parser *parser) {
+    //
+}
+
+static void declaration(Parser *parser) {
+    if (match(parser, TK_PACKAGE)) {
+        packageDeclaration(parser);
+    } else if (match(parser, TK_FN) || match(parser, TK_MD)) {
+        fnDeclaration(parser);
+    } else {
+        advance(parser); // TODO: Remove.
+    }
+}
+
 Ast *parseFile(conststr file, CompilerConfig *config) {
     if (config == nullptr) {
         println("Invalid compiler config sent to parser.");
@@ -105,11 +188,15 @@ Ast *parseFile(conststr file, CompilerConfig *config) {
         freeParser(parser);
         return nullptr;
     }
-    
-    while (parser->current.type != TK_EOF) {
-        printToken(parser->current);
-        advance(parser);
+
+    while (!match(parser, TK_EOF)) {
+        declaration(parser);
     }
+    
+//    while (parser->current.type != TK_EOF) {
+//        printToken(parser->current);
+//        advance(parser);
+//    }
 
     Ast *ast = parser->ast;
     freeParser(parser);

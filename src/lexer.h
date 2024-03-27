@@ -238,6 +238,7 @@ typedef struct {
     conststr current;
     char prev;
     int line;
+    int linePos;
 } Lexer;
 
 Lexer *initLexer(conststr filename);

@@ -1,0 +1,16 @@
+/-
+ - one
+ - Copyright (c) 2024 Skyler Burwell
+ -/
+
+package one
+
+use "foobar"
+
+fn add(x: int, y: int): int {
+    return x + y
+}
+
+fn main() {
+    return add(2, 2) + sub(10, 5) + foobar::one() // 10
+}

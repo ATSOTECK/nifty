@@ -369,9 +369,9 @@ void createProject(CreateProjectInfo *info) {
     if (!str_empty(info->author)) {
         fprintf(file, " - Copyright (c) %d %s\n", year, info->author);
     }
-    fprintf(file, "-/\n\n");
-    fprintf(file, "#package %s\n\n", info->name); // TODO: Check for whitespace and convert to underscores.
-    fprintf(file, "#using <fmt>\n\n");
+    fprintf(file, " -/\n\n");
+    fprintf(file, "package %s\n\n", info->name); // TODO: Check for whitespace and convert to underscores.
+    fprintf(file, "using <fmt>\n\n");
     fprintf(file, "fn main() {\n");
     fprintf(file, "    println(\"Hullo!\")\n");
     fprintf(file, "}\n");

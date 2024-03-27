@@ -43,6 +43,7 @@ void str_cpy(register string dst, register conststr src);
 void str_cpyn(register string dst, register int n, register conststr src);
 
 string str_new(conststr s, int *len);
+string str_new_len(conststr s, int len);
 string str_new_fmt(conststr s, int *len, conststr fmt, ...);
 string str_new_empty(size_t size);
 
@@ -63,6 +64,8 @@ void str_toupper(string s);
 void str_clip_nl(string s);
 
 void str_fgets(string s, int len, FILE *f, conststr defaultAnswer);
+
+string str_get_line(conststr src, int line, int *len);
 
 void println(conststr fmt, ...);
 void dbln();

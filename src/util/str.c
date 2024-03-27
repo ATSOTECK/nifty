@@ -73,6 +73,13 @@ string str_new(conststr s, int *len) {
     return ret;
 }
 
+string str_new_len(conststr s, int len) {
+    string ret = (string)malloc(len * sizeof(char) + 1);
+    str_cpyn(ret, len, s);
+
+    return ret;
+}
+
 string str_new_empty(size_t size) {
     string ret = (string)malloc(size * sizeof(char) + 1);
     ret[0] = '\0';
@@ -193,6 +200,38 @@ void str_fgets(string s, int len, FILE *f, conststr defaultAnswer) {
             str_empty(s);
         }
     }
+}
+
+string str_get_line(conststr src, int line, int *len) {
+    if (str_empty(src)) {
+        return nullptr;
+    }
+
+    int currentLine = 1;
+    conststr at = src;
+    for (; *at != EOF; ++at) {
+        if (currentLine == line) {
+            break;
+        }
+
+        if (*at == '\n') {
+            ++currentLine;
+        }
+    }
+
+    if (*at == EOF) {
+        println("Could not find line %d.", line);
+        return nullptr;
+    }
+
+    conststr start = at;
+    int length = 0;
+    for (; *at != '\n'; ++at, ++length);
+
+    if (len != nullptr) {
+        *len = length;
+    }
+    return str_new_len(start, length);
 }
 
 void println(conststr fmt, ...) {
