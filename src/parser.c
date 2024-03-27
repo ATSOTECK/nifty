@@ -24,6 +24,11 @@
 
 #include <stdlib.h>
 
+static void advance(Parser *parser) {
+    parser->current = parser->next;
+    parser->next = nextToken(parser->lexer);
+}
+
 static Parser *initParser(conststr file, CompilerConfig *config) {
     Parser *parser = (Parser*)malloc(sizeof(Parser));
     Ast *ast = (Ast*)malloc(sizeof(Ast));
@@ -43,6 +48,9 @@ static Parser *initParser(conststr file, CompilerConfig *config) {
     parser->compilerConfig = config;
 
     parser->lexer = initLexer(file);
+    
+    parser->next = nextToken(parser->lexer);
+    advance(parser);
 
     return parser;
 }
@@ -97,11 +105,10 @@ Ast *parseFile(conststr file, CompilerConfig *config) {
         freeParser(parser);
         return nullptr;
     }
-
-    Token token = nextToken(parser->lexer);
-    while (token.type != TK_EOF) {
-        printToken(token);
-        token = nextToken(parser->lexer);
+    
+    while (parser->current.type != TK_EOF) {
+        printToken(parser->current);
+        advance(parser);
     }
 
     Ast *ast = parser->ast;

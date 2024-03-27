@@ -42,7 +42,7 @@ fn isAlpha(c: char): bool {
 
 // Checks whether a character is an alphanumeric character (letter or number) or not.
 #[inline]
-fn isAlphaNumeric(c: char) {
+fn isAlphaNumeric(c: char): bool {
     return isAlpha(c) || isDigit(c)
 }
 

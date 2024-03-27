@@ -56,18 +56,21 @@ static string stringFromFile(conststr filename) {
 
     fread(ret, sizeof(char), length, file);
     ret[length] = '\0';
+    
+    // Filter out '\r'
     size_t offset = 0;
-    for (size_t i = 0; i < length - offset; i++) {
+    for (size_t i = 0; i < length - offset; ++i) {
         char c = ret[i + offset];
         if (c == '\r') {
-            offset++;
-            i--;
+            ++offset;
+            --i;
             continue;
         }
         if (offset) {
             ret[i] = c;
         }
     }
+    
     ret[length - offset] = '\0';
     fclose(file);
 
@@ -167,7 +170,7 @@ static void skipWhitespace(Lexer *lexer) {
                     }
 
                     advance(lexer); // - or *
-                    advance(lexer);// /
+                    advance(lexer); // /
                 } else {
                     return;
                 }
