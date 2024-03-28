@@ -31,7 +31,7 @@ void errorStart(Parser *parser) {
 
     printf("%s:L%d,C%d: ", ast->file, parser->current.line, parser->current.pos);
     setTextColor(parser->compilerConfig, ERROR_COLOR);
-    printf("Parser error: ");
+    printf("Parse error: ");
     setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
@@ -129,6 +129,7 @@ static Parser *initParser(conststr file, CompilerConfig *config) {
     parser->hadError = false;
     parser->panicMode = false;
     parser->currentImpl = nullptr;
+    parser->package = nullptr;
     parser->results = results;
     parser->compilerConfig = config;
     parser->lexer = initLexer(file);
@@ -157,9 +158,16 @@ static bool match(Parser *parser, NiftyTokenType tokenType) {
 }
 
 static void packageDeclaration(Parser *parser) {
+    if (parser->package != nullptr) {
+        errorAtCurrent(parser, "Package already set on line bla.");
+    }
+
     if (!match(parser, TK_IDENT)) {
         expectedAfter(parser, "identifier", "package");
+        return;
     }
+
+    parser->package = str_new_len(parser->current.lexeme, parser->current.len);
 //    eat(parser, TK_IDENT, "Expected identifier after package.");
 }
 

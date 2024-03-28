@@ -105,7 +105,7 @@ static Token makeToken(Lexer *lexer, NiftyTokenType type) {
     token.lexeme = lexer->start;
     token.len = (int)(lexer->current - lexer->start);
     token.line = lexer->line;
-    token.pos = lexer->linePos;
+    token.pos = lexer->linePos - token.len + 1;
 
     return token;
 }
@@ -116,7 +116,7 @@ static Token errorToken(Lexer *lexer, conststr msg) {
     token.lexeme = msg;
     token.len = (int)str_len(msg);
     token.line = lexer->line;
-    token.pos = lexer->linePos;
+    token.pos = lexer->linePos - token.len + 1;
 
     return token;
 }

@@ -89,6 +89,7 @@ typedef struct {
     bool hadError;
     bool panicMode;
     string currentImpl;
+    string package;
 
     ParseResults *results;
     CompilerConfig *compilerConfig;
