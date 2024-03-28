@@ -66,6 +66,7 @@ typedef struct {
     TargetInfo **targets;
     
     CompilerConfig config;
+    bool buildFailed;
 } ProjectInfo;
 
 ProjectInfo *loadProject();
@@ -81,7 +82,6 @@ void createProject(CreateProjectInfo *info);
 void listTargets(ProjectInfo *info);
 void printProject(CreateProjectInfo *info);
 
-ProjectInfo getProjectInfo();
-bool verifyProjectInfo(CreateProjectInfo info);
+bool verifyProjectInfo(CreateProjectInfo *info);
 
 #endif //NIFTY_PROJECT_H

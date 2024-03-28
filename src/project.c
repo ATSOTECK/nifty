@@ -74,13 +74,22 @@ static bool loadBoolForKey(toml_table_t *table, conststr key, bool defaultValue)
     return defaultValue;
 }
 
+static void projectError(ProjectInfo *info) {
+    setTextColor(&info->config, ERROR_COLOR);
+    printf("Project error:");
+    setTextColor(&info->config, RESET_COLOR);
+    printf(" ");
+}
+
 ProjectInfo *loadProject() {
     ProjectInfo *info = (ProjectInfo*)malloc(sizeof(ProjectInfo));
     info->targetCount = 0;
     info->loaded = false;
     info->defaultTargetIdx = -1;
+    info->buildFailed = false;
     
     info->config.verbosity = Debug; // TODO: Remove for release.
+    info->config.disableColors = getenv("NIFTY_DISABLE_COLORS") != nullptr;
 
     FILE *fp = fopen(NIFTY_BUILD_FILE, "r");
     if (fp == nullptr) {
@@ -94,6 +103,7 @@ ProjectInfo *loadProject() {
     fclose(fp);
 
     if (conf == nullptr) {
+        projectError(info);
         println("Can't parse build file.\n%s", errbuf);
         return info;
     }
@@ -141,10 +151,6 @@ ProjectInfo *loadProject() {
     }
 
     toml_free(conf);
-
-    if (!info->config.disableColors) {
-        info->config.disableColors = getenv("NIFTY_DISABLE_COLORS") != nullptr;
-    }
 
     info->loaded = true;
     return info;
@@ -200,13 +206,20 @@ TargetInfo *getTargetInfo(conststr targetName, ProjectInfo *info) {
             return target;
         }
     }
-    
-    println("Could not find target '%s'.", targetName);
+
+    projectError(info);
+    printf("Could not find target ");
+    setTextColor(&info->config, HIGHLIGHT_COLOR);
+    printf("%s", targetName);
+    setTextColor(&info->config, RESET_COLOR);
+    println(".");
+
     return nullptr;
 }
 
 void build(conststr targetName, ProjectInfo *info) {
     if (info == nullptr) {
+        println("No project found, nothing to build.");
         return;
     }
     
@@ -216,14 +229,28 @@ void build(conststr targetName, ProjectInfo *info) {
     }
     
     if (info->config.verbosity >= Debug) {
-        println("Building target '%s'.", target->targetName);
+        printf("Building target ");
+        setTextColor(&info->config, HIGHLIGHT_COLOR);
+        printf("%s", target->targetName);
+        setTextColor(&info->config, RESET_COLOR);
+        println(".");
     }
 
-    parseFile(target->entryPoint, &info->config);
+    ParseResults *results = parseFile(target->entryPoint, &info->config);
+    if (results->errorCount > 0) {
+        info->buildFailed = true;
+
+        if (results->errorCount > 1) {
+            println("\nBuild finished with %d errors.", results->errorCount);
+        } else {
+            println("\nBuild finished with an error.");
+        }
+    }
 }
 
 void run(conststr targetName, ProjectInfo *info) {
     if (info == nullptr) {
+        println("No project found, nothing to run.");
         return;
     }
     
@@ -233,9 +260,17 @@ void run(conststr targetName, ProjectInfo *info) {
     }
 
     build(targetName, info);
+
+    if (info->buildFailed) {
+        return;
+    }
     
     if (info->config.verbosity >= Debug) {
-        println("Running target '%s'.", target->targetName);
+        printf("Running target ");
+        setTextColor(&info->config, HIGHLIGHT_COLOR);
+        printf("%s", target->targetName);
+        setTextColor(&info->config, RESET_COLOR);
+        println(".");
     }
 }
 
@@ -393,6 +428,7 @@ void createProject(CreateProjectInfo *info) {
 
 void listTargets(ProjectInfo *info) {
     if (info == nullptr) {
+        println("No project found, no targets to list.");
         return;
     }
 
@@ -409,19 +445,16 @@ void listTargets(ProjectInfo *info) {
     for (int i = 0; i < info->targetCount; ++i) {
         TargetInfo *target = info->targets[i];
         if (target->isDefaultTarget) {
-            if (!info->config.disableColors) {
-                printf(GREEN_COLOR "*");
-            } else {
-                printf("*");
-            }
+            setTextColor(&info->config, LINE_COLOR);
+            printf("*");
         } else {
             printf(" ");
         }
         
         int width = max(longestTargetName + 5, 25);
         printStrsWithSpacer(target->targetName, '-', target->description, width);
-        if (target->isDefaultTarget && !info->config.disableColors) {
-            printf(RESET_COLOR);
+        if (target->isDefaultTarget) {
+            setTextColor(&info->config, RESET_COLOR);
         }
     }
 }

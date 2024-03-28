@@ -263,3 +263,13 @@ void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width) {
     }
     printf(" %s\n", s2);
 }
+
+void setTextColor(CompilerConfig *cfg, conststr color) {
+    if (cfg == nullptr) {
+        return;
+    }
+
+    if (!cfg->disableColors) {
+        printf("%s", color);
+    }
+}

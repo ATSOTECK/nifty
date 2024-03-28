@@ -25,32 +25,24 @@
 #include <stdlib.h>
 
 void errorStart(Parser *parser) {
-    Ast *ast = parser->ast;
+    ParseResults *ast = parser->results;
     ast->errorCount++;
     parser->panicMode = true;
 
     printf("%s:L%d,C%d: ", ast->file, parser->current.line, parser->current.pos);
-    if (!parser->compilerConfig->disableColors) {
-        printf(ERROR_COLOR);
-    }
+    setTextColor(parser->compilerConfig, ERROR_COLOR);
     printf("Parser error: ");
-    if (!parser->compilerConfig->disableColors) {
-        printf(RESET_COLOR);
-    }
+    setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
 void warnStart(Parser *parser) {
-    Ast *ast = parser->ast;
+    ParseResults *ast = parser->results;
     ast->errorCount++;
 
     printf("%s:L %d,C%d: ", ast->file, parser->current.line, parser->current.pos);
-    if (!parser->compilerConfig->disableColors) {
-        printf(WARN_COLOR);
-    }
+    setTextColor(parser->compilerConfig, WARN_COLOR);
     printf("Warning: ");
-    if (!parser->compilerConfig->disableColors) {
-        printf(RESET_COLOR);
-    }
+    setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
 static void printLineWithError(Parser *parser, Token *token) {
@@ -59,17 +51,12 @@ static void printLineWithError(Parser *parser, Token *token) {
     int width = 3;
     for (int n = token->line; n > 0; n /= 10, ++width);
 
-    if (!parser->compilerConfig->disableColors) {
-        printf(GREEN_COLOR);
-    }
+    setTextColor(parser->compilerConfig, LINE_COLOR);
     printf("%d | ", token->line);
-    if (!parser->compilerConfig->disableColors) {
-        printf(RESET_COLOR);
-    }
+    setTextColor(parser->compilerConfig, RESET_COLOR);
     println("%s", line);
-    if (!parser->compilerConfig->disableColors) {
-        printf(GREEN_COLOR);
-    }
+    setTextColor(parser->compilerConfig, LINE_COLOR);
+
     int i = 0;
     for (; i < width - 2; ++i) {
         printf(" ");
@@ -79,9 +66,25 @@ static void printLineWithError(Parser *parser, Token *token) {
         printf("~");
     }
     println("^");
-    if (!parser->compilerConfig->disableColors) {
-        printf(RESET_COLOR);
-    }
+    setTextColor(parser->compilerConfig, RESET_COLOR);
+}
+
+static void expectedAfter(Parser *parser, conststr expected, conststr after) {
+    errorStart(parser);
+    printf("Expected ");
+    setTextColor(parser->compilerConfig, HIGHLIGHT_COLOR);
+    printf("%s", expected);
+    setTextColor(parser->compilerConfig, RESET_COLOR);
+    printf(" after ");
+    setTextColor(parser->compilerConfig, HIGHLIGHT_COLOR);
+    printf("%s", after);
+    setTextColor(parser->compilerConfig, RESET_COLOR);
+    printf(", got ");
+    setTextColor(parser->compilerConfig, HIGHLIGHT_COLOR);
+    printf("%.*s", parser->current.len, parser->current.lexeme);
+    setTextColor(parser->compilerConfig, RESET_COLOR);
+    println(" instead.");
+    printLineWithError(parser, &parser->current);
 }
 
 static void errorAt(Parser *parser, Token *token, conststr msg) {
@@ -110,23 +113,23 @@ static void eat(Parser *parser, NiftyTokenType tokenType, conststr msg) {
 
 static Parser *initParser(conststr file, CompilerConfig *config) {
     Parser *parser = (Parser*)malloc(sizeof(Parser));
-    Ast *ast = (Ast*)malloc(sizeof(Ast));
+    ParseResults *results = (ParseResults*)malloc(sizeof(ParseResults));
 
-    if (parser == nullptr || ast == nullptr) {
+    if (parser == nullptr || results == nullptr) {
         println("Out of memory.");
         return nullptr;
     }
 
-    ast->errorCount = 0;
-    ast->nodes.count = 0;
-    ast->nodes.capacity = 32;
-    ast->nodes.list = (Node**)malloc(sizeof(Node) * 32);
-    ast->file = str_new(file, nullptr);
+    results->errorCount = 0;
+    results->nodes.count = 0;
+    results->nodes.capacity = 32;
+    results->nodes.list = (Node**)malloc(sizeof(Node) * 32);
+    results->file = str_new(file, nullptr);
 
     parser->hadError = false;
     parser->panicMode = false;
     parser->currentImpl = nullptr;
-    parser->ast = ast;
+    parser->results = results;
     parser->compilerConfig = config;
     parser->lexer = initLexer(file);
     parser->next = nextToken(parser->lexer);
@@ -154,7 +157,10 @@ static bool match(Parser *parser, NiftyTokenType tokenType) {
 }
 
 static void packageDeclaration(Parser *parser) {
-    eat(parser, TK_IDENT, "Expected identifier after package.");
+    if (!match(parser, TK_IDENT)) {
+        expectedAfter(parser, "identifier", "package");
+    }
+//    eat(parser, TK_IDENT, "Expected identifier after package.");
 }
 
 static void fnDeclaration(Parser *parser) {
@@ -171,7 +177,7 @@ static void declaration(Parser *parser) {
     }
 }
 
-Ast *parseFile(conststr file, CompilerConfig *config) {
+ParseResults *parseFile(conststr file, CompilerConfig *config) {
     if (config == nullptr) {
         println("Invalid compiler config sent to parser.");
         return nullptr;
@@ -183,8 +189,8 @@ Ast *parseFile(conststr file, CompilerConfig *config) {
         return nullptr;
     }
     if (parser->lexer == nullptr) {
-        free(parser->ast->nodes.list);
-        free(parser->ast);
+        free(parser->results->nodes.list);
+        free(parser->results);
         freeParser(parser);
         return nullptr;
     }
@@ -198,8 +204,8 @@ Ast *parseFile(conststr file, CompilerConfig *config) {
 //        advance(parser);
 //    }
 
-    Ast *ast = parser->ast;
+    ParseResults *results = parser->results;
     freeParser(parser);
 
-    return ast;
+    return results;
 }

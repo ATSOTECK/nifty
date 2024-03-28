@@ -73,12 +73,14 @@ struct Node {
     } data;
 };
 
-// One ast per file.
+// One results per file.
 typedef struct {
     conststr file;
     Nodes nodes;
     int errorCount;
-} Ast;
+
+    int runTime; // In ms.
+} ParseResults;
 
 typedef struct {
     Lexer *lexer;
@@ -88,7 +90,7 @@ typedef struct {
     bool panicMode;
     string currentImpl;
 
-    Ast *ast;
+    ParseResults *results;
     CompilerConfig *compilerConfig;
 } Parser;
 
@@ -100,6 +102,6 @@ typedef struct {
     bool unused; // If unused warning on debug, error on release.
 } Local;
 
-Ast *parseFile(conststr file, CompilerConfig *config);
+ParseResults *parseFile(conststr file, CompilerConfig *config);
 
 #endif //NIFTY_PARSER_H

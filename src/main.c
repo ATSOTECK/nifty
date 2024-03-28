@@ -37,6 +37,18 @@
 #include "project.h"
 #include "util/help.h"
 
+static void printColors(ProjectInfo *info) {
+    if (info != nullptr && info->config.disableColors) {
+        println("Use of colors is disabled.");
+        return;
+    }
+
+    for (int i = 0; i < 256; ++i) {
+        println("\033[38;5;%dm The quick brown fox jumped over the lazy dog. %d", i, i);
+    }
+    printf(RESET_COLOR);
+}
+
 int main(int argc, char **argv) {
     bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
     ProjectInfo *projectInfo = nullptr;
@@ -82,6 +94,8 @@ int main(int argc, char **argv) {
             newProject(buildFileFound);
         } else if (str_eq2(cmd, "test", "-t")) {
             println("test");
+        } else if (str_eq(cmd, "colors")) {
+            printColors(projectInfo);
         } else {
             println("unknown");
         }

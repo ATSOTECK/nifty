@@ -223,6 +223,30 @@ void printHelp(conststr cmd) {
             dbln();
         }
 
+        println("config");
+        println("\tTODO");
+
+        if (!printAll) {
+            return;
+        }
+    }
+
+    if (str_eq(cmd, "colors") || printAll) {
+        if (printAll) {
+            dbln();
+        }
+
+        println("Colors:");
+        println("Because colors will be different for different terminal configurations you may not like the default");
+        println("color choices or they may not be easily readable. Because of this the colors can be overwritten in");
+        println("the compiler config file. Run 'nifty help config' for information on configuration.");
+        println("This command prints out a sentence in 256 colors with the code at the end.");
+        println("The following can be changed:");
+        printStrsWithSpacer("\terrorColor <number>", '-', "Sets the error color.", width);
+        printStrsWithSpacer("\twarnColor <number>", '-', "Sets the warning color.", width);
+        printStrsWithSpacer("\tlineColor <number>", '-', "Sets the squiggly line color for warnings/errors.", width);
+        printStrsWithSpacer("\thighlightColor <number>", '-', "Sets the color for highlighting text in messages.", width);
+
         if (!printAll) {
             return;
         }
@@ -257,19 +281,20 @@ void printHelp(conststr cmd) {
     println("Usage: nifty [command] <inputs> <flags>\n");
     println("Commands:");
     printStrsWithSpacer("\tbuild", '-', "Build the default or specified target.", width);
-    printStrsWithSpacer("\trun ", '-', "Build and run the default or specified target.", width);
-    printStrsWithSpacer("\tclean ", '-', "Delete compiled files for the project or target.", width);
-    printStrsWithSpacer("\thelp ", '-', "Show this help information or information on the specified command.", width);
-    printStrsWithSpacer("\tnew ", '-', "Create new Nifty project in the current directory.", width);
-    printStrsWithSpacer("\ttest ", '-', "Build and run all tests in the default or specified target.", width);
-    printStrsWithSpacer("\tdocs ", '-', "Generate documentation from the default or specified target.", width);
-    printStrsWithSpacer("\tversion ", '-', "Prints Nifty version info.", width);
-    printStrsWithSpacer("\tinfo ", '-', "Prints information about the Nifty compiler.", width);
-    printStrsWithSpacer("\tlist ", '-', "List all of the targets for the build file in the current directory.", width);
+    printStrsWithSpacer("\trun", '-', "Build and run the default or specified target.", width);
+    printStrsWithSpacer("\tclean", '-', "Delete compiled files for the project or target.", width);
+    printStrsWithSpacer("\thelp", '-', "Show this help information or information on the specified command.", width);
+    printStrsWithSpacer("\tnew", '-', "Create new Nifty project in the current directory.", width);
+    printStrsWithSpacer("\ttest", '-', "Build and run all tests in the default or specified target.", width);
+    printStrsWithSpacer("\tdocs", '-', "Generate documentation from the default or specified target.", width);
+    printStrsWithSpacer("\tversion", '-', "Prints Nifty version info.", width);
+    printStrsWithSpacer("\tinfo", '-', "Prints information about the Nifty compiler.", width);
+    printStrsWithSpacer("\tlist", '-', "List all of the targets for the build file in the current directory.", width);
+    printStrsWithSpacer("\tcolors", '-', "Color codes can be set in the nifty config file, prints colors for reference.", width);
     dbln();
     println("To see a list of flags run 'nifty help flags'.");
     println("To see a list of environment variables used by nifty run 'nifty help env'.");
-    println("To see a list of config options for nifty projects run `nifty help config'.");
+    println("To see a list of config options for the nifty compiler and nifty projects run `nifty help config'.");
     println("To show all help run 'nifty help all'.");
     dbln();
     println("If no command is given Nifty will build and run the default target from '%s'.", NIFTY_BUILD_FILE);

@@ -24,7 +24,7 @@
 #define NIFTY_COMMON_H
 
 #define NIFTY_VERSION "0.0.1"
-#define NIFTY_DATE "26 - March - 2024"
+#define NIFTY_DATE "27 - March - 2024"
 #define NIFTY_BUILD_FILE "build.toml"
 #define NIFTY_ENTRY "__nifty_start"
 #define NIFTY_GENERATED_FILE "_nifty_generated_c.c"
@@ -70,13 +70,14 @@ typedef struct {
 #   define access _access
 #endif
 
-#define ERROR_COLOR "\033[31m"
-#define GREEN_COLOR "\033[32m"
-#define WARN_COLOR  "\033[33m"
-#define RESET_COLOR "\033[0m"
+#define ERROR_COLOR      "\033[38;5;9m" // red
+#define LINE_COLOR       "\033[38;5;2m" // green
+#define WARN_COLOR       "\033[38;5;11m" // yellow
+#define HIGHLIGHT_COLOR  "\033[38;5;12m" // blue
+#define RESET_COLOR      "\033[0m"
 
 #ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
+#   define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif
 
 #endif //NIFTY_COMMON_H

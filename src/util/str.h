@@ -71,4 +71,6 @@ void println(conststr fmt, ...);
 void dbln();
 void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width);
 
+void setTextColor(CompilerConfig *cfg, conststr color);
+
 #endif //NIFTY_STR_H
