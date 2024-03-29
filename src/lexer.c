@@ -66,6 +66,7 @@ static string stringFromFile(conststr filename) {
             --i;
             continue;
         }
+
         if (offset) {
             ret[i] = c;
         }
