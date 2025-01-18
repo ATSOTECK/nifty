@@ -20,9 +20,9 @@
  |
 -/
 
-package error
+package nsl namespace error
 
-use <fmt>
+use fmt
 
 type Error struct {
     _msg: string

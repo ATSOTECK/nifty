@@ -196,6 +196,7 @@ ParseResults *parseFile(conststr file, CompilerConfig *config) {
         println("Could not initialize parser.");
         return nullptr;
     }
+    
     if (parser->lexer == nullptr) {
         free(parser->results->nodes.list);
         free(parser->results);

@@ -4,7 +4,6 @@
 // [VARIABLES]
 // [TYPES]
 // [NAMESPACES]
-// [PACKAGES]
 // [FUNCTIONS]
 // [CONTROL FLOW]
 // [BLOCK VALUES]
@@ -13,13 +12,11 @@
 // [ARRAYS]
 // [SLICES]
 // [STRING]
-// [MAP]
 // [STRUCTS]
 // [STRUCT METHODS]
 // [BEHAVIORS]
 // [TYPE METHODS]
 // [ENUMS]
-// [OPERATOR OVERLOADING]
 // [UNION TYPES]
 // [GENERICS]
 // [POINTERS]
@@ -31,7 +28,6 @@
 // [TESTS]
 // [IMPLICIT CONTEXTS]
 // [MACROS]
-// [SIGNALS AND SLOTS]
 // [ORM]
 // [MISC]
 // [BUILDING] [CONFIG]
@@ -144,16 +140,16 @@ let x: int // Valid
 x: int // Invalid, value must be given here.
 // (Maybe this could be allowed? Don't really like this syntax for normal variables.)
 
-// Immutable variables (runtime constants) are declared with the 'val' keyword.
-val x = 12
+// Immutable variables (runtime constants) are declared with the 'const' keyword.
+const x = 12
 
 // The constant declaration operator can be used as well.
 x ::= 12
 
 // The type is inferred for constants as well but it can also be specified.
-val x: int = 12
+const x: int = 12
 x :: int = 12
-val y: int // Invalid, immutable variables must have their value specified.
+const y: int // Invalid, immutable variables must have their value specified.
 
 // Variables are auto initialized in Nifty.
 let x: int
@@ -188,7 +184,7 @@ buf: u32 = undefined
 bufNum := buf // Valid but undefined behavior. buf could be anything. Should this warn?
 
 // Immutable variables can not be set to undefined.
-val y: int = undefined // Invalid, immutable variables must have their value specified.
+const y: int = undefined // Invalid, immutable variables must have their value specified.
 
 // Nifty does not support variable shadowing (with the exception of optional pointers).
 
@@ -293,7 +289,7 @@ rawptr // Like void* in c, used for compatibility with existing c code.
 
 // Custom types can be created as follows:
 
-typedef Custom as int
+type Custom as int
 let var: Custom
 assert(type_of(var) == "Custom") // True
 
@@ -306,7 +302,7 @@ takeCustom(b) // Valid
 if (a == b) // Valid
 
 // To force Custom to be distinct from int use the distinct attribute.
-#[distinct] typedef Custom as int
+#[distinct] type Custom as int
 
 takeCustom(a)
 takeCustom(b) // Invalid
@@ -315,7 +311,7 @@ if (a == b) // Invalid, implicit casting not supported.
 if (cast(a, int) == b) //Valid
 
 // A new default value can be given for distinct types.
-#[distinct, initTo(1)] typedef Month as int
+#[distinct, initTo(1)] type Month as int
 let month: Month // month is 1
 
 // Casting uses the 'cast' operator.
@@ -467,8 +463,8 @@ fn main() {
     foo::println("Yote") // Valid
 }
 
-// Namespaces in the nifty standard library (nsl) or the include directories are used without
-// double quotes while user made namespaces are included with double quotes.
+// Namespaces in the nifty standard library (nsl) are used without double quotes while user made
+// namespaces are included with double quotes.
 use fmt // nsl namespace
 use "foo::bar" // non-nsl namespace (user made)
 
@@ -520,10 +516,6 @@ use bytes
 use "game"::{ map, object } // use game, map, object namepaces
 use "game"{ run, quit } // run, quit are functions
 
-use "types.ny" // would this make a namspace "types"? Or would this be the same as using?
-// Or should only using be allowed?
-using "types.ny"
-
 // When importing specifics like this the 'using' keyword can not be used.
 
 // All items not starting or ending with an underscore are exported from the namepace.
@@ -550,15 +542,15 @@ fn localFunction_() {
     // Do something
 }
 
-typedef _PrivateStruct struct {
+type _PrivateStruct struct {
     // Stuff
 }
 
-typedef ExportedStruct struct {
+type ExportedStruct struct {
     // Stuff
 }
 
-typedef LocalStruct_ struct {
+type LocalStruct_ struct {
     // Stuff
 }
 
@@ -611,7 +603,7 @@ fn sayHi() {
 }
 
 // It is ok to redefine structs/enums/behaviors/types in the api file.
-typedef Circle struct {
+type Circle struct {
     x, y: f32
     r: int = 100
 }
@@ -622,7 +614,7 @@ impl Circle
     md draw(color: Color)
 endimpl
 
-typedef Collection<T> struct { /- snipped -/ }
+type Collection<T> struct { /- snipped -/ }
 
 // The same for generics. (Pretend Collection is defined above, it is defined in [GENERICS] though)
 impl Collection<T>
@@ -638,7 +630,7 @@ endimpl
 // The use of indentation above is optional, I just think it is easier to read this way when there
 // is no implementation.
 
-typedef Align enum {
+type Align enum {
     Vertical,
     Horizontal,
 }
@@ -659,49 +651,6 @@ let defaultFont: ^Font = undefined
 
 // Declaration operators can be used as well.
 isFullscreen := false
-
-// [PACKAGES] -------------------------------------------------------------------------------------
-
-// Packages are collections of namespaces.
-
-package nsl namespace io
-
-// So the io namespace belongs to the nsl package.
-
-// Packages can be used like a namespace.
-
-use nsl
-nsl::os::exit(1)
-
-use nsl::{ os }
-os::exit(1)
-
-using nsl::{ os }
-exit(1)
-
-using fmt
-using nsl::fmt
-
-// Packages can't be used without namespaces.
-
-package engine // Invalid
-package engine namespace map // Valid
-
-// Packages are not needed.
-
-namespace map // Valid
-
-// Smaller programs probably have no need for packages but larger more complicated programs should
-// probably use them.
-
-// The api keywork can't be used with packages, only with namespaces.
-
-api nsl // Invalid because nsl is a package.
-
-// nsl::math::random
-use nsl::math::random
-math::PI
-random::int64()
 
 // [FUNCTIONS] ------------------------------------------------------------------------------------
 
@@ -810,7 +759,7 @@ someFunc(^x) // See section on pointers for an explination.
 // The variadic argument can be treated like a static array.
 fn sum(nums: ..int): int {
     res := 0
-    for (val n in nums) {
+    for (const n in nums) {
         res += n
     }
     
@@ -827,7 +776,7 @@ sum(4, 5, 6, 7, 8)
 #[minArity(2)]
 fn sum(nums: ..int): int {
     res := 0
-    for (val n in nums) {
+    for (const n in nums) {
         res += n
     }
     
@@ -1077,9 +1026,6 @@ noContext
 traceVars(names: ..string) // Prints the values of the variables listed every time they change.
                            // This is meant for debugging and will be relatively slow.
 
-signal
-slot
-
 // Called at the end of the callers scope.
 deferredIn(function: fn) // Receives the same paramaters as the called function.
 deferredOut(function: fn) // Receives the results of the called function.
@@ -1117,19 +1063,19 @@ for (i := 0; i < 10; ++i) {
 for (0 ..= 10) { /- ... -/ } // [a, b]
 for (0 ..< 10) { /- ... -/ } // [a, b)
 for (0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
-for (val i in 0 ..< 10) { /- ... -/ }
-for (val i in 0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
-for (val str in strings) { /- ... -/ }
-for (val str, index in strings) { /- ... -/ }
+for (const i in 0 ..< 10) { /- ... -/ }
+for (const i in 0 ..= 10; 2) { /- ... -/ } // Uses a step of 2 instead of 1
+for (const str in strings) { /- ... -/ }
+for (const str, index in strings) { /- ... -/ }
 for (let str in strings) { /- ... -/ }
-for (val key, value in map) { /- ... -/ }
-for (val key, value, index in map) { /- ... -/ }
+for (const key, value in map) { /- ... -/ }
+for (const key, value, index in map) { /- ... -/ }
 
 for (10 ..< 0) { /- ... -/ } // Does nothing
 
 // To go backwards over a range use <
 for <(10 ..< 0) { /- ... -/ }
-for <(val str in strings) { /- ... -/ }
+for <(const str in strings) { /- ... -/ }
 for < 10 .. <0 { /- ... -/ }
 
 // While loops work like they do in c/c++.
@@ -1294,7 +1240,7 @@ for (i := 0; i < 10; ++i) {
 }
 
 found := false
-for (val v in someArray) {
+for (const v in someArray) {
     if (v == target) {
         found = true
         break // Will exit this loop but will not continue the loop.
@@ -1373,7 +1319,7 @@ if (x in range) {
     // Do something
 }
 
-for (val v in range) {
+for (const v in range) {
     fmt::println("v ", v)
 }
 
@@ -1410,7 +1356,7 @@ namespace main
 using fmt
 
 fn main() {
-    for (val i in 0 ..< 5) {
+    for (const i in 0 ..< 5) {
         defer println(i)
     }
     println("Hello world")
@@ -1461,25 +1407,22 @@ arr := [5]int{5, 6} // Array of 5 integers initialized to [5, 6, 0, 0, 0] or sho
 arr: [5]int = undefined // Array of 5 integers not initialized to anything.
 
 // Dynamic arrays
-let arr: []int // Array with length 0 and capacity 0
-arr := []int{} // Array with length 0 and capacity 0
-arr := []int{cap: 100} // Array with length 0 and capacity 100 initialized to []
-arr := []int{len: 3, cap: 100} // Array with length 5 and capacity 100 initialized to [0, 0, 0]
-arr := []int{len: 3, cap: 100, init: 2} // Array with length 5 and capacity 100 initialized to [2, 2, 2]
+let arr: []int // Array with length 0 and size 0
+arr := []int{} // Array with length 0 and size 0
+arr := []int{size: 100} // Array with length 0 and size 100 initialized to []
+arr := []int{len: 3, size: 100} // Array with length 5 and size 100 initialized to [0, 0, 0]
+arr := []int{len: 3, size: 100, init: 2} // Array with length 5 and size 100 initialized to [2, 2, 2]
+arr := []int{size: 100, init: [1, 2, 3]} // Array with length 5 and size 100 initialized to [1, 2, 3]
+arr := []int{init: [1, 2, 3]} // Array with length 3 and size 3 initialized to [1, 2, 3]
 
-arr := []int{len: 10, cap: 0} // Invalid, cap must be >= length
+arr := []int{len: 10, size: 0} // Invalid, size must be >= length
+arr := []int{len: 3, size: 100, init: [1, 2, 3]} // Invalid, len can't be specified if an array is given to init
 
-// Note that static arrays all have their cap specified (or use ?) inside [], or are directly set via [].
+// Note that static arrays all have their size specified (or use ?) inside [], or are directly set via [].
 // Dynamic arrays always have [] left blank. Dynamic arrays are also set differently.
 arr := []int{1, 2, 3} // Invalid. Dynamic arrays can't be set like this.
 arr: []int = [1, 2, 3] // Valid, dynamic.
 arr: [?]int = [1, 2, 3] // Valid, static.
-
-// Arrays created with the new keyword are dynamic
-arr := new [5]int // Dynamic array with length 0, capacity 5
-arr := new [n]int // Dynamic array with length 0, capacity n
-arr := new []int  // Dynamic array with length 0, capacity 0
-arr := new [?]int // Invalid.
 
 // Arrays are 0 indexed.
 arr := [1, 2, 3, 4, 5]
@@ -1502,15 +1445,15 @@ x := arr[y] // Runtime error.
 
 // To get the length of an array use the included len() function.
 assert(arr.len() == 5) // true
-// To get the capacity of an array use the included cap() function.
-assert(arr.cap() == 5) // true
-// To get the number of open slots in an array use the included slots() function.
-assert(arr.slots() == 0) // true
+// To get the capacity (size - length) of an array use the included cap() function.
+assert(arr.cap() == 0) // true
+// To get the size of an array use the included size() function.
+assert(arr.size() == 5) // true
 
-arr := []int{len: 5, cap: 100, init: 12} // [12, 12, 12, 12, 12]
+arr := []int{len: 5, size: 100, init: 12} // [12, 12, 12, 12, 12]
 assert(arr.len() == 5) // true
-assert(arr.cap() == 100) // true
-assert(arr.slots() == 95) // true
+assert(arr.size() == 100) // true
+assert(arr.cap() == 95) // true
 
 // To append to an array use the included append() function.
 // Will error on static arrays.
@@ -1518,6 +1461,9 @@ arr.append(4) // [5, 5, 5, 5, 5, 4]
 // Multiple values can be appended at once.
 arr.append(6, 7, 8, 9) // [5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
 arr.prepend(12) // [12, 5, 5, 5, 5, 5, 4, 6, 7, 8, 9]
+
+// Another way to append.
+arr << 12 // [12, 5, 5, 5, 5, 5, 4, 6, 7, 8, 9, 12]
 
 arr.clear() // []
 
@@ -1572,76 +1518,9 @@ str := "hello " ## "world" // String concatination.
 str.len()
 str.size()
 
-// [MAP] ------------------------------------------------------------------------------------------
-
-// Nifty has a built-in map type. I think this should just be in the nsl instead of built-in.
-// This should also return Optional<T> instead of T, bool.
-// TODO: Rewrite this for nsl eventually.
-
-m := map<string, int>() // The default value of a map is an empty map.
-defer delete m
-m["Alice"] = 12
-fmt::println(m["Alice"]) // Prints 12
-
-// To insert or update a value use
-m[key] = value
- 
-// To get a value use
-value = m[key]
-
-// If the keey is not in the map then the default value of the type is returned.
-m := map<string, int>()
-i := m["index"] // i will be 0
-
-// Checking if the key exists can be done in two ways:
-m := map<string, int>()
-if (i, ok := m["index"]; ok) { /- ... -/ } // i will be 0, ok will be false
-
-// or
-
-ok := "index" in m // ok will be false
-if (ok) { /- ... -/ }
-
-// The first example is the comma ok idiom from go and is the same as:
-i, ok := m["index"]
-if (ok) { /- ... -/ }
-
-// Maps can be initialized with map literals.
-
-m := map<string, int>{
-    "Alice": 12,
-    "Bob": 42
-}
-
-m := map<string, int>{} // Valid, empty map
-let m: map<string, int> // Valid, empty map
-m := map<string, int>() // Valid, empty map
-
-// len() can be used to get the number of items in a map
-assert(m.len() == 2) // true
-
-// To remove a key/value pair use the 'remove' function:
-m.remove(key)
-
-typedef Point struct { x, y: f64 }
-m := map<string, Point>{
-    "zero": {},
-    "start": {12.f, 42.f},
-    "stop": {142.f, 96.f}
-}
-
-// Because the value type is specified it is ok to not include the name of the fields.
-// Though it can be included.
-
-m := map<string, Point>{
-    "zero": Point{},
-    "start": Point{12.f, 42.f},
-    "stop": Point{x: 142.f, y: 96.f}
-}
-
 // [STRUCTS] --------------------------------------------------------------------------------------
 
-typedef Point struct {
+type Point struct {
     x: int
     y: int
 }
@@ -1660,7 +1539,7 @@ point := {x: 12, y: 42} // Invalid, other types could have an x and y.
 
 // Default values can be given for strcut fields.
 
-typedef Point3D struct {
+type Point3D struct {
     x: f64 = 100.f
     y: f64 = 100.f
     z: f64 = 1.f
@@ -1668,7 +1547,7 @@ typedef Point3D struct {
 
 // This allows structs to be uninitialized.
 
-typedef Point3D struct {
+type Point3D struct {
     x: f64 = undefined
     y: f64 = undefined
     z: f64 = undefined
@@ -1676,7 +1555,7 @@ typedef Point3D struct {
 
 // Default values can be blocked when declaring the variable.
 
-typedef Point struct {
+type Point struct {
     x: int = 12
     y: int = 42
 }
@@ -1684,7 +1563,7 @@ typedef Point struct {
 let p: Point = undefined
 x := p.x // Undefined behavior, x can be anything.
 
-typedef Point struct: undefined {
+type Point struct: undefined {
     x: int = 10
     y, z: int
 }
@@ -1692,7 +1571,7 @@ typedef Point struct: undefined {
 // or should it be ???
 
 #[undefined]
-typedef Point struct {
+type Point struct {
     x: int = 10
     y, z: int
 }
@@ -1701,7 +1580,7 @@ typedef Point struct {
 
 // Fields on a struct can be marked as required. Meaning that field must be specified when creating
 // an instance of the struct.
-typedef Foo struct {
+type Foo struct {
     bar: int #[required]
     baz: int
 }
@@ -1712,19 +1591,19 @@ foo := Foo{bar: 100, baz: 200} // Valid
 
 // If fields in a struct are of the same type then they can be on the same line.
 
-typedef Point3D struct { x, y, z: f64 }
+type Point3D struct { x, y, z: f64 }
 point := Point3D{y: 12.f, Z: 42.f} // Valid
 
 // You can also set fields on the same line to the same value.
-typedef Point3D struct { x, y, z: f64 = 100.f }
-typedef Point3D struct { x, y, z: f64 = undefined }
+type Point3D struct { x, y, z: f64 = 100.f }
+type Point3D struct { x, y, z: f64 = undefined }
 
 // Nifty supports embedded structs.
-typedef Size struct { w, h: int }
-typedef Position struct { x, y: f32 }
+type Size struct { w, h: int }
+type Position struct { x, y: f32 }
 
 // Size and Position are embedded into Button
-typedef Button struct {
+type Button struct {
     ...Size
     ...Position
     title: string
@@ -1733,7 +1612,7 @@ typedef Button struct {
 button := Button{x: 100, y: 100: w: 256, h: 64, title: "Yeet"}
 
 // Spread operator on struct instances.
-typedef Person struct {
+type Person struct {
     name: string
     age: int
     job: string
@@ -1750,31 +1629,18 @@ p := Person{name: "Joe", age: 27}
 p = assignJob(p, "Programmer")
 fmt::println(p.job) // Programmer
 
-// structs can have read only fields by using the const keyword.
-
-typedef Config struct {
-    const host: string  // Must be set on int, can't be changed.
-    const port: string  // Must be set on int, can't be changed.
-    name: string
-}
-
-typedef Config struct { const host, const port, name: string }
-
-cfg := Config{} // Invalid
-cfg := Config{host: "::", port: "7777"} // Valid
-
 // Struct pointer ownership
 
 // Adding @ to the end of a pointer type type indicates that the object pointed to is owned by the
 // struct and should be deleted when the struct is deleted.
 
-typedef Node struct { left, right: ^Node@ } // left and right are automatically deleted when the
+type Node struct { left, right: ^Node@ } // left and right are automatically deleted when the
                                          // struct object is deleted.
 
 // Structs can also have attributes.
 
 #[packed] // Will not add padding
-typedef Packed struct {
+type Packed struct {
     x: f64
     y: s16
 }
@@ -1783,7 +1649,7 @@ typedef Packed struct {
 // asstert_db statements will be inserted to verify the precondition.
 
 #[require {min <= max}]
-typedef Range struct { min, max: int }
+type Range struct { min, max: int }
 
 range := Range{2, 1} // Invalid
 
@@ -1799,7 +1665,7 @@ require {code}
 
 // Attributes can be applied to struct fields as well.
 
-typedef Person struct {
+type Person struct {
     id:        int        #[json("id"), norm("index")]
     name:      string     #[json("name")]
     holding:   []string   #[json("holding"), omitempty]
@@ -1813,7 +1679,7 @@ typedef Person struct {
 // these are methods and not ordinary functions. The fn keyword can be used as 
 // well if preferred. The md keyword can't be used outside an impl.
 
-typedef Collection struct {
+type Collection struct {
     list: []int
     _average: float // Private variable
 }
@@ -1840,7 +1706,7 @@ md average(): float {
 // Private function
 md _calculateAverage() {
     total := 0
-    for (val num in list) {
+    for (const num in list) {
         total += num
 	}
 
@@ -1900,7 +1766,7 @@ collection.add(12)
 
 namespace some_lib
 
-typedef SomeStruct struct {
+type SomeStruct struct {
     // ...
 }
 
@@ -1932,7 +1798,7 @@ impl some_lib::SomeStruct // Compiler error.
 
 // To print a struct type use the fmt::Printable behavior.
 
-typedef Color struct { r, g, b: u8 }
+type Color struct { r, g, b: u8 }
 
 impl Color does fmt::Printable
 
@@ -1953,7 +1819,7 @@ fmt::println("The color is {}.", color)
 // receiver argument is in brackets right before the functions parentheses. The struct type name
 // can be used for the type.
 
-typedef Thing struct {
+type Thing struct {
     x: int
 }
 
@@ -1999,7 +1865,7 @@ thing.printX()
 
 // Methods can be added to any type.
 
-#[distinct, initTo(1)] typedef Month as int
+#[distinct, initTo(1)] type Month as int
 
 impl Month does fmt::Printable
 
@@ -2018,8 +1884,6 @@ let month: Month
 fmt::println(month) // Prints January.
 month++
 fmt::println(month) // Prints February.
-
-// Maybe this should not apply to built in types.
 
 impl int
 
@@ -2049,18 +1913,17 @@ if (x.isEven()) {
 
 use math
 
-typedef Rect struct { w, h: f64 }
-typedef Circle struct { r: f64 }
+type Rect struct { w, h: f64 }
+type Circle struct { r: f64 }
 
-typedef Geometry behavior {
+type Geometry behavior {
     area(): f64
     perim(): f64
     kind: string
 }
 
-typedef Arc behavior {
+type Arc behavior {
     partialArea(percent: f64): f64 // The argument name is optional here.
-    partialArea(f64): f64 // The same
 }
 
 impl Rect does Geometry
@@ -2109,16 +1972,16 @@ fn printArea(shape: does Geometry) {
 // printArea accepts any type that does Geometry.
 
 // This is the same as the above.
-fn printArea<typedef T: Geometry>(shape: T) {
+fn printArea<T: Geometry>(shape: T) {
     fmt::println(shape.area())
 }
 
 // This function is fine and allows for shape1 and shape2 to be different types.
 fn printAreas(shape1, shape2: does Geometry) { /- ... -/ }
-fn printAreas<typename T: Geometry, typename U: Geometry>(shape1: T, shape2: U) { /- ... -/ } // Same as above.
+fn printAreas<T: Geometry, U: Geometry>(shape1: T, shape2: U) { /- ... -/ } // Same as above.
 
 // To require that shape1, and shape2 be the same type
-fn printAreas<typename T: Geometry>(shape1, shape2: T) { /- ... -/ }
+fn printAreas<T: Geometry>(shape1, shape2: T) { /- ... -/ }
 
 // Multiple behaviors can be required.
 fn printAreaAndShape(shape: does Geometry & fmt::Printable) {
@@ -2126,23 +1989,23 @@ fn printAreaAndShape(shape: does Geometry & fmt::Printable) {
     fmt::println(shape)
 }
 
-fn printAreaAndShape<typename T: Geometry & fmt::Printable>(shape: T) { /- ... -/ }
+fn printAreaAndShape<T: Geometry & fmt::Printable>(shape: T) { /- ... -/ }
 
 // This works for structs as well.
-typedef Shape struct {
+type Shape struct {
     geometry: does Geometry
     otherVar: int
 }
 
 // Is the same as:
-typedef Shape<typename T: Geometry> struct {
+type Shape<T: Geometry> struct {
     geometry: T
     otherVar: int
 }
 
 // Behaviors can be combined into new behviors via type intersections.
 
-typedef PrintableGeometry as Geometry & fmt::Printable
+type PrintableGeometry as Geometry & fmt::Printable
 
 impl Rect does PrintableGeometry
 // ...
@@ -2151,15 +2014,15 @@ endimpl
 // Type intersections can only be used with behaviors.
 // If two behaviors have conflicting symbols then the name of the bahavior must be used.
 
-typedef Drawable behavior {
+type Drawable behavior {
     draw()
 }
 
-typedef Text behavior {
+type Text behavior {
     draw()
 }
 
-typedef UiText struct {}
+type UiText struct {}
 
 impl UiText does Drawable, Text
 
@@ -2179,7 +2042,7 @@ t.Drawable::draw()
 // Behaviors can have overridable function implementations
 
 #[requireConstImpl]
-typedef Allocator behavior {
+type Allocator behavior {
     alloc(): rawptr
     free()
     
@@ -2193,7 +2056,7 @@ typedef Allocator behavior {
 // These overridable function implementations can't be called directly from the behavior but if a
 // struct impl does the behavior it "inherits" that function.
 
-typedef MyAllocator struct {}
+type MyAllocator struct {}
 
 constimpl MyAllocator does mem::Allocator
 
@@ -2210,7 +2073,7 @@ allocator.printStats() // Prints number of bytes allocated.
 // These overridable function implementations can access any variables defined in the behavior but
 // not variables in the struct that implements the behavior.
 
-typedef MyAllocator struct {
+type MyAllocator struct {
     freed: int
 }
 
@@ -2231,7 +2094,7 @@ allocator.printStats() // Prints number of bytes allocated and freed.
 
 // [ENUMS] ----------------------------------------------------------------------------------------
 
-typedef Token enum {
+type Token enum {
     TK_STRING,
     TK_NUMBER,
     TK_BOOL,
@@ -2241,7 +2104,7 @@ typedef Token enum {
 
 // The above example is just like enums in c/c++. So TK_STRING = 0, TK_NUMBER = 1 ...
 
-typedef Token enum {
+type Token enum {
     TK_STRING,
     TK_NUMBER,
     TK_BOOL = 5,
@@ -2254,7 +2117,7 @@ typedef Token enum {
 
 // The values in an enum must be unique.
 
-typedef Token enum {
+type Token enum {
     TK_STRING,
     TK_NUMBER,
     TK_BOOL = 5,
@@ -2263,26 +2126,26 @@ typedef Token enum {
 }
 
 // More advanced patterns can be used as well for the increments.
-typedef EvensForSomeReason enum {
+type EvensForSomeReason enum {
     unused = #jot * 2,
     First,  // 2
     Second, // 4
     Third,  // 6
 }
 
-typedef EvensForSomeReason enum {
+type EvensForSomeReason enum {
     First = (#jot + 1) * 2,  // 2
     Second, // 4
     Third,  // 8
 }
 
-typedef Permission enum {
+type Permission enum {
     Read = 1 << #jot, // 00000001
     Write,            // 00000010
     Delete,           // 00000100
 }
 
-typedef MemSize enum {
+type MemSize enum {
     unused = 1 << (#jot * 10),
     KB, // dec: 1024       bin: 00000000000000000000010000000000
     MB, // dec: 1048576    bin: 00000000000100000000000000000000
@@ -2293,12 +2156,12 @@ typedef MemSize enum {
 
 // Enums can be types other than int. When this is the case all enumerators must be specified.
 
-typedef Numbers enum: f64 {
+type Numbers enum: f64 {
     PI = 3.14159,
     E = 2.71828,
 }
 
-typedef Animals enum: string {
+type Animals enum: string {
     Aardvark = "Aardvark",
     Cat = "Cat",
     Dog = "Dog",
@@ -2316,7 +2179,7 @@ name = name_of(num, Numbers) // 'name' is an empty string.
 
 // using can be used on enums.
 
-typedef Numbers enum: f64 {
+type Numbers enum: f64 {
     PI = 3.14159,
     E = 2.71828,
 }
@@ -2328,7 +2191,7 @@ using Numbers // Bring Numbers enumerations into the current scope.
 num := PI // Valid
 e := Numbers.E // Unlike with namespaces the name can still be used with using.
 
-typedef Direction enum {
+type Direction enum {
     North,
     South,
     East,
@@ -2358,7 +2221,7 @@ when (dir) {
 
 // Functions can be implemented on enums as well.
 
-typedef Color enum {
+type Color enum {
     Yellow,
     Red,
     Green,
@@ -2384,84 +2247,12 @@ endimpl
 c := Color.Green
 assert(c.isGreen()) // True
 
-// [OPERATOR OVERLOADING] -------------------------------------------------------------------------
-
-// Nifty will not have operator overloading. Leaving this section in anyways.
-
-// Still haven't decided if nifty will have operator overloading. But if it does this is how it 
-// will work. (Or it will only allow overloading related to [])
-
-// Operator overloading is done in struct implementations via attributes.
-
-typedef Point struct { x, y: f64 }
-
-impl Point
-
-#[overloads("+")]
-md addPoints(other: Point): Point {
-    return Point{x + other.x, y + other.y}
-}
-
-#[overloads("+")]
-md addf64(scalar: f64): Point {
-    return Point{x + scalar, y + scalar}
-}
-
-endimpl
-
-// The following operators are overloadable:
-// +, -, *, /, <<, >>, !, [], []=, [:], +=, -=, *=, /=, ==, !=, >, <, >=, <=, =, ++, --, in
-// Unary +, -, and ++, -- are special cases.
-
-#[overloads("+unary")] // +point
-#[overloads("-unary")] // -point
-
-#[overloads("++postfix")] // point++
-#[overloads("++prefix")] // ++point
-
-#[overloads("--postfix")] // point--
-#[overloads("--prefix")] // --point
-
-// What if you wanted to do
-5.f + point // Invalid
-
-// Because operator overloads are implemented on structs the struct object must be on the left.
-point + 5.f // Valid
-
-// Operator overloads work with bahaviors too.
-
-typedef Addable behavior {
-    #[overloads("+")]
-    add(other: Self): Self // Use Self to indicate that the function will return the type of the
-                              // struct impl that does this behavior.
-    #[overloads("-")]
-    sub(other: Self): Self
-}
-
-typedef Vec2 struct { x, y: f32 }
-
-impl Vec2 does Addable
-
-// Self can be used as the type.
-#[overloads("+")]
-md add(other: Self): Self {
-    return Vec2{x + other.x, y + other.y}
-}
-
-// Or the name of the struct can be used as the type.
-#[overloads("-")]
-md sub(other: Vec2): Vec2 {
-    return Vec2{x - other.x, y - other.y}
-}
-
-endimpl
-
 // [UNION TYPES] ----------------------------------------------------------------------------------
 // tagged unions
 
 // Nifty has union types.
 
-typedef Value as bool | s32 | f128 | string
+type Value as bool | s32 | f128 | string
 
 // When using union types like this the default value is the default for the first type in the
 // union.
@@ -2522,11 +2313,11 @@ aFloat = type_from(v) == f128 ? v : 0 // Another psossible way to handle it.
 
 // [GENERICS] -------------------------------------------------------------------------------------
 
-fn add<typename T>(a, b: T): T {
+fn add<T>(a, b: T): T {
     return a + b
 }
 
-typedef Point<typename T> struct {
+type Point<T> struct {
     x: T
     y: T
 }
@@ -2534,12 +2325,12 @@ typedef Point<typename T> struct {
 // What if you wanted to store more than just int in the Collection struct above?
 // Well then you would need to use generics.
 
-typedef Collection<typename T> struct {
+type Collection<T> struct {
     list: []T
     _average: float // Private variable
 }
 
-impl Collection<typename T>
+impl Collection<T>
 
 md init(size := 0) {
     list = []T{size: size}
@@ -2557,7 +2348,7 @@ md average(): float {
 // Private function
 md _calculateAverage() {
     total := 0
-    for (val num in list) {
+    for (const num in list) {
         total += num
 	}
 
@@ -2575,7 +2366,7 @@ impl Collection<int>
 
 md sum(): int {
     total := 0
-    for (val num in list) {
+    for (const num in list) {
         total += num
 	}
 }
@@ -2596,36 +2387,36 @@ sumF32 := collectionF32->sum() // Comile error
 
 // You can specify what types are allowed to be used
 
-typedef Vec3<T: int | float | double> struct {
+type Vec3<T: int | float | double> struct {
     x: T
     y: T
     z: T
 }
 
-fn add<typename T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
-fn sub<typename T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
+fn add<T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
+fn sub<T: int | float | double>(a, b: Vec3<T>) { /- ... -/ }
 
 // To make using multiple types like this easier you can use union types.
 
-typedef IFD as int | float | double
+type IFD as int | float | double
 
 // The above struct and functions could be re-writen like:
 
-typedef IFD as int | float | double
-typedef Vec3<typename T: IFD> struct { x, y, z: T }
+type IFD as int | float | double
+type Vec3<T: IFD> struct { x, y, z: T }
 
 fn add<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
 fn sub<T: IFD>(a, b: Vec3<T>) { /- ... -/ }
 
 // If you want to make the above struct work so that any type of number can be used, but only numbers
 // you can use the #number built-in macro.
-typedef Vec3<T: #number> struct { /- ... -/ }
+type Vec3<T: #number> struct { /- ... -/ }
 
 // Or if you only want to allow only all floating types only you can use the #decimal built-in macro.
-typedef Vec3<T: #decimal> struct { /- ... -/ }
+type Vec3<T: #decimal> struct { /- ... -/ }
 
 // Or if you only want to allow only all integer types only you can use the #integer built-in macro.
-typedef Vec3<T: #integer> struct { /- ... -/ }
+type Vec3<T: #integer> struct { /- ... -/ }
 
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
 // enough to merit three dedicated keywords.
@@ -2644,7 +2435,7 @@ fn add<T: IFD>(a, b: T) { /- ... -/ }
 fn add<T: #decimal>(a, b: T) { /- ... -/ }
 
 // Type 'void' can not be used as a type for generics.
-typedef Thing<typename T> struct { /- ... -/ }
+type Thing<T> struct { /- ... -/ }
 let thing: Thing<void> // Invalid
 impl Thing<void> // Invalid
 
@@ -2669,7 +2460,7 @@ const z = 12
 ptr := &z
 ptr^ = 42 // Invalid
 
-val z = getInt()
+const z = getInt()
 ptr := &z
 ptr^ = 42 // Invalid
 
@@ -2813,10 +2604,10 @@ fn otherFunc() {
     add(2, 2)
 }
 
-typedef AddFn as fn(int, int): int
+type AddFn as fn(int, int): int
 
 fn add(a, b: int): int { /- ... -/ }
-typedef AddFn as type_from(add) // Also works
+type AddFn as type_from(add) // Also works
 
 // [MEMORY] ---------------------------------------------------------------------------------------
 
@@ -2848,7 +2639,7 @@ namespace custom_alloc
 
 use mem
 
-typedef CustomAlloc struct {} // The struct doesn't (technically) need any fields.
+type CustomAlloc struct {} // The struct doesn't (technically) need any fields.
 
 constimpl CustomAlloc does mem::Allocator
 
@@ -2894,7 +2685,7 @@ fn someFunc(): Optional<string> {
     return null // Return doen't have a value.
 }
 
-val opt = someFunc()
+const opt = someFunc()
 str := opt.valueElse("yeet") // str will be yeet if opt has no value, otherwise it is the contained value.
 
 // Or
@@ -3133,6 +2924,7 @@ test "test error" {
     res ::= someFunc(badData)
     try expectError(res)
     try expectErrorToBe(res, Error("bad data"))
+    
 }
 
 #[timeout(100)] // Set the timeout for this specific test to 100 seconds.
@@ -3206,7 +2998,7 @@ fn someFunc[ctx: ^NiftyContext](x: int) {
 
 // The context struct will look something like this:
 
-typedef NiftyContext struct {
+type NiftyContext struct {
     allocator: does Allocator
     allocatorTmp: does Allocator
     assertionFailure: fn(prefix, msg: string, loc: SourceLocation)
@@ -3360,54 +3152,6 @@ compileTimeEnv := #env("SOME_VAR")
 #assert(condition: bool, msg: string = "") // Compiletime assert. Will cause a compiler error with
                                            // with the optional message on failure.
 
-// [SIGNALS AND SLOTS] ----------------------------------------------------------------------------
-
-// Probably not.
-
-// Instead of callbacks signals and slots can be used in Nifty. When a signal is emitted the
-// corresponding slot or slots are called. This system is type safe so the signature of the signal
-// and the slot must match. When a signal is emitted the emitter neither knows nor cares which slots
-// receive the signal. If a signal is emitted all the corresponding slot will reveive it.
-// Signals and slots can either be standalone functions or methods implemented on a struct. The
-// two different types can be mixed. For instance a function can emit a signal that is recieved by
-// a slot method. Signals do not have implementations and thus must use undefined for the body.
-// Slots on the other hand do have implementations so the fn or md keyword is required. This means
-// that slots can be called like any normal function or method. One signal can be connected to many
-// slots and vice versa. Signals can even be connected to other signals. When this is the case when
-// the signal is emitted the signal connected to it is also immediatly emitted. If multiple signals
-// or slots are connected togther they are executed in the order they were connected.
-// Signals and slots can be slower than just using callbacks because there are runtime checks that
-// happen in the background to make sure the calls to any objects are safe. However in almost all
-// cases the convenience and flexability is worth the overhead.
-
-// Signals must never return a type, they must be void and they must be undefined.
-#[signal]
-fn valueChanged(newVal: int) undefined
-
-// Slots can return a type as they are otherwise normal functions. However in many cases the return
-// value will be discarded. Because of this the #[useReturn] attribute can't be used with slots.
-// A warning will be emitted if a slot returns something.
-#[slot]
-fn setValue(newVal: int) {
-    someVal = newVal
-}
-
-#connect_fn(valueChanged, setValue)
-
-// Optionally the types can be specified.
-#connect_fn(valueChanged(int), setValue(int))
-
-// ...
-
-emit valueChanged(changedVal)
-
-#connect_fn(emitterFn, receiverFn)
-#connect_md(^emitter, Emitter::method, ^receiver, Receiver::method)
-#connect_fn_md(emitterFn, ^receiver, Receiver::method)
-#connect_md_fn(^emitter, Emitter::method, receiverFn)
-
-emit emitterFn()
-
 // [ORM] ------------------------------------------------------------------------------------------
 
 // The ORM is Called Norm (Nifty Object Relational Mapping).
@@ -3416,7 +3160,7 @@ emit emitterFn()
 // goal and would likely be one of the last parts of the language to be worked on.
 
 #[normTable("people")]
-typedef Person struct {
+type Person struct {
     id:        int        #[norm("primaryKey, autoIncrement")]
     name:      string     #[norm("notNull")]
     userName:  string     #[norm("notNull, unique")]
@@ -3476,7 +3220,7 @@ typeinfo_of() // Returns TypeInfo struct (?)
 num := 42.f
 assert(size_of(num) == 4) // true
 
-typedef Point struct {
+type Point struct {
     x: f32
     y: f32
 }
@@ -3504,7 +3248,7 @@ use extern "libc.lib" as libc // Because c libraries don't have namespaces 'as' 
 
 // Let nifty know what is in the libc namespace.
 extern libc {
-    typedef size_t as uint
+    type size_t as uint
     
     EOF ::= -1
     stderr: ^FILE
@@ -3660,11 +3404,9 @@ unsafeMathOptimization = bool
 // Disabled by default. Enabled with optimization="fast", or fastMath=true
 
 // Options that are enabled by other options such as finiteMathOnly can overwrite those options.
-optimization = "fast"
-finiteMathOnly = false // All the other optiomizations from "fast" are still enabled.
+optimization="fast"
+finiteMathOnly=false // All the other optiomizations from "fast" are still enabled.
 
-// Where to look for namespaces.
-includeDirectories = [string]
 
 /-
 
@@ -3788,12 +3530,11 @@ void
 typeid
 rawptr uintptr
 let
-val
+const
 const
 fn
 md
-typedef
-emit
+type
 
 // Keywords that can be used as variables/function names
 test

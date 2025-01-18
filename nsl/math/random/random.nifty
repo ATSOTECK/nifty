@@ -274,7 +274,7 @@ fn choice<T>(arr: []T): T {
 
 // Returns, as a slice of n ints, a pseudo-random permutation of the integers in the range [0,n).
 fn perm(n: int, random?: ^Random = null): []int {
-    m := make([]int, n)
+    m := new [n]int
     
     for (i := 1; i < n; ++i) {
         j := integern(i + 1, random)

@@ -1,0 +1,38 @@
+package nsl namespace log
+
+use io
+use fmt
+
+typedef Level enum {
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Fatal,
+    None,
+}
+
+typedef Logger struct {
+    writer ^io::Writer
+    level Level
+}
+
+let _logger: ^Logger
+
+fn setLogger(logger ^Logger): error? {
+    if logger == null {
+        return fmt::errorf("error logger is null")
+    }
+    
+    delete _logger
+    _logger = logger
+    
+    return null
+}
+
+fn bla() {
+    err := setLogger(logger)
+    if err != null {
+        fmt::println(err.msg())
+    }
+}

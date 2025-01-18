@@ -95,6 +95,42 @@ typedef struct {
     CompilerConfig *compilerConfig;
 } Parser;
 
+enum TypeKind {
+    TYPE_U8,
+    TYPE_U16,
+    TYPE_U32,
+    TYPE_U64,
+    TYPE_U28,
+    TYPE_S8,
+    TYPE_S16,
+    TYPE_S32,
+    TYPE_S64,
+    TYPE_S28,
+    TYPE_F32,
+    TYPE_F64,
+    TYPE_F128,
+    TYPE_B8,
+    TYPE_B16,
+    TYPE_B32,
+    TYPE_B64,
+    
+    TYPE_STRING,
+    TYPE_CHAR,
+    
+    TYPE_ARRAY,
+    TYPE_SLICE,
+    TYPE_STRUCT,
+    TYPE_ENUM,
+    
+    TYPE_POINTER,
+    TYPE_UINTPTR,
+    
+    TYPE_TYPE_ID,
+    
+    TYPE_ANY,
+    TYPE_NONE,
+};
+
 typedef struct {
     Token name;
     int depth;

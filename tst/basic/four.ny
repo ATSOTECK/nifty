@@ -1,4 +1,6 @@
-package four
+namespace four
+
+namespace two
 
 fn add(x: int, y: int): int {
     return x + y

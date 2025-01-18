@@ -1,19 +1,19 @@
 package pi
 
-using <fmt>
-use <math/random>
-use <time>
+using fmt
+use math::random
+use time
 
 fn estimatePi(numPoints: int): f64 {
     let x, y, rSquared: f64 = undefined
     let withinCircle: int
     
-    for (i := 0; i < numPoints; ++i) {
+    for i := 0; i < numPoints; ++i {
         x = random::float64()
         y = random::float64()
         
         rSquared = x * x + y * y
-        if (rSquared <= 1) {
+        if rSquared <= 1 {
             ++withinCircle
         }
     }
@@ -25,7 +25,7 @@ fn estimatePi(numPoints: int): f64 {
 fn main() {
     avgTime := 0.0
     
-    for (0 ..< 10) {
+    for 0 ..< 10 {
         start ::= time::unixMilli()
         pi    ::= estimatePi(10_000_000)
         stop  ::= time::unixMilli()

@@ -173,7 +173,7 @@ void printHelp(conststr cmd) {
             dbln();
         }
 
-        printStrsWithSpacer("info", '-', "Prints compiler information.", width);
+        printStrsWithSpacer("info", '-', "Prints nifty compiler information.", width);
 
         if (!printAll) {
             return;
@@ -276,6 +276,10 @@ void printHelp(conststr cmd) {
 
     if (!str_empty(cmd) && !printAll) {
         println("Unknown help input '%s'.\n", cmd);
+    }
+
+    if (printAll) {
+        dbln();
     }
 
     println("Usage: nifty [command] <inputs> <flags>\n");

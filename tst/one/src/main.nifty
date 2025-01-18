@@ -3,7 +3,7 @@
  - Copyright (c) 2024 Skyler Burwell
  -/
 
-package one
+namespace one
 
 use "foobar"
 

@@ -1,4 +1,4 @@
-// Basic test with the global package.
+// Basic test with the global namespace.
 
 fn add(x, y: int): int {
     return x + y
