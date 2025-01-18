@@ -25,6 +25,8 @@
 
 #include "lexer.h"
 
+#include "common.h"
+
 typedef struct Node Node;
 
 typedef struct {
@@ -59,7 +61,7 @@ struct Node {
     NodeKind kind;
 
     union {
-        struct PrototypeNode { string name; } prototypeNode;
+        struct PrototypeNode { char *name; } prototypeNode;
 
         struct BlockNode { Nodes statements; } blockNode;
         struct ReturnNode { Node *statement; } returnNode;
@@ -75,7 +77,7 @@ struct Node {
 
 // One results per file.
 typedef struct {
-    conststr file;
+    const char *file;
     Nodes nodes;
     int errorCount;
 
@@ -88,8 +90,8 @@ typedef struct {
     Token next;
     bool hadError;
     bool panicMode;
-    string currentImpl;
-    string package;
+    char *currentImpl;
+    char *package;
 
     ParseResults *results;
     CompilerConfig *compilerConfig;
@@ -139,6 +141,6 @@ typedef struct {
     bool unused; // If unused warning on debug, error on release.
 } Local;
 
-ParseResults *parseFile(conststr file, CompilerConfig *config);
+ParseResults *parseFile(const char *file, CompilerConfig *config);
 
 #endif //NIFTY_PARSER_H

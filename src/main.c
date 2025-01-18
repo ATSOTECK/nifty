@@ -32,12 +32,10 @@
 #   include <unistd.h>
 #endif
 
-#include <stdint.h>
-
 #include "project.h"
 #include "util/help.h"
 
-static void printColors(ProjectInfo *info) {
+static void printColors(const ProjectInfo *info) {
     if (info != nullptr && info->config.disableColors) {
         println("Use of colors is disabled.");
         return;
@@ -49,22 +47,22 @@ static void printColors(ProjectInfo *info) {
     printf(RESET_COLOR);
 }
 
-int main(int argc, char **argv) {
-    bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
+int main(const int argc, char **argv) {
+    const bool buildFileFound = access(NIFTY_BUILD_FILE, F_OK) == 0;
     ProjectInfo *projectInfo = nullptr;
     if (buildFileFound) {
         projectInfo = loadProject();
     }
 
     if (argc >= 2) {
-        string cmd = argv[1];
+        const char *cmd = argv[1];
 
         if (str_eq2(cmd, "help", "-h")) {
             printHelp(argv[2]);
         } else if (str_eq2(cmd, "version", "-v")) {
             println("%s", NIFTY_VERSION);
         } else if (str_eq2(cmd, "info", "-i")) {
-            string installedLocation = str_new("unknown", nullptr);
+            char *installedLocation = str_new("unknown", nullptr);
 #ifdef N_WIN
             uint32_t size = 1024;
             string loc = str_new_empty(size);
@@ -74,7 +72,7 @@ int main(int argc, char **argv) {
 #endif
 #ifdef N_MAC
             uint32_t size = 1024;
-            string loc = str_new_empty(size);
+            char *loc = str_new_empty(size);
             if (_NSGetExecutablePath(loc, &size) == 0) {
                 installedLocation = str_copy(installedLocation, loc);
                 str_delete(loc);

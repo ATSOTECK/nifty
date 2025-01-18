@@ -25,12 +25,8 @@
 
 #include "../common.h"
 
-#include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
-
-typedef char* string;
-typedef const char* conststr;
 
 bool isAlpha(char c);
 bool isDigit(char c);
@@ -38,39 +34,39 @@ bool isOctDigit(char c);
 bool isHexDigit(char c);
 bool isAlphaNumeric(char c);
 
-int str_len(conststr str);
-void str_cpy(register string dst, register conststr src);
-void str_cpyn(register string dst, register int n, register conststr src);
+int str_len(const char *str);
+void str_cpy(register char *dst, register const char *src);
+void str_cpyn(register char *dst, register int n, register const char *src);
 
-string str_new(conststr s, int *len);
-string str_new_len(conststr s, int len);
-string str_new_fmt(conststr s, int *len, conststr fmt, ...);
-string str_new_empty(size_t size);
+char *str_new(const char *s, int *len);
+char *str_new_len(const char *s, int len);
+char *str_new_fmt(const char *s, int *len, const char *fmt, ...);
+char *str_new_empty(size_t size);
 
-void str_delete(string s);
+void str_delete(char *s);
 
-bool str_eq(conststr s1, conststr s2);
-bool str_eq2(conststr s1, conststr s2, conststr s3);
-bool str_eq_len(conststr s1, conststr s2, int len);
+bool str_eq(const char *s1, const char *s2);
+bool str_eq2(const char *s1, const char *s2, const char *s3);
+bool str_eq_len(const char *s1, const char *s2, int len);
 
-string str_copy(string dst, conststr src);
+char *str_copy(char *dst, const char *src);
 
-bool str_empty(conststr s);
-void str_clear(string s);
+bool str_empty(const char *s);
+void str_clear(char *s);
 
-void str_tolower(string s);
-void str_toupper(string s);
+void str_tolower(char *s);
+void str_toupper(char *s);
 
-void str_clip_nl(string s);
+void str_clip_nl(char *s);
 
-void str_fgets(string s, int len, FILE *f, conststr defaultAnswer);
+void str_fgets(char *s, int len, FILE *f, const char *defaultAnswer);
 
-string str_get_line(conststr src, int line, int *len);
+char * str_get_line(const char *src, int line, int *len);
 
-void println(conststr fmt, ...);
+void println(const char *fmt, ...);
 void dbln();
-void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width);
+void printStrsWithSpacer(const char *s1, char spacer, const char *s2, int width);
 
-void setTextColor(CompilerConfig *cfg, conststr color);
+void setTextColor(const CompilerConfig *cfg, const char *color);
 
 #endif //NIFTY_STR_H

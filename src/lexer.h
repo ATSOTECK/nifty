@@ -23,8 +23,6 @@
 #ifndef __NIFTY_LEXER_H__
 #define __NIFTY_LEXER_H__
 
-#include "util/str.h"
-
 typedef enum {
     TK_UNKNOWN = 0,
     
@@ -54,7 +52,7 @@ typedef enum {
     TK_DEFER_ERR,
     TK_RESTRICT,
     
-    TK_TYPE,
+    TK_TYPEDEF,
     TK_FOR,
     TK_WHILE,
     TK_UNTIL,
@@ -76,6 +74,7 @@ typedef enum {
     
     TK_USE,
     TK_USING,
+    TK_NAMESPACE,
     TK_PACKAGE,
     TK_API,
     TK_EXTERN,
@@ -226,22 +225,22 @@ typedef enum {
 
 typedef struct {
     NiftyTokenType type;
-    conststr lexeme;
+    const char *lexeme;
     int len;
     int line;
     int pos;
 } Token;
 
 typedef struct {
-    string source;
-    conststr start;
-    conststr current;
+    char *source;
+    const char *start;
+    const char *current;
     char prev;
     int line;
     int linePos;
 } Lexer;
 
-Lexer *initLexer(conststr filename);
+Lexer *initLexer(const char *filename);
 void freeLexer(Lexer *lexer);
 
 Token nextToken(Lexer *lexer);

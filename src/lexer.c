@@ -24,7 +24,9 @@
 
 #include <stdlib.h>
 
-static string stringFromFile(conststr filename) {
+#include "util/str.h"
+
+static char *stringFromFile(const char *filename) {
     if (filename == nullptr) {
         return nullptr;
     }
@@ -45,10 +47,10 @@ static string stringFromFile(conststr filename) {
 #endif
 
     fseek(file, 0, SEEK_END);
-    long length = ftell(file);
+    const long length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    string ret = (string)malloc(length + 1);
+    char *ret = (char *)malloc(length + 1);
     if (ret == nullptr) {
         println("Out of memory.");
         return nullptr;
@@ -60,7 +62,7 @@ static string stringFromFile(conststr filename) {
     // Filter out '\r'
     size_t offset = 0;
     for (size_t i = 0; i < length - offset; ++i) {
-        char c = ret[i + offset];
+        const char c = ret[i + offset];
         if (c == '\r') {
             ++offset;
             --i;
@@ -78,7 +80,7 @@ static string stringFromFile(conststr filename) {
     return ret;
 }
 
-Lexer *initLexer(conststr filename) {
+Lexer *initLexer(const char *filename) {
     Lexer *lexer = (Lexer*)malloc(sizeof(Lexer));
     
     lexer->source = stringFromFile(filename);
@@ -96,11 +98,11 @@ void freeLexer(Lexer *lexer) {
     free(lexer);
 }
 
-static inline bool atEnd(Lexer *lexer) {
+static inline bool atEnd(const Lexer *lexer) {
     return *lexer->current == '\0';
 }
 
-static Token makeToken(Lexer *lexer, NiftyTokenType type) {
+static Token makeToken(const Lexer *lexer, const NiftyTokenType type) {
     Token token;
     token.type = type;
     token.lexeme = lexer->start;
@@ -111,7 +113,7 @@ static Token makeToken(Lexer *lexer, NiftyTokenType type) {
     return token;
 }
 
-static Token errorToken(Lexer *lexer, conststr msg) {
+static Token errorToken(const Lexer *lexer, const char *msg) {
     Token token;
     token.type = TK_INTERNAL_ERROR;
     token.lexeme = msg;
@@ -129,11 +131,11 @@ static char advance(Lexer *lexer) {
     return lexer->current[-1];
 }
 
-inline static char peek(Lexer *lexer) {
+inline static char peek(const Lexer *lexer) {
     return *lexer->current;
 }
 
-inline static char peekNext(Lexer *lexer) {
+inline static char peekNext(const Lexer *lexer) {
     if (atEnd(lexer)) {
         return '\0';
     }
@@ -143,7 +145,7 @@ inline static char peekNext(Lexer *lexer) {
 
 static void skipWhitespace(Lexer *lexer) {
     for (;;) {
-        char c = peek(lexer);
+        const char c = peek(lexer);
         switch (c) {
             case ' ':
             case '\r':
@@ -187,7 +189,7 @@ static void skipWhitespace(Lexer *lexer) {
     }
 }
 
-static NiftyTokenType checkKeyword(Lexer *lexer, int start, int len, conststr rest, NiftyTokenType type) {
+static NiftyTokenType checkKeyword(const Lexer *lexer, const int start, const int len, const char *rest, const NiftyTokenType type) {
     if (lexer->current - lexer->start == start + len && str_eq_len(lexer->start + start, rest, len)) {
         return type;
     }
@@ -195,8 +197,8 @@ static NiftyTokenType checkKeyword(Lexer *lexer, int start, int len, conststr re
     return TK_IDENT;
 }
 
-static NiftyTokenType checkKeyword2(Lexer *lexer, int start, int len, conststr rest, NiftyTokenType type, int len2, conststr rest2, NiftyTokenType type2) {
-    NiftyTokenType tokenType = checkKeyword(lexer, start, len, rest, type);
+static NiftyTokenType checkKeyword2(const Lexer *lexer, const int start, const int len, const char *rest, const NiftyTokenType type, const int len2, const char *rest2, const NiftyTokenType type2) {
+    const NiftyTokenType tokenType = checkKeyword(lexer, start, len, rest, type);
     if (tokenType == TK_IDENT) {
         return checkKeyword(lexer, start, len2, rest2, type2);
     }
@@ -204,7 +206,7 @@ static NiftyTokenType checkKeyword2(Lexer *lexer, int start, int len, conststr r
     return tokenType;
 }
 
-static bool match(Lexer *lexer, char expected) {
+static bool match(Lexer *lexer, const char expected) {
     if (atEnd(lexer)) {
         return false;
     }
@@ -217,7 +219,7 @@ static bool match(Lexer *lexer, char expected) {
     return true;
 }
 
-static NiftyTokenType checkUInts(Lexer *lexer) {
+static NiftyTokenType checkUInts(const Lexer *lexer) {
     if (str_eq_len(lexer->start + 1, "32", 2)) {
         return TK_U32;
     }
@@ -243,7 +245,7 @@ static NiftyTokenType checkUInts(Lexer *lexer) {
     return TK_IDENT;
 }
 
-static NiftyTokenType checkSInts(Lexer *lexer) {
+static NiftyTokenType checkSInts(const Lexer *lexer) {
     if (str_eq_len(lexer->start + 1, "32", 2)) {
         return TK_S32;
     }
@@ -263,7 +265,7 @@ static NiftyTokenType checkSInts(Lexer *lexer) {
     return TK_IDENT;
 }
 
-static NiftyTokenType checkBoolTypes(Lexer *lexer) {
+static NiftyTokenType checkBoolTypes(const Lexer *lexer) {
     if (str_eq_len(lexer->start + 1, "ool", 3)) {
         return TK_BOOL;
     }
@@ -283,7 +285,7 @@ static NiftyTokenType checkBoolTypes(Lexer *lexer) {
     return TK_IDENT;
 }
 
-static NiftyTokenType checkFloatTypes(Lexer *lexer) {
+static NiftyTokenType checkFloatTypes(const Lexer *lexer) {
     if (str_eq_len(lexer->start + 1, "32", 2)) {
         return TK_F32;
     }
@@ -303,7 +305,7 @@ static NiftyTokenType checkFloatTypes(Lexer *lexer) {
     return TK_IDENT;
 }
 
-static NiftyTokenType identType(Lexer *lexer) {
+static NiftyTokenType identType(const Lexer *lexer) {
     switch (lexer->start[0]) {
         case '_': return checkKeyword(lexer, 1, 8, "_anytype", TK_ANY_TYPE); // __anytype
         case 'a':
@@ -324,13 +326,14 @@ static NiftyTokenType identType(Lexer *lexer) {
                             return checkKeyword(lexer, 2, 0, "", TK_AS);
                         }
                     case 'u': return checkKeyword(lexer, 2, 7, "to_cast", TK_AUTO_CAST);
+                    default: break;
                 }
             }
         case 'b': {
             // behavior
             // break
             // bool b8 b16 b32 b64
-            NiftyTokenType type = checkKeyword2(lexer, 1, 4, "reak", TK_BREAK, 7, "ehavior", TK_BEHAVIOR);
+            const NiftyTokenType type = checkKeyword2(lexer, 1, 4, "reak", TK_BREAK, 7, "ehavior", TK_BEHAVIOR);
             if (type != TK_IDENT) {
                 return type;
             }
@@ -354,6 +357,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                             return checkKeyword(lexer, 3, 5, "ntinue", TK_CONTINUE);
                         }
                     case 's': return checkKeyword(lexer, 2, 5, "tring", TK_CSTRING_TYPE);
+                    default: break;
                 }
             }
         case 'd':
@@ -371,6 +375,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                             return checkKeyword(lexer, 2, 4, "lete", TK_DELETE);
                         }
                     case 'o': return checkKeyword2(lexer, 2, 2, "es", TK_DOES, 4, "uble", TK_DOUBLE);
+                    default: break;
                 }
             }
         case 'e':
@@ -386,6 +391,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                     case 'm': return checkKeyword(lexer, 2, 2, "it", TK_EMIT);
                     case 'n': return checkKeyword2(lexer, 2, 2, "um", TK_ENUM, 3, "dimpl", TK_END_IMPL);
                     case 'x': return checkKeyword(lexer, 2, 4, "tern", TK_EXTERN);
+                    default: break;
                 }
             }
         case 'f': {
@@ -416,21 +422,24 @@ static NiftyTokenType identType(Lexer *lexer) {
                     case 'f': return checkKeyword(lexer, 2, 0, "", TK_IF);
                     case 'm': return checkKeyword(lexer, 2, 2, "pl", TK_IMPL);
                     case 'n': return checkKeyword2(lexer, 2, 0, "", TK_IN, 1, "t", TK_INT);
+                    default: break;
                 }
             }
-        case 'j': break;
+        case 'j':
         case 'k': break;
         case 'l': return checkKeyword(lexer, 1, 2, "et", TK_LET); // let
         case 'm': return checkKeyword(lexer, 1, 1, "d", TK_MD); // md
         case 'n':
             // name_of
+            // namespace
             // new
             // null
             if (lexer->current - lexer->start > 1) {
                 switch (lexer->start[1]) {
-                    case 'a': return checkKeyword(lexer, 2, 5, "me_of", TK_NAME_OF);
+                    case 'a': return checkKeyword2(lexer, 2, 5, "me_of", TK_NAME_OF, 7, "mespace", TK_NAMESPACE);
                     case 'e': return checkKeyword(lexer, 2, 1, "w", TK_NEW);
                     case 'u': return checkKeyword(lexer, 2, 2, "ll", TK_NULL);
+                    default: break;
                 }
             }
         case 'o': break;
@@ -449,7 +458,9 @@ static NiftyTokenType identType(Lexer *lexer) {
                             case 'c': return checkKeyword(lexer, 3, 3, "ast", TK_RECAST);
                             case 's': return checkKeyword(lexer, 3, 6, "strict", TK_RESTRICT);
                             case 't': return checkKeyword(lexer, 3, 3, "urn", TK_RETURN);
+                            default: break;
                         }
+                    default: break;
                 }
             }
         case 's': {
@@ -458,7 +469,7 @@ static NiftyTokenType identType(Lexer *lexer) {
             // string
             // struct
             // s8 s16 s32 s64 s128
-            NiftyTokenType type = checkSInts(lexer);
+            const NiftyTokenType type = checkSInts(lexer);
             if (type != TK_IDENT) {
                 return type;
             }
@@ -467,6 +478,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                     case 'i': return checkKeyword(lexer, 2, 5, "ze_of", TK_SIZE_OF);
                     case 'k': return checkKeyword(lexer, 2, 2, "ip", TK_SKIP);
                     case 't': return checkKeyword2(lexer, 2, 4, "ring", TK_STRING_TYPE, 4, "ruct", TK_STRUCT);
+                    default: break;
                 }
             }
         }
@@ -485,7 +497,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                     case 'e': return checkKeyword(lexer, 2, 2, "st", TK_TEST);
                     case 'r': return checkKeyword2(lexer, 2, 1, "y", TK_TRY, 2, "ue", TK_TRUE);
                     case 'y': {
-                        NiftyTokenType type = checkKeyword(lexer, 2, 2, "pe", TK_TYPE);
+                        NiftyTokenType type = checkKeyword(lexer, 2, 5, "pedef", TK_TYPEDEF);
                         if (type != TK_IDENT) {
                             return type;
                         }
@@ -499,6 +511,7 @@ static NiftyTokenType identType(Lexer *lexer) {
                         }
                         return checkKeyword(lexer, 2, 4, "peid", TK_TYPEID);
                     }
+                    default: break;
                 }
             }
         case 'u': {
@@ -531,18 +544,20 @@ static NiftyTokenType identType(Lexer *lexer) {
                 switch (lexer->start[1]) {
                     case 'a': return checkKeyword(lexer, 2, 1, "l", TK_VAL);
                     case 'o': return checkKeyword(lexer, 2, 2, "id", TK_VOID);
+                    default: break;
                 }
             }
         case 'w': return checkKeyword2(lexer, 1, 4, "hile", TK_WHILE, 2, "en", TK_WHEN); // when, while
-        case 'x': break;
-        case 'y': break;
-        case 'z': break;
+        case 'x':
+        case 'y':
+        case 'z':
+        default: break;
     }
 
     return TK_IDENT;
 }
 
-static Token stringLit(Lexer *lexer, char strChar) {
+static Token stringLit(Lexer *lexer, const char strChar) {
     //TODO: Raw strings.
 
     bool overwrite = false;
@@ -642,9 +657,9 @@ static Token octalNumber(Lexer *lexer) {
         }
 
         return makeToken(lexer, TK_NUMBER);
-    } else {
-        return number(lexer);
     }
+
+    return number(lexer);
 }
 
 static Token hexNumber(Lexer *lexer) {
@@ -667,9 +682,9 @@ static Token hexNumber(Lexer *lexer) {
         }
 
         return makeToken(lexer, TK_NUMBER);
-    } else {
-        return octalNumber(lexer);
     }
+
+    return octalNumber(lexer);
 }
 
 Token nextToken(Lexer *lexer) {
@@ -691,7 +706,7 @@ Token nextToken(Lexer *lexer) {
         return makeToken(lexer, TK_EOF);
     }
 
-    char c = advance(lexer);
+    const char c = advance(lexer);
     if (isAlpha(c)) {
         return ident(lexer);
     }
@@ -869,7 +884,7 @@ Token nextToken(Lexer *lexer) {
     return errorToken(lexer, "Unexpected character.");
 }
 
-void printToken(Token token) {
+void printToken(const Token token) {
     if (token.type == TK_INTERNAL_ERROR) {
         println("TK_INTERNAL_ERROR");
         return;

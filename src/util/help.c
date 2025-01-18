@@ -24,9 +24,9 @@
 
 #include "str.h"
 
-void printHelp(conststr cmd) {
+void printHelp(const char *cmd) {
     const int width = 25;
-    bool printAll = str_eq(cmd, "all");
+    const bool printAll = str_eq(cmd, "all");
     println("Nifty Programming Language\n");
 
     if (str_eq(cmd, "build") || printAll) {

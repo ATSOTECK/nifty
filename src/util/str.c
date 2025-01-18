@@ -23,47 +23,48 @@
 #include "str.h"
 
 #include <string.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-bool isAlpha(char c) {
+bool isAlpha(const char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-bool isDigit(char c) {
+bool isDigit(const char c) {
     return c >= '0' && c <= '9';
 }
 
-bool isOctDigit(char c) {
-    return ((c >= '0' && c <= '7') || (c == '_'));
+bool isOctDigit(const char c) {
+    return (c >= '0' && c <= '7') || c == '_';
 }
 
-bool isHexDigit(char c) {
-    return ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || (c == '_'));
+bool isHexDigit(const char c) {
+    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f') || c == '_';
 }
 
-bool isAlphaNumeric(char c) {
-    return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') || (c >= '0' && c <= '9');
+bool isAlphaNumeric(const char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || (c >= '0' && c <= '9');
 }
 
-int str_len(conststr str) {
-    register conststr s;
-    for (s = str; *s; ++s);
+int str_len(const char *str) {
+    register const char *s;
+    for (s = str; *s; ++s) {}
     return (int)(s - str);
 }
 
-inline void str_cpy(register string dst, register conststr src) {
+inline void str_cpy(register char *dst, register const char *src) {
     for (; (*dst = *src); ++src, ++dst);
 }
 
-inline void str_cpyn(register string dst, register int n, register conststr src) {
-    for (int i = 0; i < n && (*dst = *src); ++src, ++dst, ++i);
+inline void str_cpyn(register char *dst, const register int n, register const char *src) {
+    for (int i = 0; i < n && ((*dst = *src)); ++src, ++dst, ++i) {}
     dst[n] = '\0';
 }
 
-string str_new(conststr s, int *len) {
-    int length = str_len(s);
-    char *ret = (string)malloc(length * sizeof(char) + 1);
+char *str_new(const char *s, int *len) {
+    const int length = str_len(s);
+    char *ret = (char *)malloc(length * sizeof(char) + 1);
     str_cpy(ret, s);
 
     if (len != nullptr) {
@@ -73,20 +74,20 @@ string str_new(conststr s, int *len) {
     return ret;
 }
 
-string str_new_len(conststr s, int len) {
-    string ret = (string)malloc(len * sizeof(char) + 1);
+char *str_new_len(const char *s, const int len) {
+    char *ret = (char *)malloc(len * sizeof(char) + 1);
     str_cpyn(ret, len, s);
 
     return ret;
 }
 
-string str_new_empty(size_t size) {
-    string ret = (string)malloc(size * sizeof(char) + 1);
+char *str_new_empty(const size_t size) {
+    char *ret = (char *)malloc(size * sizeof(char) + 1);
     ret[0] = '\0';
     return ret;
 }
 
-void str_delete(string s) {
+void str_delete(char *s) {
     if (s == nullptr) {
         return;
     }
@@ -94,7 +95,7 @@ void str_delete(string s) {
     free(s);
 }
 
-bool str_eq(conststr s1, conststr s2) {
+bool str_eq(const char *s1, const char *s2) {
     if (s1 == s2) {
         return true;
     }
@@ -108,32 +109,33 @@ bool str_eq(conststr s1, conststr s2) {
             return true;
         }
     }
+
     return false;
 }
 
-bool str_eq2(conststr s1, conststr s2, conststr s3) {
+bool str_eq2(const char *s1, const char *s2, const char *s3) {
     return str_eq(s1, s2) || str_eq(s1, s3);
 }
 
-bool str_eq_len(conststr s1, conststr s2, int len) {
+bool str_eq_len(const char *s1, const char *s2, const int len) {
     if (s1 == nullptr || s2 == nullptr) {
         return false;
     }
 
     int i = 0;
-    for (; i < len && *s1 == *s2; ++i, ++s1, ++s2);
+    for (; i < len && *s1 == *s2; ++i, ++s1, ++s2) {}
     return i == len;
 }
 
-string str_copy(string dst, conststr src) {
+char *str_copy(char *dst, const char *src) {
     if (dst == nullptr || src == nullptr) {
         return nullptr;
     }
 
-    int srcLen = str_len(src);
-    int dstLen = str_len(dst);
+    const int srcLen = str_len(src);
+    const int dstLen = str_len(dst);
     
-    string ret = dst;
+    char *ret = dst;
     if (srcLen > dstLen) {
         ret = realloc(dst, sizeof(char) * srcLen + 1);
     }
@@ -142,11 +144,11 @@ string str_copy(string dst, conststr src) {
     return ret;
 }
 
-bool str_empty(conststr s) {
+bool str_empty(const char *s) {
     return s == nullptr || str_len(s) == 0;
 }
 
-void str_clear(string s) {
+void str_clear(char *s) {
     if (str_empty(s)) {
         return;
     }
@@ -154,19 +156,19 @@ void str_clear(string s) {
     s[0] = '\0';
 }
 
-void str_tolower(string s) {
+void str_tolower(char *s) {
     if (str_empty(s)) {
         return;
     }
 
     for (char *c = s; *c != '\0'; ++c) {
         if (*c >= 'A' && *c <= 'Z') {
-            *c |= (1 << 5);
+            *c |= 1 << 5;
         }
     }
 }
 
-void str_toupper(string s) {
+void str_toupper(char *s) {
     if (str_empty(s)) {
         return;
     }
@@ -178,7 +180,7 @@ void str_toupper(string s) {
     }
 }
 
-void str_clip_nl(string s) {
+void str_clip_nl(char *s) {
     if (str_empty(s)) {
         return;
     }
@@ -186,7 +188,7 @@ void str_clip_nl(string s) {
     s[strcspn(s, "\r\n")] = '\0';
 }
 
-void str_fgets(string s, int len, FILE *f, conststr defaultAnswer) {
+void str_fgets(char *s, const int len, FILE *f, const char *defaultAnswer) {
     if (s == nullptr) {
         return;
     }
@@ -202,13 +204,13 @@ void str_fgets(string s, int len, FILE *f, conststr defaultAnswer) {
     }
 }
 
-string str_get_line(conststr src, int line, int *len) {
+char *str_get_line(const char *src, const int line, int *len) {
     if (str_empty(src)) {
         return nullptr;
     }
 
     int currentLine = 1;
-    conststr at = src;
+    const char *at = src;
     for (; *at != EOF; ++at) {
         if (currentLine == line) {
             break;
@@ -224,9 +226,9 @@ string str_get_line(conststr src, int line, int *len) {
         return nullptr;
     }
 
-    conststr start = at;
+    const char *start = at;
     int length = 0;
-    for (; *at != '\n'; ++at, ++length);
+    for (; *at != '\n'; ++at, ++length) {}
 
     if (len != nullptr) {
         *len = length;
@@ -234,7 +236,7 @@ string str_get_line(conststr src, int line, int *len) {
     return str_new_len(start, length);
 }
 
-void println(conststr fmt, ...) {
+void println(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vprintf(fmt, args);
@@ -246,7 +248,7 @@ void dbln() {
     printf("\n");
 }
 
-void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width) {
+void printStrsWithSpacer(const char *s1, const char spacer, const char *s2, const int width) {
     if (s1 == nullptr) {
         return;
     }
@@ -257,14 +259,14 @@ void printStrsWithSpacer(conststr s1, char spacer, conststr s2, int width) {
     }
 
     printf("%s ", s1);
-    int s1Len = str_len(s1);
+    const int s1Len = str_len(s1);
     for (int i = 0; i < width - s1Len; ++i) {
         printf("%c", spacer);
     }
     printf(" %s\n", s2);
 }
 
-void setTextColor(CompilerConfig *cfg, conststr color) {
+void setTextColor(const CompilerConfig *cfg, const char *color) {
     if (cfg == nullptr) {
         return;
     }

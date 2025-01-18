@@ -34,7 +34,7 @@
 #include "parser.h"
 #include "util/str.h"
 
-static bool createFolder(conststr folder) {
+static bool createFolder(const char *folder) {
     struct stat st = {0};
     if (stat(folder, &st)) {
 #ifdef N_WIN
@@ -50,10 +50,10 @@ static bool createFolder(conststr folder) {
     return true;
 }
 
-static string loadStringForKey(toml_table_t *table, conststr key, conststr defaultValue) {
-    toml_datum_t datum = toml_string_in(table, key);
+static char *loadStringForKey(const toml_table_t *table, const char *key, const char *defaultValue) {
+    const toml_datum_t datum = toml_string_in(table, key);
     if (datum.ok) {
-        string value = str_new(datum.u.s, nullptr);
+        char *value = str_new(datum.u.s, nullptr);
         free(datum.u.s);
         return value;
     }
@@ -65,8 +65,8 @@ static string loadStringForKey(toml_table_t *table, conststr key, conststr defau
     return nullptr;
 }
 
-static bool loadBoolForKey(toml_table_t *table, conststr key, bool defaultValue) {
-    toml_datum_t datum = toml_bool_in(table, key);
+static bool loadBoolForKey(const toml_table_t *table, const char *key, bool defaultValue) {
+    const toml_datum_t datum = toml_bool_in(table, key);
     if (datum.ok) {
         return datum.u.b;
     }
@@ -116,12 +116,12 @@ ProjectInfo *loadProject() {
     info->targetCount = 0;
 
     for (int i = 0;; ++i) {
-        conststr key = toml_key_in(conf, i);
+        const char *key = toml_key_in(conf, i);
         if (!key) {
             break;
         }
 
-        toml_table_t *tab = toml_table_in(conf, key);
+        const toml_table_t *tab = toml_table_in(conf, key);
         if (tab != nullptr) {
             ++info->targetCount;
 
@@ -179,7 +179,7 @@ void freeProject(ProjectInfo *info) {
     free(info);
 }
 
-TargetInfo *getTargetInfo(conststr targetName, ProjectInfo *info) {
+TargetInfo *getTargetInfo(const char *targetName, ProjectInfo *info) {
     if (info->targetCount <= 0) {
         println("No targets found.");
         return nullptr;
@@ -217,13 +217,13 @@ TargetInfo *getTargetInfo(conststr targetName, ProjectInfo *info) {
     return nullptr;
 }
 
-void build(conststr targetName, ProjectInfo *info) {
+void build(const char *targetName, ProjectInfo *info) {
     if (info == nullptr) {
         println("No project found, nothing to build.");
         return;
     }
-    
-    TargetInfo *target = getTargetInfo(targetName, info);
+
+    const TargetInfo *target = getTargetInfo(targetName, info);
     if (target == nullptr) {
         return;
     }
@@ -236,7 +236,7 @@ void build(conststr targetName, ProjectInfo *info) {
         println(".");
     }
 
-    ParseResults *results = parseFile(target->entryPoint, &info->config);
+    const ParseResults *results = parseFile(target->entryPoint, &info->config);
     if (results->errorCount > 0) {
         info->buildFailed = true;
 
@@ -248,13 +248,13 @@ void build(conststr targetName, ProjectInfo *info) {
     }
 }
 
-void run(conststr targetName, ProjectInfo *info) {
+void run(const char *targetName, ProjectInfo *info) {
     if (info == nullptr) {
         println("No project found, nothing to run.");
         return;
     }
-    
-    TargetInfo *target = getTargetInfo(targetName, info);
+
+    const TargetInfo *target = getTargetInfo(targetName, info);
     if (target == nullptr) {
         return;
     }
@@ -274,8 +274,8 @@ void run(conststr targetName, ProjectInfo *info) {
     }
 }
 
-void newProject(bool exists) {
-    string answer = str_new_empty(100);
+void newProject(const bool exists) {
+    char *answer = str_new_empty(100);
 
     if (exists) {
         println("A Nifty project already exists in this directory.");
@@ -348,7 +348,7 @@ void newProject(bool exists) {
     free(info);
 }
 
-void createProject(CreateProjectInfo *info) {
+void createProject(const CreateProjectInfo *info) {
     FILE *file = fopen(NIFTY_BUILD_FILE, "w");
     if (file == nullptr) {
         println("Could not open %s for writing. Exiting.", NIFTY_BUILD_FILE);
@@ -387,17 +387,17 @@ void createProject(CreateProjectInfo *info) {
         return;
     }
 
-    string fileName = str_new_empty(100);
+    char *fileName = str_new_empty(100);
     sprintf(fileName, "src/%s", info->entryPoint);
     file = fopen(fileName, "w");
     if (file == nullptr) {
         println("Could not open src/%s for writing. Exiting.", info->entryPoint);
         return;
     }
-    
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-    int year = tm.tm_year + 1900;
+
+    const time_t t = time(NULL);
+    const struct tm tm = *localtime(&t);
+    const int year = tm.tm_year + 1900;
     
     fprintf(file, "/-\n");
     fprintf(file, " - %s\n", info->name);
@@ -436,22 +436,22 @@ void listTargets(ProjectInfo *info) {
 
     int longestTargetName = str_len(info->targets[0]->targetName);
     for (int i = 1; i < info->targetCount; ++i) {
-        int len = str_len(info->targets[i]->targetName);
+        const int len = str_len(info->targets[i]->targetName);
         if (len > longestTargetName) {
             longestTargetName = len;
         }
     }
 
     for (int i = 0; i < info->targetCount; ++i) {
-        TargetInfo *target = info->targets[i];
+        const TargetInfo *target = info->targets[i];
         if (target->isDefaultTarget) {
             setTextColor(&info->config, LINE_COLOR);
             printf("*");
         } else {
             printf(" ");
         }
-        
-        int width = max(longestTargetName + 5, 25);
+
+        const int width = max(longestTargetName + 5, 25);
         printStrsWithSpacer(target->targetName, '-', target->description, width);
         if (target->isDefaultTarget) {
             setTextColor(&info->config, RESET_COLOR);

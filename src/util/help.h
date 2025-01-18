@@ -27,6 +27,6 @@
 #include "../common.h"
 #include "str.h"
 
-void printHelp(conststr cmd);
+void printHelp(const char *cmd);
 
 #endif //NIFTY_HELP_H

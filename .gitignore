@@ -36,3 +36,5 @@ cmake-build-release
 .idea
 lib
 bin
+
+.DS_Store

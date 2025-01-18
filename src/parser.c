@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#include "util/str.h"
+
 void errorStart(Parser *parser) {
     ParseResults *ast = parser->results;
     ast->errorCount++;
@@ -35,7 +37,7 @@ void errorStart(Parser *parser) {
     setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
-void warnStart(Parser *parser) {
+void warnStart(const Parser *parser) {
     ParseResults *ast = parser->results;
     ast->errorCount++;
 
@@ -45,11 +47,11 @@ void warnStart(Parser *parser) {
     setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
-static void printLineWithError(Parser *parser, Token *token) {
-    string line = str_get_line(parser->lexer->source, token->line, nullptr);
+static void printLineWithError(const Parser *parser, const Token *token) {
+    char *line = str_get_line(parser->lexer->source, token->line, nullptr);
 
     int width = 3;
-    for (int n = token->line; n > 0; n /= 10, ++width);
+    for (int n = token->line; n > 0; n /= 10, ++width) {}
 
     setTextColor(parser->compilerConfig, LINE_COLOR);
     printf("%d | ", token->line);
@@ -69,7 +71,7 @@ static void printLineWithError(Parser *parser, Token *token) {
     setTextColor(parser->compilerConfig, RESET_COLOR);
 }
 
-static void expectedAfter(Parser *parser, conststr expected, conststr after) {
+static void expectedAfter(Parser *parser, const char *expected, const char *after) {
     errorStart(parser);
     printf("Expected ");
     setTextColor(parser->compilerConfig, HIGHLIGHT_COLOR);
@@ -87,13 +89,13 @@ static void expectedAfter(Parser *parser, conststr expected, conststr after) {
     printLineWithError(parser, &parser->current);
 }
 
-static void errorAt(Parser *parser, Token *token, conststr msg) {
+static void errorAt(Parser *parser, const Token *token, const char *msg) {
     errorStart(parser);
     println(msg);
     printLineWithError(parser, token);
 }
 
-static void errorAtCurrent(Parser *parser, conststr msg) {
+static void errorAtCurrent(Parser *parser, const char *msg) {
     errorAt(parser, &parser->current, msg);
 }
 
@@ -102,7 +104,7 @@ static void advance(Parser *parser) {
     parser->next = nextToken(parser->lexer);
 }
 
-static void eat(Parser *parser, NiftyTokenType tokenType, conststr msg) {
+static void eat(Parser *parser, const NiftyTokenType tokenType, const char *msg) {
     if (parser->current.type == tokenType) {
         advance(parser);
         return;
@@ -111,7 +113,7 @@ static void eat(Parser *parser, NiftyTokenType tokenType, conststr msg) {
     errorAtCurrent(parser, msg);
 }
 
-static Parser *initParser(conststr file, CompilerConfig *config) {
+static Parser *initParser(const char *file, CompilerConfig *config) {
     Parser *parser = (Parser*)malloc(sizeof(Parser));
     ParseResults *results = (ParseResults*)malloc(sizeof(ParseResults));
 
@@ -144,11 +146,11 @@ static void freeParser(Parser *parser) {
     free(parser);
 }
 
-static bool check(Parser *parser, NiftyTokenType tokenType) {
+static bool check(const Parser *parser, const NiftyTokenType tokenType) {
     return parser->current.type == tokenType;
 }
 
-static bool match(Parser *parser, NiftyTokenType tokenType) {
+static bool match(Parser *parser, const NiftyTokenType tokenType) {
     if (!check(parser, tokenType)) {
         return false;
     }
@@ -185,7 +187,7 @@ static void declaration(Parser *parser) {
     }
 }
 
-ParseResults *parseFile(conststr file, CompilerConfig *config) {
+ParseResults *parseFile(const char *file, CompilerConfig *config) {
     if (config == nullptr) {
         println("Invalid compiler config sent to parser.");
         return nullptr;

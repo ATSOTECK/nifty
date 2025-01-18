@@ -27,26 +27,26 @@
 #include "util/str.h"
 
 typedef struct {
-    string name;
-    string version;
-    string entryPoint;
-    string author;
-    string license;
+    char *name;
+    char *version;
+    char *entryPoint;
+    char *author;
+    char *license;
 } CreateProjectInfo;
 
 typedef struct {
-    string targetName;
-    string outputName;
-    string entryPoint;
+    char *targetName;
+    char *outputName;
+    char *entryPoint;
     bool isDebugMode;
-    string optimization;
-    string description;
+    char *optimization;
+    char *description;
     bool isDefaultTarget;
     bool noMain;
     bool cmdOnly;
     bool noDepreciated;
     bool noGoto;
-    string boundsChecks;
+    char *boundsChecks;
     bool errorOnWarn;
     bool noWarn;
     bool disallowNull;
@@ -60,7 +60,7 @@ typedef struct {
 
 typedef struct {
     bool loaded;
-    string name;
+    char *name;
     int defaultTargetIdx;
     int targetCount;
     TargetInfo **targets;
@@ -72,12 +72,12 @@ typedef struct {
 ProjectInfo *loadProject();
 void freeProject(ProjectInfo *info);
 
-TargetInfo *getTargetInfo(conststr targetName, ProjectInfo *info);
+TargetInfo *getTargetInfo(const char *targetName, ProjectInfo *info);
 
-void build(conststr targetName, ProjectInfo *info);
-void run(conststr targetName, ProjectInfo *info);
+void build(const char *targetName, ProjectInfo *info);
+void run(const char *targetName, ProjectInfo *info);
 void newProject(bool exists);
-void createProject(CreateProjectInfo *info);
+void createProject(const CreateProjectInfo *info);
 
 void listTargets(ProjectInfo *info);
 void printProject(CreateProjectInfo *info);

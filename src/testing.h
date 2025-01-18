@@ -26,12 +26,12 @@
 #include "util/str.h"
 
 void runTests();
-void runTestFile(conststr fileName);
-void runTest(conststr name);
+void runTestFile(const char *fileName);
+void runTest(const char *name);
 
 typedef struct {
-    string name;
-    string package;
+    char *name;
+    char *package;
     bool didPass;
     bool (*function)();
 } TestObject;
