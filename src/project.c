@@ -74,7 +74,7 @@ static bool loadBoolForKey(const toml_table_t *table, const char *key, bool defa
     return defaultValue;
 }
 
-static void projectError(ProjectInfo *info) {
+static void projectError(const ProjectInfo *info) {
     setTextColor(&info->config, ERROR_COLOR);
     printf("Project error:");
     setTextColor(&info->config, RESET_COLOR);
@@ -126,17 +126,23 @@ ProjectInfo *loadProject() {
             ++info->targetCount;
 
             if (info->targetCount > 1) {
-                info->targets = (TargetInfo**)realloc(info->targets, sizeof(TargetInfo*) * info->targetCount);
+                TargetInfo **reallocTargets = (TargetInfo**)realloc(info->targets, sizeof(TargetInfo*) * info->targetCount);
+                if (reallocTargets == nullptr) {
+                    freeProject(info);
+                    println("Can't reallocate targets.");
+
+                    return nullptr;
+                }
+
+                info->targets = reallocTargets;
                 info->targets[info->targetCount - 1] = (TargetInfo*)malloc(sizeof(TargetInfo));
             }
+
             TargetInfo *target = info->targets[info->targetCount - 1];
-
             target->targetName = str_new(key, nullptr);
-
             target->description = loadStringForKey(tab, "description", nullptr);
             target->outputName = loadStringForKey(tab, "outputName", target->targetName);
             target->entryPoint = loadStringForKey(tab, "entryPoint", nullptr);
-
             target->isDebugMode = loadBoolForKey(tab, "debug", false);
             target->isDefaultTarget = loadBoolForKey(tab, "default", false);
             if (target->isDefaultTarget && info->defaultTargetIdx < 0) {
@@ -426,7 +432,7 @@ void createProject(const CreateProjectInfo *info) {
     println("Created project %s.", info->name);
 }
 
-void listTargets(ProjectInfo *info) {
+void listTargets(const ProjectInfo *info) {
     if (info == nullptr) {
         println("No project found, no targets to list.");
         return;

@@ -79,7 +79,7 @@ void run(const char *targetName, ProjectInfo *info);
 void newProject(bool exists);
 void createProject(const CreateProjectInfo *info);
 
-void listTargets(ProjectInfo *info);
+void listTargets(const ProjectInfo *info);
 void printProject(CreateProjectInfo *info);
 
 bool verifyProjectInfo(CreateProjectInfo *info);
