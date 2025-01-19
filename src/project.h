@@ -72,7 +72,7 @@ typedef struct {
 ProjectInfo *loadProject();
 void freeProject(ProjectInfo *info);
 
-TargetInfo *getTargetInfo(const char *targetName, ProjectInfo *info);
+TargetInfo *getTargetInfo(const char *targetName, const ProjectInfo *info);
 
 void build(const char *targetName, ProjectInfo *info);
 void run(const char *targetName, ProjectInfo *info);

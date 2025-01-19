@@ -1,6 +1,6 @@
 namespace four
 
-namespace two
+// namespace two
 
 fn add(x: int, y: int): int {
     return x + y

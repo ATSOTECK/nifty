@@ -81,6 +81,20 @@ char *str_new_len(const char *s, const int len) {
     return ret;
 }
 
+char *str_new_fmt(int *len, const char *fmt, ...) {
+    char *ret = (char *)malloc(2048);
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(ret, fmt, args);
+    va_end(args);
+
+    if (len != nullptr) {
+        *len = str_len(ret);
+    }
+
+    return ret;
+}
+
 char *str_new_empty(const size_t size) {
     char *ret = (char *)malloc(size * sizeof(char) + 1);
     ret[0] = '\0';

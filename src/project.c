@@ -34,14 +34,16 @@
 #include "parser.h"
 #include "util/str.h"
 
+#ifdef N_WIN
+#   define MKDIR_CHECK() _mkdir(folder)
+#else
+#   define MKDIR_CHECK() mkdir(folder, 0755)
+#endif
+
 static bool createFolder(const char *folder) {
     struct stat st = {0};
     if (stat(folder, &st)) {
-#ifdef N_WIN
-        if (_mkdir(folder) != 0) {
-#else
-        if (mkdir(folder, 0755) != 0) {
-#endif
+        if (MKDIR_CHECK() != 0) {
             println("Could not create %s folder. Exiting.", folder);
             return false;
         }
@@ -185,7 +187,7 @@ void freeProject(ProjectInfo *info) {
     free(info);
 }
 
-TargetInfo *getTargetInfo(const char *targetName, ProjectInfo *info) {
+TargetInfo *getTargetInfo(const char *targetName, const ProjectInfo *info) {
     if (info->targetCount <= 0) {
         println("No targets found.");
         return nullptr;
@@ -242,7 +244,7 @@ void build(const char *targetName, ProjectInfo *info) {
         println(".");
     }
 
-    const ParseResults *results = parseFile(target->entryPoint, &info->config);
+    ParseResults *results = parseFile(target->entryPoint, &info->config);
     if (results->errorCount > 0) {
         info->buildFailed = true;
 
@@ -252,6 +254,8 @@ void build(const char *targetName, ProjectInfo *info) {
             println("\nBuild finished with an error.");
         }
     }
+
+    freeParseResults(results);
 }
 
 void run(const char *targetName, ProjectInfo *info) {

@@ -1986,6 +1986,10 @@ md localSetX[let t: Thing]() {
     t.x = 12 // Valid, but done on a copy of the receiver argument.
 }
 
+md readOnlyPtr[const this: ^Self](n: int) {
+    this->x = n // Invalid
+}
+
 endimpl
 
 // The functions are called the same as any other.
@@ -2961,6 +2965,25 @@ md set(value: T) // Set the value of the optional.
 
 md value(): T // For compiler use only.
 
+if opt [v] {
+    assert(v == 12)
+}
+
+// With parens
+
+if (opt) [v] {
+    //
+}
+
+// Access by reference
+if opt [^v] {
+    v^ = 1
+}
+
+if opt [v] {
+    assert(v == 1)
+}
+
 // [RESULT] ---------------------------------------------------------------------------------------
 
 // Results are a lot like optionals, except that results either have a value or an error.
@@ -3015,6 +3038,20 @@ md hasError(): bool  // Returns true if it has an error.
 md clear() // Clears the value/error.
 md setValue(value: T) // Set the value of the optional.
 md setError(err: does Errorable) // Set the value of the optional.
+
+if result [value] {
+    assert(value  == 12)
+} else [err] {
+    panic(err)
+}
+
+// With parens
+
+if (result) [value] {
+    assert(value  == 12)
+} else [err] {
+    panic(err)
+}
 
 // [ERROR HANDLING] -------------------------------------------------------------------------------
 
@@ -3895,6 +3932,43 @@ fn printValueLn(value: __anytype) {
 }
 
 fn println overloads { printValuesLn, printValueLn }
+
+// A tuple is an ordered, immutable collection of elements.
+// Basically an anonymous struct.
+
+values := .{1234, 12.f, true, "yeet"}
+yeet := values.3
+newValues := values ++ .{"bla"}
+bla := newValues[4]
+
+values.len() == 5 // true
+
+// Destructuring can also be used to access the elements.
+[a: int, b: f32, c: bool, d: string] := values
+// or
+[a, b, c, d] := values
+
+tuple := {123, 456, "abc", "def", false}
+
+fn returnTuple(): .{int, string, f32} {
+    return .{123, "abc", 12.f}
+}
+
+fn takesTuple(tuple: .{int, string, bool}) {
+    if tuple.0 == 12 {
+        // do stuff
+    }
+}
+
+typedef TwoInt as .{int, int}
+
+fn getPosition(): TwoInt {
+    x := someFuncX()
+    y := someFuncY()
+    return .{x, y}
+}
+
+[x, y] := getPosition()
 
 // [NSL] ------------------------------------------------------------------------------------------
 

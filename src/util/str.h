@@ -40,7 +40,7 @@ void str_cpyn(register char *dst, register int n, register const char *src);
 
 char *str_new(const char *s, int *len);
 char *str_new_len(const char *s, int len);
-char *str_new_fmt(const char *s, int *len, const char *fmt, ...);
+char *str_new_fmt(int *len, const char *fmt, ...);
 char *str_new_empty(size_t size);
 
 void str_delete(char *s);

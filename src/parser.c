@@ -23,6 +23,7 @@
 #include "parser.h"
 
 #include <stdlib.h>
+#include <__stdarg_va_arg.h>
 
 #include "util/str.h"
 
@@ -99,6 +100,51 @@ static void errorAtCurrent(Parser *parser, const char *msg) {
     errorAt(parser, &parser->current, msg);
 }
 
+static void errorAtCurrentf(Parser *parser, const char *msg, ...) {
+    char *buf = (char *)malloc(sizeof(char) * 1024);
+    va_list args;
+    va_start(args, msg);
+    vsprintf(buf, msg, args);
+    va_end(args);
+
+    errorAt(parser, &parser->current, buf);
+    free(buf);
+}
+
+static Node *newNode(const Parser *parser, const NodeKind kind) {
+    Node *node = (Node *)malloc(sizeof(Node));
+    node->location.line = parser->current.line;
+    node->location.pos = parser->current.pos;
+    node->kind = kind;
+
+    return node;
+}
+
+static void addNode(const Parser *parser, Node *node) {
+    if (parser->results->nodes.count + 1 >= parser->results->nodes.capacity) {
+        parser->results->nodes.capacity *= 2;
+        parser->results->nodes.list = (Node**)malloc(sizeof(Node) * parser->results->nodes.capacity);
+    }
+
+    parser->results->nodes.list[parser->results->nodes.count++] = node;
+}
+
+static void freeNodes(const Nodes nodes) {
+    for (int i = 0; i < nodes.count; ++i) {
+        free(nodes.list[i]);
+    }
+    free(nodes.list);
+}
+
+void freeParseResults(ParseResults *results) {
+    if (results == nullptr) {
+        return;
+    }
+
+    freeNodes(results->nodes);
+    free(results);
+}
+
 static void advance(Parser *parser) {
     parser->current = parser->next;
     parser->next = nextToken(parser->lexer);
@@ -131,7 +177,8 @@ static Parser *initParser(const char *file, CompilerConfig *config) {
     parser->hadError = false;
     parser->panicMode = false;
     parser->currentImpl = nullptr;
-    parser->package = nullptr;
+    parser->namespace.name = nullptr;
+    parser->namepsaceLine = -1;
     parser->results = results;
     parser->compilerConfig = config;
     parser->lexer = initLexer(file);
@@ -159,27 +206,70 @@ static bool match(Parser *parser, const NiftyTokenType tokenType) {
     return true;
 }
 
-static void packageDeclaration(Parser *parser) {
-    if (parser->package != nullptr) {
-        errorAtCurrent(parser, "Package already set on line bla.");
-    }
-
-    if (!match(parser, TK_IDENT)) {
-        expectedAfter(parser, "identifier", "package");
+static void namespaceDeclaration(Parser *parser) {
+    if (parser->namespace.name != nullptr) {
+        errorAtCurrentf(parser, "Namespace already set on line %d.", parser->namepsaceLine);
         return;
     }
 
-    parser->package = str_new_len(parser->current.lexeme, parser->current.len);
+    parser->namepsaceLine = parser->current.line;
+
+    if (!check(parser, TK_IDENT)) {
+        expectedAfter(parser, "identifier", "namespace");
+        return;
+    }
+
+    parser->namespace.name = str_new_len(parser->current.lexeme, parser->current.len);
+    advance(parser);
 //    eat(parser, TK_IDENT, "Expected identifier after package.");
 }
 
+static BlockNode *parseBlock(const Parser *parser) {
+    return nullptr;
+}
+
+static ArgNode **parseArguments(Parser *parser) {
+    eat(parser, TK_LPAREN, "Expected (");
+
+    while (parser->current.type != TK_RPAREN) {
+        advance(parser);
+    }
+
+    eat(parser, TK_RPAREN, "Expected )");
+
+    return nullptr;
+}
+
+static TypeNode **parseReturnTypes(Parser *parser) {
+    return nullptr;
+}
+
+static PrototypeNode *parsePrototype(Parser *parser) {
+    if (!check(parser, TK_IDENT)) {
+        expectedAfter(parser, "identifier", "fn"); // TODO: Handle md.
+        return nullptr;
+    }
+
+    PrototypeNode *prototype = (PrototypeNode*)malloc(sizeof(PrototypeNode));
+    prototype->name = str_new_len(parser->current.lexeme, parser->current.len);
+    advance(parser);
+
+    prototype->args = parseArguments(parser);
+    prototype->returnTypes = parseReturnTypes(parser);
+
+    return prototype;
+}
+
 static void fnDeclaration(Parser *parser) {
-    //
+    Node *function = newNode(parser, FunctionNodeType);
+    function->data.functionNode.prototype = parsePrototype(parser);
+    function->data.functionNode.body = parseBlock(parser);
+    addNode(parser, function);
 }
 
 static void declaration(Parser *parser) {
-    if (match(parser, TK_PACKAGE)) {
-        packageDeclaration(parser);
+    if (match(parser, TK_NAMESPACE)) {
+        namespaceDeclaration(parser);
     } else if (match(parser, TK_FN) || match(parser, TK_MD)) {
         fnDeclaration(parser);
     } else {
