@@ -381,14 +381,12 @@ static NiftyTokenType identType(const Lexer *lexer) {
         case 'e':
             // else
             // elif
-            // emit
             // endimpl
             // enum
             // extern
             if (lexer->current - lexer->start > 1) {
                 switch (lexer->start[1]) {
                     case 'l': return checkKeyword2(lexer, 2, 2, "se", TK_ELSE, 2, "if", TK_ELIF);
-                    case 'm': return checkKeyword(lexer, 2, 2, "it", TK_EMIT);
                     case 'n': return checkKeyword2(lexer, 2, 2, "um", TK_ENUM, 3, "dimpl", TK_END_IMPL);
                     case 'x': return checkKeyword(lexer, 2, 4, "tern", TK_EXTERN);
                     default: break;

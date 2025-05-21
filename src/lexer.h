@@ -26,104 +26,103 @@
 typedef enum {
     TK_UNKNOWN = 0,
     
-    TK_FN,
-    TK_MD,
+    TK_FN, // fn
+    TK_MD, // md
 
-    TK_TEST,
-    TK_SKIP,
+    TK_TEST, // test
+    TK_SKIP, // skip
     
-    TK_IF,
-    TK_ELIF,
-    TK_ELSE,
-    TK_IN,
-    TK_AS,
-    TK_CAST,
-    TK_RECAST,
-    TK_AUTO_CAST,
-    TK_STRUCT,
-    TK_IMPL,
-    TK_CONST_IMPL,
-    TK_END_IMPL,
-    TK_DOES,
-    TK_BEHAVIOR,
-    TK_ENUM,
+    TK_IF, // if
+    TK_ELIF, // elif
+    TK_ELSE, // else
+    TK_IN, // in
+    TK_AS, // as
+    TK_CAST, // case
+    TK_RECAST, // recast
+    TK_AUTO_CAST, // auto_cast
+    TK_STRUCT, // struct
+    TK_IMPL, // impl
+    TK_CONST_IMPL, // constimpl
+    TK_END_IMPL, // endimpl
+    TK_DOES, // does
+    TK_BEHAVIOR, // behavior
+    TK_ENUM, // enum
     
-    TK_DEFER,
-    TK_DEFER_ERR,
-    TK_RESTRICT,
+    TK_DEFER, // defer
+    TK_DEFER_ERR, // defer_err
+    TK_RESTRICT, // restrict
     
-    TK_TYPEDEF,
-    TK_FOR,
-    TK_WHILE,
-    TK_UNTIL,
-    TK_WHEN,
-    TK_GOTO,
-    TK_BREAK,
-    TK_CONTINUE,
-    TK_RETURN,
-    TK_TRY,
+    TK_TYPEDEF, // typedef
+    TK_FOR, // for
+    TK_WHILE, // while
+    TK_UNTIL, // until
+    TK_WHEN, // when
+    TK_GOTO, // goto
+    TK_BREAK, // break
+    TK_CONTINUE, // continue
+    TK_RETURN, // return
+    TK_TRY, // try
     
-    TK_TRUE,
-    TK_FALSE,
-    
+    TK_TRUE, // true
+    TK_FALSE, // false
+
+    TK_MUT, // mutable
     TK_LET, // mutable
     TK_VAL, // immutable, run time
     TK_CONST, // immutable, compile time
-    TK_NEW,
-    TK_DELETE,
+    TK_NEW, // new
+    TK_DELETE, // delete
     
-    TK_USE,
-    TK_USING,
-    TK_NAMESPACE,
-    TK_PACKAGE,
-    TK_API,
-    TK_EXTERN,
+    TK_USE, // use
+    TK_USING, // using
+    TK_NAMESPACE, // namespace
+    TK_PACKAGE, // package
+    TK_API, // api
+    TK_EXTERN, // extern
     
-    TK_SIZE_OF,
-    TK_ALIGN_OF,
-    TK_TYPE_OF,
-    TK_TYPEID_OF,
-    TK_TYPEINFO_OF,
-    TK_TYPE_FROM,
-    TK_NAME_OF,
+    TK_SIZE_OF, // size_of
+    TK_ALIGN_OF, // align_of
+    TK_TYPE_OF, // type_of
+    TK_TYPEID_OF, // typeid_of
+    TK_TYPEINFO_OF, // typeinfo_of
+    TK_TYPE_FROM, // type_from
+    TK_NAME_OF, // name_of
     
-    TK_INT,
-    TK_UINT,
-    TK_FLOAT,
-    TK_DOUBLE,
-    TK_STRING_TYPE,
-    TK_CSTRING_TYPE,
-    TK_CHAR_TYPE,
-    TK_BOOL,
-    TK_B8,
-    TK_B16,
-    TK_B32,
-    TK_B64,
-    TK_U8,
-    TK_U16,
-    TK_U32,
-    TK_U64,
-    TK_U128,
-    TK_S8,
-    TK_S16,
-    TK_S32,
-    TK_S64,
-    TK_S128,
-    TK_F16,
-    TK_F32,
-    TK_F64,
-    TK_F128,
-    TK_VOID,
-    TK_RAWPTR,
-    TK_UINTPTR,
-    TK_TYPEID,
-    TK_ANY_TYPE,
+    TK_INT, // int
+    TK_UINT, // uint
+    TK_FLOAT, // float
+    TK_DOUBLE, // double
+    TK_STRING_TYPE, // string
+    TK_CSTRING_TYPE, // cstring
+    TK_CHAR_TYPE, // char
+    TK_BOOL, // bool
+    TK_B8, // b8
+    TK_B16, // b16
+    TK_B32, // b32
+    TK_B64, // b64
+    TK_U8, // u8
+    TK_U16, // u16
+    TK_U32, // u32
+    TK_U64, // u64
+    TK_U128, // u128
+    TK_S8, // s8
+    TK_S16, // s16
+    TK_S32, // s32
+    TK_S64, // s64
+    TK_S128, // s128
+    TK_F16, // f16
+    TK_F32, // f32
+    TK_F64, // f64
+    TK_F128, // f128
+    TK_VOID, // void
+    TK_RAWPTR, // rawptr
+    TK_UINTPTR, // uintptr
+    TK_TYPEID, // type_id
+    TK_ANY_TYPE, // __anytype
     
-    TK_NULL,
-    TK_UNDEFINED,
-    TK_UNUSED,
-    
-    TK_EMIT,
+    TK_NULL, // null
+    TK_UNDEFINED, // undefined
+    TK_UNUSED, // unsuded
     
     TK_COLON,                   // :
     TK_COMMA,                   // ,
@@ -211,8 +210,8 @@ typedef enum {
     TK_NULL_COALESCE_ASSIGN,    // ??=
     TK_NULLISH_COALESCE_ASSIGN, // ||=
 
-    TK_ASSERT,
-    TK_ASSERT_DB,
+    TK_ASSERT, // assert
+    TK_ASSERT_DB, // assert_db
     
     TK_IDENT,
     TK_STRING_LIT,

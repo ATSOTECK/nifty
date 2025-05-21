@@ -1,0 +1,18 @@
+namespace nifty_test
+
+using testing
+
+typedef Point struct {
+    x, y: f32
+}
+
+test "basic struct init test" {
+    p := Point{10, 100}
+    try expectEq(10, p.x)
+    try expectEq(100, p.y)
+}
+
+typedef Vec2<typename T> struct {
+    union { x, u: T };
+    union { y, v: T };
+}

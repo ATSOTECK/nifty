@@ -1,0 +1,22 @@
+namespace nifty_test
+
+using testing
+
+test "basic while loop" {
+    n := 0
+    while n < 10 {
+        n++
+    }
+
+    try expectEq(10, n)
+}
+
+test "at least once" {
+    n := 0
+    #[atLeastOnce]
+    while false {
+        n++
+    }
+
+    try expectEq(1, n)
+}

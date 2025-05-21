@@ -24,6 +24,7 @@
 #define NIFTY_PARSER_H
 
 #include "lexer.h"
+#include "symbol.h"
 
 #include "common.h"
 
@@ -32,12 +33,12 @@ typedef enum {
     TYPE_U16,
     TYPE_U32,
     TYPE_U64,
-    TYPE_U28,
+    TYPE_U128,
     TYPE_S8,
     TYPE_S16,
     TYPE_S32,
     TYPE_S64,
-    TYPE_S28,
+    TYPE_S128,
     TYPE_F32,
     TYPE_F64,
     TYPE_F128,
@@ -62,6 +63,22 @@ typedef enum {
     TYPE_ANY,
     TYPE_NONE,
 } TypeKind;
+
+typedef enum {
+    NUMBER_U8,
+    NUMBER_U16,
+    NUMBER_U32,
+    NUMBER_U128,
+    NUMBER_U64,
+    NUMBER_S16,
+    NUMBER_S8,
+    NUMBER_S64,
+    NUMBER_S32,
+    NUMBER_F32,
+    NUMBER_S128,
+    NUMBER_F128,
+    NUMBER_F64,
+} NumberKind;
 
 typedef struct Node Node;
 
@@ -94,10 +111,22 @@ typedef struct {
 
 typedef struct TypeNode { char *name; TypeKind typeKind; } TypeNode;
 typedef struct ArgNode { char *name; TypeNode type; } ArgNode;
-typedef struct PrototypeNode { char *name; ArgNode **args; TypeNode **returnTypes; } PrototypeNode;
+typedef struct PrototypeNode { char *name; ArgNode **args; TypeNode *returnType; } PrototypeNode;
 typedef struct BlockNode { Nodes statements; } BlockNode;
 typedef struct ReturnNode { Node *statement; } ReturnNode;
 typedef struct FunctionNode { PrototypeNode *prototype; BlockNode *body; } FunctionNode;
+
+typedef struct NumberNode {
+    bool isSigned;
+    bool isFloating;
+    int size;
+
+    union {
+        unsigned int u;
+        int i;
+        double d;
+    } value;
+} NumberNode;
 
 typedef struct AddNode { Node *left; Node *right; } AddNode;
 typedef struct SubNode { Node *left; Node *right; } SubNode;

@@ -1,0 +1,100 @@
+
+// Errors are sort of like enums e.g.
+
+typedef FileError error {
+    FileNotFound, // 1
+    AccessDenied, // 2
+}
+
+typedef FolderError error {
+    FolderNotFound, // 3
+    AccessDenied, // Also 2
+}
+
+fn openFile(filename string) File! {
+    if open {
+        return the_file
+    }
+
+    return error::FileNotFound // without error message
+    return errors::wrap(error::FileNotFound, "Failed to open file {}", filename) // With optional error message.
+}
+
+fn openFile(filename string) Result<File, FileError> { .. } // For specific error types. Nah.
+
+fn someFunc() error {
+    file := try openFile()
+    file := openFile("bla") else [err] {
+        if err == error.FileNotFound {
+            return errors::wrap(err, "someFunc") // error message would be "someFunc: Failed to open file bla"
+            return err.wrap("someFunc") // error message would be "someFunc: Failed to open file bla"
+        }
+
+        yields File{}
+    }
+}
+
+typedef _BaseError error {
+    None,
+    Unknown,
+}
+
+typedef error struct {
+    code: u32
+    message: string
+}
+
+impl error does fmt::Printable
+
+md str() string {
+    return msg
+}
+
+endimpl
+
+typedef Result<T, E does error> struct { // ???
+    value: T
+    err: E
+}
+
+typedef Result<T> struct { // ???
+    value: T
+    err: error
+}
+
+use math::rand
+
+fn canError() error {
+    if rand::boolean() {
+        return error::Unknown
+    }
+
+    return error::None
+    // or
+    return 0
+}
+
+fn someFunc() {
+    err := canError()
+    if err != error::None { .. }
+    // or
+    if err != 0 { .. } // 0 is the only number errors can be compared against
+}
+
+fn someFunc2() {
+    try canError()
+    // is the same as
+    err := canError()
+    if err != 0 {
+        return
+    }
+}
+
+fn someFunc3() error {
+    try canError()
+    // is the same as
+    err := canError()
+    if err != 0 {
+        return err
+    }
+}

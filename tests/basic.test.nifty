@@ -1,0 +1,9 @@
+namespace nifty_test
+
+using testing
+
+test "mutable test" {
+    mut x: int = 0
+    x = 1
+    try expectEq(1, x)
+}

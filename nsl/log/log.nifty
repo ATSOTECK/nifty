@@ -19,7 +19,7 @@ typedef Logger struct {
 
 let _logger: ^Logger
 
-fn setLogger(logger ^Logger): error? {
+fn setLogger(logger ^Logger): error {
     if logger == null {
         return fmt::errorf("error logger is null")
     }
@@ -27,12 +27,12 @@ fn setLogger(logger ^Logger): error? {
     delete _logger
     _logger = logger
     
-    return null
+    return error::None
 }
 
 fn bla() {
     err := setLogger(logger)
-    if err != null {
+    if err != 0 {
         fmt::println(err.msg())
     }
 }

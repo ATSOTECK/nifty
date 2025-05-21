@@ -1,0 +1,257 @@
+// This file is for ideas I decided to remove from the language spec.
+
+// [MAP]
+// [SIGNALS AND SLOTS]
+// [ORM]
+// [TYPE METHODS]
+// [OPERATOR OVERLOADING]
+
+// [MAP] ------------------------------------------------------------------------------------------
+
+// Nifty has a built-in map type. I think this should just be in the nsl instead of built-in.
+// This should also return Optional<T> instead of T, bool.
+// TODO: Rewrite this for nsl eventually.
+
+m := map<string, int>() // The default value of a map is an empty map.
+defer delete m
+m["Alice"] = 12
+fmt::println(m["Alice"]) // Prints 12
+
+// To insert or update a value use
+m[key] = value
+ 
+// To get a value use
+value = m[key]
+
+// If the keey is not in the map then the default value of the type is returned.
+m := map<string, int>()
+i := m["index"] // i will be 0
+
+// Checking if the key exists can be done in two ways:
+m := map<string, int>()
+if (i, ok := m["index"]; ok) { /- ... -/ } // i will be 0, ok will be false
+
+// or
+
+ok := "index" in m // ok will be false
+if (ok) { /- ... -/ }
+
+// The first example is the comma ok idiom from go and is the same as:
+i, ok := m["index"]
+if (ok) { /- ... -/ }
+
+// Maps can be initialized with map literals.
+
+m := map<string, int>{
+    "Alice": 12,
+    "Bob": 42
+}
+
+m := map<string, int>{} // Valid, empty map
+mut m: map<string, int> // Valid, empty map
+m := map<string, int>() // Valid, empty map
+
+// len() can be used to get the number of items in a map
+assert(m.len() == 2) // true
+
+// To remove a key/value pair use the 'remove' function:
+m.remove(key)
+
+typedef Point struct { x, y: f64 }
+m := map<string, Point>{
+    "zero": {},
+    "start": {12.f, 42.f},
+    "stop": {142.f, 96.f}
+}
+
+// Because the value type is specified it is ok to not include the name of the fields.
+// Though it can be included.
+
+m := map<string, Point>{
+    "zero": Point{},
+    "start": Point{12.f, 42.f},
+    "stop": Point{x: 142.f, y: 96.f}
+}
+
+// [SIGNALS AND SLOTS] ----------------------------------------------------------------------------
+
+// Probably not.
+
+// Instead of callbacks signals and slots can be used in Nifty. When a signal is emitted the
+// corresponding slot or slots are called. This system is type safe so the signature of the signal
+// and the slot must match. When a signal is emitted the emitter neither knows nor cares which slots
+// receive the signal. If a signal is emitted all the corresponding slot will reveive it.
+// Signals and slots can either be standalone functions or methods implemented on a struct. The
+// two different types can be mixed. For instance a function can emit a signal that is recieved by
+// a slot method. Signals do not have implementations and thus must use undefined for the body.
+// Slots on the other hand do have implementations so the fn or md keyword is required. This means
+// that slots can be called like any normal function or method. One signal can be connected to many
+// slots and vice versa. Signals can even be connected to other signals. When this is the case when
+// the signal is emitted the signal connected to it is also immediatly emitted. If multiple signals
+// or slots are connected togther they are executed in the order they were connected.
+// Signals and slots can be slower than just using callbacks because there are runtime checks that
+// happen in the background to make sure the calls to any objects are safe. However in almost all
+// cases the convenience and flexability is worth the overhead.
+
+// Signals must never return a type, they must be void and they must be undefined.
+#[signal]
+fn valueChanged(newVal: int) undefined
+
+// Slots can return a type as they are otherwise normal functions. However in many cases the return
+// value will be discarded. Because of this the #[useReturn] attribute can't be used with slots.
+// A warning will be emitted if a slot returns something.
+#[slot]
+fn setValue(newVal: int) {
+    someVal = newVal
+}
+
+#connect_fn(valueChanged, setValue)
+
+// Optionally the types can be specified.
+#connect_fn(valueChanged(int), setValue(int))
+
+// ...
+
+emit valueChanged(changedVal)
+
+#connect_fn(emitterFn, receiverFn)
+#connect_md(^emitter, Emitter::method, ^receiver, Receiver::method)
+#connect_fn_md(emitterFn, ^receiver, Receiver::method)
+#connect_md_fn(^emitter, Emitter::method, receiverFn)
+
+emit emitterFn()
+
+// [ORM] ------------------------------------------------------------------------------------------
+
+// The ORM is Called Norm (Nifty Object Relational Mapping).
+// One syntax for all SQL dialects. Queries are made within nifty. This allows for compile time
+// checks as well as automatic sanitization, and improved readability. This feature is a stretch
+// goal and would likely be one of the last parts of the language to be worked on.
+
+#[normTable("people")]
+typedef Person struct {
+    id:        int        #[norm("primaryKey, autoIncrement")]
+    name:      string     #[norm("notNull")]
+    userName:  string     #[norm("notNull, unique")]
+    address:   string
+    dob:       time::Date #[norm("notNull")] // yyyy-mm-dd
+    createdAt: time::Time
+    updatedAt: time::Time
+}
+
+use fmt
+use sqlite
+
+// Norm allows queries to be type checked.
+
+db := sqlite::connect("the.db")  // Error handling skipped here for simplicity.
+
+#sql(db) {
+    create table Person
+}
+
+person := Person{ name: "Alice Bob", userName: "alice_bob42", dob: "1990-10-20" }
+
+#sql(db) {
+    insert person into Person
+}
+
+alice := #sql(db) {
+    select from Person where name == "Alice Bob" limit 1
+}
+
+fmt::Println(alice.name)
+
+#sql(db) {
+    update Person set name = "Samantha Bobert" where id == alice.id
+}
+
+// [TYPE METHODS] ---------------------------------------------------------------------------------
+
+// Removed for built in types.
+
+impl int
+
+md isEven[n: int](): bool {
+    return ~n & 1
+}
+
+endimpl
+
+mut x = 12
+// ...
+if (x.isEven()) {
+    // Do something.
+}
+
+// [OPERATOR OVERLOADING] -------------------------------------------------------------------------
+
+// Nifty will not have operator overloading. Leaving this section in anyways.
+
+// Still haven't decided if nifty will have operator overloading. But if it does this is how it 
+// will work. (Or it will only allow overloading related to [])
+
+// Operator overloading is done in struct implementations via attributes.
+
+typedef Point struct { x, y: f64 }
+
+impl Point
+
+#[overloads("+")]
+md addPoints(other: Point): Point {
+    return Point{x + other.x, y + other.y}
+}
+
+#[overloads("+")]
+md addf64(scalar: f64): Point {
+    return Point{x + scalar, y + scalar}
+}
+
+endimpl
+
+// The following operators are overloadable:
+// +, -, *, /, <<, >>, !, [], []=, [:], +=, -=, *=, /=, ==, !=, >, <, >=, <=, =, ++, --, in
+// Unary +, -, and ++, -- are special cases.
+
+#[overloads("+unary")] // +point
+#[overloads("-unary")] // -point
+
+#[overloads("++postfix")] // point++
+#[overloads("++prefix")] // ++point
+
+#[overloads("--postfix")] // point--
+#[overloads("--prefix")] // --point
+
+// What if you wanted to do
+5.f + point // Invalid
+
+// Because operator overloads are implemented on structs the struct object must be on the left.
+point + 5.f // Valid
+
+// Operator overloads work with bahaviors too.
+
+typedef Addable behavior {
+    #[overloads("+")]
+    add(other: Self): Self // Use Self to indicate that the function will return the type of the
+                              // struct impl that does this behavior.
+    #[overloads("-")]
+    sub(other: Self): Self
+}
+
+typedef Vec2 struct { x, y: f32 }
+
+impl Vec2 does Addable
+
+// Self can be used as the type.
+#[overloads("+")]
+md add(other: Self): Self {
+    return Vec2{x + other.x, y + other.y}
+}
+
+// Or the name of the struct can be used as the type.
+#[overloads("-")]
+md sub(other: Vec2): Vec2 {
+    return Vec2{x - other.x, y - other.y}
+}
+
+endimpl

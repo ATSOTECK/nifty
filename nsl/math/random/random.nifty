@@ -25,9 +25,9 @@
   - functions may be easily predictable regardless of how they are seeded.
   -/
 
-package random
+package nsl namespace random
 
-type Random struct {
+typedef Random struct {
     state: u64
     inc: u64
     seed: u64 // This should only be set with setSeed().
@@ -254,7 +254,7 @@ fn boolean(p: f64 = 0.5f): bool {
 
 // Returns one of the given arguments at random.
 #[min_arity(2)]
-fn choose<T>(items: ..T): T {
+fn choose<typename T>(items: ..T): T {
     #noBoundsCheck {
         return items[int64n(0, len(items))]
     }

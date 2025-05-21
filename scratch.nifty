@@ -1,0 +1,47 @@
+
+fn add(a, b int) int {
+    ret := a + b
+    return ret
+}
+
+fn main() int {
+    return add(2, 2)
+}
+
+typedef NewUser struct {
+    name: string,
+    age: int,
+}
+
+typedef User struct {
+    ...NewUser,
+    id: string,
+}
+
+/-
+
+a: {
+    name: "a",
+    fileName: "scratch.nifty",
+    kind: int
+    mutable: false
+    valueSet: false
+
+}
+b
+ret
+
+-/
+
+fmt::println("Putting {fmt::green}{filename}{fmt::reset} message.")
+// The above could be auto converted into below during compilation.
+fmt::println("Putting {}{}{} message.", fmt::green, filename, fmt::reset)
+// Or
+fmt::println("Putting {:green}{filename}{:reset} message.")
+// Which would be compiled to
+fmt::println("Putting {:green}{}{:reset} message.", filename)
+
+// To do formatting use a colon after the opening brace.
+x ::= 1.234567
+fmt::println("{:.3}", x)
+

@@ -240,7 +240,7 @@ static ArgNode **parseArguments(Parser *parser) {
     return nullptr;
 }
 
-static TypeNode **parseReturnTypes(Parser *parser) {
+static TypeNode *parseReturnType(Parser *parser) {
     return nullptr;
 }
 
@@ -255,7 +255,7 @@ static PrototypeNode *parsePrototype(Parser *parser) {
     advance(parser);
 
     prototype->args = parseArguments(parser);
-    prototype->returnTypes = parseReturnTypes(parser);
+    prototype->returnType = parseReturnType(parser);
 
     return prototype;
 }
