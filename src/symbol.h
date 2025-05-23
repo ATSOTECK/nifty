@@ -7,6 +7,8 @@
 
 #include "common.h"
 
+#include "table.h"
+
 typedef struct {
     //
 } NamespaceInfo;
@@ -16,13 +18,15 @@ typedef struct {
 } PackageInfo;
 
 typedef enum {
-    //
+    SymbolInt,
+
+    SymbolType, // The symbol is a type
 } SymbolKind;
 
 typedef enum {
-    ScopeFile,      // ends in underscore
-    ScopeNamespace, // starts with underscore
-    ScopeExported   // doesn't start or end with underscore
+    ScopeFile,      // Ends in underscore
+    ScopeNamespace, // Starts with underscore
+    ScopeExported   // Doesn't start or end with underscore
 } Scope;
 
 typedef struct {
@@ -43,13 +47,15 @@ typedef struct {
 
 } Symbol;
 
-typedef struct {
-    int count;
-    int capacity;
-    Symbol *symbols;
-    struct SymbolTable *parent;
+typedef struct SymbolTable SymbolTable;
+
+typedef struct SymbolTable {
+    Table *table;
+    SymbolTable *parent;
 } SymbolTable;
 
-Symbol *getSymbol(const char *name, const char *namespaceName, const char *packageName);
+SymbolTable *newSymbolTable();
+Symbol *getSymbol(const SymbolTable *table, const char *name);
+bool symbolExists(const SymbolTable *table, const char *name);
 
 #endif //SYMBOL_H

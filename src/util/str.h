@@ -37,6 +37,7 @@ bool isAlphaNumeric(char c);
 int str_len(const char *str);
 void str_cpy(register char *dst, register const char *src);
 void str_cpyn(register char *dst, register int n, register const char *src);
+char *str_dup(const char *str);
 
 char *str_new(const char *s, int *len);
 char *str_new_len(const char *s, int len);

@@ -62,6 +62,14 @@ inline void str_cpyn(register char *dst, const register int n, register const ch
     dst[n] = '\0';
 }
 
+inline char *str_dup(const char *str) {
+    const int len = str_len(str);
+    char *newStr = malloc(len * sizeof(char) + 1);
+    str_cpyn(newStr, len, str);
+
+    return newStr;
+}
+
 char *str_new(const char *s, int *len) {
     const int length = str_len(s);
     char *ret = (char *)malloc(length * sizeof(char) + 1);

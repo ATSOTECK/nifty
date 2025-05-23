@@ -173,14 +173,17 @@ typedef struct {
     Lexer *lexer;
     Token current;
     Token next;
+    int scopeDepth;
     bool hadError;
     bool panicMode;
     char *currentImpl;
     Namespace namespace;
-    int namepsaceLine;
+    int namespaceLine;
 
     ParseResults *results;
     CompilerConfig *compilerConfig;
+    SymbolTable *rootTable;
+    SymbolTable *currentTable;
 } Parser;
 
 typedef struct {

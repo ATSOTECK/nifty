@@ -52,6 +52,10 @@ int main(const int argc, char **argv) {
     ProjectInfo *projectInfo = nullptr;
     if (buildFileFound) {
         projectInfo = loadProject();
+        if (projectInfo == nullptr) {
+            println("Failed to load project info. Exiting.");
+            return 1;
+        }
     }
 
     if (argc >= 2) {

@@ -111,6 +111,14 @@ static void errorAtCurrentf(Parser *parser, const char *msg, ...) {
     free(buf);
 }
 
+static void beginScope(Parser *parser) {
+    parser->scopeDepth++;
+}
+
+static void endScope(Parser *parser) {
+    parser->scopeDepth--;
+}
+
 static Node *newNode(const Parser *parser, const NodeKind kind) {
     Node *node = (Node *)malloc(sizeof(Node));
     node->location.line = parser->current.line;
@@ -174,13 +182,16 @@ static Parser *initParser(const char *file, CompilerConfig *config) {
     results->nodes.list = (Node**)malloc(sizeof(Node) * 32);
     results->file = str_new(file, nullptr);
 
+    parser->scopeDepth = 0;
     parser->hadError = false;
     parser->panicMode = false;
     parser->currentImpl = nullptr;
     parser->namespace.name = nullptr;
-    parser->namepsaceLine = -1;
+    parser->namespaceLine = -1;
     parser->results = results;
     parser->compilerConfig = config;
+    parser->rootTable = newSymbolTable();
+    parser->currentTable = parser->rootTable;
     parser->lexer = initLexer(file);
     parser->next = nextToken(parser->lexer);
     advance(parser);
@@ -208,11 +219,11 @@ static bool match(Parser *parser, const NiftyTokenType tokenType) {
 
 static void namespaceDeclaration(Parser *parser) {
     if (parser->namespace.name != nullptr) {
-        errorAtCurrentf(parser, "Namespace already set on line %d.", parser->namepsaceLine);
+        errorAtCurrentf(parser, "Namespace already set on line %d.", parser->namespaceLine);
         return;
     }
 
-    parser->namepsaceLine = parser->current.line;
+    parser->namespaceLine = parser->current.line;
 
     if (!check(parser, TK_IDENT)) {
         expectedAfter(parser, "identifier", "namespace");
