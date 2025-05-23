@@ -45,3 +45,28 @@ fmt::println("Putting {:green}{}{:reset} message.", filename)
 x ::= 1.234567
 fmt::println("{:.3}", x)
 
+using map
+
+fn main() {
+    map := Map<string, int>{}
+    a := map.get("thing")
+    b := map.get("other", 12)
+}
+
+package nsl namespace map
+
+typedef Map<typename T, typename U> struct {
+    //
+}
+
+constimpl Map<typename T, typename U>
+
+md getValue(key: T): U? {}
+md getWithDefault(key: T, default: U): U {}
+
+md get overloads {getValue, getWithDefault}
+
+md set(key: T): bool {}
+md erase(key: T): bool {}
+
+endimpl

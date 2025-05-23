@@ -555,8 +555,6 @@ fn otherFunc() {
     _x := 12 // Nothing special about _x or x_ or _x_ here.
 }
 
-// Could these "api" files be automatically generated?
-
 // Sometimes you only want to expose an api for your namespace without exposing the implementation.
 // For that you can use the 'api' keyword. A namespace may have at most one api file. All functions,
 // structs, variables, etc must be public and must not start or end with an underscore. The idea is
@@ -3288,6 +3286,7 @@ someVar := OTHER_CONST_MACRO // Invalid
 #niftyVersion      // replaced with the version of the nifty compiler
 #niftyVersionMajor //
 #niftyVersionMinor //
+#niftyVersionPatch //
 #opt               // replaced with the current optimization level
 
 #counter           // replaced by an incremented value starting at 0, it is incremented everytime it is encountered and never reset
@@ -3325,6 +3324,9 @@ fn someFunc() {
 #ARCH_AMD64
 #ARCH_X86_64
 #ARCH_X86
+
+#buildIf(OS_MAC) {}
+#buildIfTrue(os == "windows")
 
 // More to be added as support is expanded.
 
