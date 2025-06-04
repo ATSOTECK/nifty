@@ -22,6 +22,7 @@
 
 #include "project.h"
 
+#include <git2.h>
 #include <toml/toml.h>
 
 #include <stdlib.h>
@@ -52,6 +53,46 @@ static bool createFolder(const char *folder) {
     return true;
 }
 
+static bool createRepo(const CreateProjectInfo *info) {
+    git_libgit2_init();
+
+    git_repository *repo = nullptr;
+    char *repoName = str_new_fmt(nullptr, "%s", info->name);
+    git_repository_init_options opts = GIT_REPOSITORY_INIT_OPTIONS_INIT;
+    opts.description = str_new_fmt(nullptr, "%s - Nifty Project", info->name);
+    opts.initial_head = "main";
+
+    const int error = git_repository_init_ext(&repo, repoName, &opts);
+    str_delete(repoName);
+
+    if (error != 0) {
+        println("Could not create repo for project %s. Exiting.", info->name);
+        git_libgit2_shutdown();
+        return false;
+    }
+
+    git_libgit2_shutdown();
+
+    char *gitignore = str_new_fmt(nullptr, "%s/.gitignore", info->name);
+    FILE *file = fopen(gitignore, "w");
+    if (file == nullptr) {
+        println("Could not open .gitignore for writing. Exiting.");
+        return false;
+    }
+    str_delete(gitignore);
+
+    fprintf(file, "# Build\n");
+    fprintf(file, "build-debug\n");
+    fprintf(file, "build-release\n");
+
+    fprintf(file, "\n# OS\n");
+    fprintf(file, ".DS_Store\n");
+
+    fclose(file);
+
+    return true;
+}
+
 static char *loadStringForKey(const toml_table_t *table, const char *key, const char *defaultValue) {
     const toml_datum_t datum = toml_string_in(table, key);
     if (datum.ok) {
@@ -67,7 +108,7 @@ static char *loadStringForKey(const toml_table_t *table, const char *key, const 
     return nullptr;
 }
 
-static bool loadBoolForKey(const toml_table_t *table, const char *key, bool defaultValue) {
+static bool loadBoolForKey(const toml_table_t *table, const char *key, const bool defaultValue) {
     const toml_datum_t datum = toml_bool_in(table, key);
     if (datum.ok) {
         return datum.u.b;
@@ -284,62 +325,50 @@ void run(const char *targetName, ProjectInfo *info) {
     }
 }
 
-void newProject(const bool exists) {
+void newProject(const bool exists, const bool noGit) {
     char *answer = str_new_empty(100);
 
     if (exists) {
-        println("A Nifty project already exists in this directory.");
-        printf("Would you like to overwrite it? (no) > ");
-        str_fgets(answer, 101, stdin, "no");
-        str_tolower(answer);
-
-        if (str_empty(answer) || str_eq2(answer, "no", "n")) {
-            return;
-        }
-
-        if (!str_eq2(answer, "yes", "y")) {
-            println("Unknown answer '%s'. Exiting.", answer);
-            return;
-        }
-
-        dbln();
+        println("A Nifty project already exists in this directory. Exiting.");
+        return;
     }
 
     println("This utility will help you make a new Nifty project.");
     println("Run 'nifty help new' for more information.");
     dbln();
 
-    CreateProjectInfo *info = (CreateProjectInfo*)malloc(sizeof(CreateProjectInfo));
+    CreateProjectInfo info;
+    info.noGit = noGit;
 
     printf("Project name: (Untitled) > ");
     str_fgets(answer, 101, stdin, "Untitled");
-    info->name = str_new(answer, nullptr);
+    info.name = str_new(answer, nullptr);
 
     printf("Project version: (0.1.0) > ");
     str_fgets(answer, 101, stdin, "0.1.0");
-    info->version = str_new(answer, nullptr);
+    info.version = str_new(answer, nullptr);
 
     printf("Entry point: (main.nifty) > ");
     str_fgets(answer, 101, stdin, "main.nifty");
-    info->entryPoint = str_new(answer, nullptr);
+    info.entryPoint = str_new(answer, nullptr);
 
     printf("Author: > ");
     str_fgets(answer, 101, stdin, nullptr);
-    info->author = str_new(answer, nullptr);
+    info.author = str_new(answer, nullptr);
 
     printf("License: (zlib) > ");
     str_fgets(answer, 101, stdin, "zlib");
-    info->license = str_new(answer, nullptr);
+    info.license = str_new(answer, nullptr);
 
     const int width = 25;
     dbln();
-    printStrsWithSpacer("Project name", '-', info->name, width);
-    printStrsWithSpacer("Project version", '-', info->version, width);
-    printStrsWithSpacer("Entry point", '-', info->entryPoint, width);
-    if (!str_empty(info->author)) {
-        printStrsWithSpacer("Author", '-', info->author, width);
+    printStrsWithSpacer("Project name", '-', info.name, width);
+    printStrsWithSpacer("Project version", '-', info.version, width);
+    printStrsWithSpacer("Entry point", '-', info.entryPoint, width);
+    if (!str_empty(info.author)) {
+        printStrsWithSpacer("Author", '-', info.author, width);
     }
-    printStrsWithSpacer("License", '-', info->license, width);
+    printStrsWithSpacer("License", '-', info.license, width);
 
     dbln();
     printf("Is this ok? (yes) > ");
@@ -347,24 +376,30 @@ void newProject(const bool exists) {
     str_tolower(answer);
 
     if (str_eq2(answer, "yes", "y")) {
-        createProject(info);
+        createProject(&info);
+    } else {
+        println("Did not create project %s. Exiting.", info.name);
     }
 
-    free(info->name);
-    free(info->version);
-    free(info->entryPoint);
-    free(info->author);
-    free(info->license);
-    free(info);
+    str_delete(info.name);
+    str_delete(info.version);
+    str_delete(info.entryPoint);
+    str_delete(info.author);
+    str_delete(info.license);
 }
 
 void createProject(const CreateProjectInfo *info) {
-    FILE *file = fopen(NIFTY_BUILD_FILE, "w");
+    if (!createFolder(info->name)) {
+        return;
+    }
+
+    char *buildFile = str_new_fmt(nullptr, "%s/%s", info->name, NIFTY_BUILD_FILE);
+    FILE *file = fopen(buildFile, "w");
     if (file == nullptr) {
         println("Could not open %s for writing. Exiting.", NIFTY_BUILD_FILE);
         return;
     }
-
+    str_delete(buildFile);
 
     if (!str_empty(info->author)) {
         fprintf(file, "project = \"%s\"\n", info->name);
@@ -390,20 +425,25 @@ void createProject(const CreateProjectInfo *info) {
 
     fclose(file);
 
-    if (!createFolder("src")) {
+    char *srcFolder = str_new_fmt(nullptr, "%s/src", info->name);
+    if (!createFolder(srcFolder)) {
         return;
     }
-    if (!createFolder("build-debug")) {
-        return;
-    }
+    str_delete(srcFolder);
 
-    char *fileName = str_new_empty(100);
-    sprintf(fileName, "src/%s", info->entryPoint);
-    file = fopen(fileName, "w");
+    char *debugFolder = str_new_fmt(nullptr, "%s/build-debug", info->name);
+    if (!createFolder(debugFolder)) {
+        return;
+    }
+    str_delete(debugFolder);
+
+    char *filename = str_new_fmt(nullptr, "%s/src/%s", info->name, info->entryPoint);
+    file = fopen(filename, "w");
     if (file == nullptr) {
         println("Could not open src/%s for writing. Exiting.", info->entryPoint);
         return;
     }
+    str_delete(filename);
 
     const time_t t = time(NULL);
     const struct tm tm = *localtime(&t);
@@ -415,7 +455,7 @@ void createProject(const CreateProjectInfo *info) {
         fprintf(file, " - Copyright (c) %d %s\n", year, info->author);
     }
     fprintf(file, " -/\n\n");
-    fprintf(file, "namespace %s\n\n", info->name); // TODO: Check for whitespace and convert to underscores.
+    fprintf(file, "namespace main\n\n");
     fprintf(file, "using fmt\n\n");
     fprintf(file, "fn main() {\n");
     fprintf(file, "    println(\"Hullo!\")\n");
@@ -424,14 +464,30 @@ void createProject(const CreateProjectInfo *info) {
     fclose(file);
     
     // TODO: Should I ask to generate README?
-    file = fopen("README.md", "w");
+    char *readme = str_new_fmt(nullptr, "%s/README.md", info->name);
+    file = fopen(readme, "w");
+    if (file == nullptr) {
+        println("Could not open README.md for writing. Exiting.");
+    }
+    str_delete(readme);
+
     fprintf(file, "# %s\n", info->name);
     fprintf(file, "TODO: Useful information here.\n");
     fclose(file);
-    
-    file = fopen("license.md", "w");
+
+    char *license = str_new_fmt(nullptr, "%s/license.md", info->name);
+    file = fopen(license, "w");
+    if (file == nullptr) {
+        println("Could not open license.md for writing. Exiting.");
+    }
+    str_delete(license);
+
     fprintf(file, "# TODO\n");
     fclose(file);
+
+    if (!info->noGit) {
+        createRepo(info);
+    }
 
     println("Created project %s.", info->name);
 }

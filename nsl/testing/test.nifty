@@ -1,0 +1,9 @@
+package nsl namespace testing
+
+fn setup_tests() {
+    //
+}
+
+fn fail_test() {
+    //
+}

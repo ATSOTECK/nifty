@@ -61,7 +61,7 @@ int main(const int argc, char **argv) {
     if (argc >= 2) {
         const char *cmd = argv[1];
 
-        if (str_eq2(cmd, "help", "-h")) {
+        if (str_eq2(cmd, "help", "-h") || str_eq2(cmd, "-help", "--help")) {
             printHelp(argv[2]);
         } else if (str_eq2(cmd, "version", "-v")) {
             println("%s", NIFTY_VERSION);
@@ -93,13 +93,21 @@ int main(const int argc, char **argv) {
         } else if (str_eq2(cmd, "run", "-r")) {
             run(argv[2], projectInfo);
         } else if (str_eq2(cmd, "new", "-n")) {
-            newProject(buildFileFound);
+            bool noGit = false;
+            for (int i = 2; i < argc; ++i) {
+                if (str_eq(argv[i], "--no-git")) {
+                    noGit = true;
+                }
+            }
+
+            newProject(buildFileFound, noGit);
         } else if (str_eq2(cmd, "test", "-t")) {
             println("test");
         } else if (str_eq(cmd, "colors")) {
             printColors(projectInfo);
         } else {
-            println("unknown");
+            println("Unknown command '%s'.\n", cmd);
+            printHelp(nullptr);
         }
     } else {
         if (buildFileFound) {

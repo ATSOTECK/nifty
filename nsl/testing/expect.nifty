@@ -1,0 +1,11 @@
+package nsl namespace testing
+
+using errors
+
+fn expect_eq<typename T>(expected, actual: T): bool! {
+    if expected == actual {
+        return true
+    }
+
+    return errors::wrap(error::NotEqual, "'{}'', does not equal expected value '{}'", actual, expected)
+}

@@ -20,12 +20,12 @@
  |
 -/
 
-package string
+namespace string
 
-use <ascii>
-use <iter>
+use ascii
+use iter
 
-type String struct {
+typedef String struct {
     _len: int // Number of characters in the string
     _allocated: int // 
     _size: int

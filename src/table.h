@@ -20,7 +20,7 @@ typedef struct {
     size_t len;
 } Table;
 
-Table *tableCreate();
+Table *tableCreate(size_t capacity);
 void tableFree(Table *table);
 void *tableGet(const Table *table, const char *key);
 bool tableExists(const Table *table, const char *key);

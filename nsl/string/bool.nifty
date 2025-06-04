@@ -1,0 +1,56 @@
+package nsl namespace string
+
+use errors
+
+typedef ConversionError error {
+    BoolSyntaxError
+}
+
+fn parse_bool(str: string): bool! {
+    when str: {
+        "1", "t", "T", "TRUE", "true", "True": return true;
+        "0", "f", "F", "FALSE", "false", "False": return false;
+        else: return errors::wrap(error::BoolSyntaxError, "'{}' is not a valid bool value", str)
+    }
+}
+
+fn format_bool(b: bool): string {
+    if b {
+        return "true"
+    }
+
+    return "false"
+}
+
+using testing
+
+test "parse bool" {
+    const tests: []BasicTest<string, bool>{
+        {"", false, error::BoolSyntaxError},
+        {"yeet", false, error::BoolSyntaxError},
+        {"t", true, error::None},
+        {"T", true, error::None},
+        {"true", true, error::None},
+        {"TRUE", true, error::None},
+        {"True", true, error::None},
+        {"1", true, error::None}
+        {"f", false, error::None},
+        {"F", false, error::None},
+        {"false", false, error::None},
+        {"FALSE", false, error::None},
+        {"False", false, error::None},
+        {"0", false, error::None},
+    }
+
+    for const t in tests {
+        b ::= parse_bool(t.input) else [const err] {
+            try expect_eq(t.err, err)
+        }
+        try expect_eq(t.expected, b)
+    }
+}
+
+test "format bool" {
+    try expect_eq("true", format_bool(true))
+    try expect_eq("false", format_bool(false))
+}

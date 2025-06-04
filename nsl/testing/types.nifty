@@ -1,0 +1,11 @@
+package nsl namespace testing
+
+typedef TestingErrors error {
+    NotEqual,
+}
+
+typedef BasicTest<typename T, typename U> struct {
+    input: T,
+    expected: U,
+    err: error,
+}

@@ -20,7 +20,7 @@ static const char *setEntry(Entry *entries, const size_t capacity, const char *k
     const uint32_t hash = hashKey(key);
     size_t index = hash & (uint64_t)(capacity - 1);
 
-    while (entries[index].key != NULL) {
+    while (entries[index].key != nullptr) {
         if (str_eq(key, entries[index].key)) {
             entries[index].value = value;
             return entries[index].key;
@@ -51,33 +51,34 @@ static bool expand(Table *table) {
         return false;
     }
 
-    Entry * newEntries = calloc(newCapacity, sizeof(Entry));
-    if (newEntries == NULL) {
+    Entry *newEntries = calloc(newCapacity, sizeof(Entry));
+    if (newEntries == nullptr) {
         return false;
     }
 
     for (size_t i = 0; i < table->capacity; ++i) {
         const Entry entry = table->entries[i];
-        if (entry.key != NULL) {
-            setEntry(newEntries, newCapacity, entry.key, entry.value, NULL);
+        if (entry.key != nullptr) {
+            setEntry(newEntries, newCapacity, entry.key, entry.value, nullptr);
         }
     }
 
     free(table->entries);
+    table->entries = nullptr; // Quiets warning.
     table->entries = newEntries;
     table->capacity = newCapacity;
 
     return true;
 }
 
-Table *tableCreate() {
+Table *tableCreate(const size_t capacity) {
     Table *table = malloc(sizeof(Table));
     if (table == nullptr) {
         return nullptr;
     }
 
     table->len = 0;
-    table->capacity = 64;
+    table->capacity = capacity;
     table->entries = calloc(table->capacity, sizeof(Entry));
     if (table->entries == nullptr) {
         free(table);

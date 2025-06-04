@@ -32,6 +32,7 @@ typedef struct {
     char *entryPoint;
     char *author;
     char *license;
+    bool noGit;
 } CreateProjectInfo;
 
 typedef struct {
@@ -76,7 +77,7 @@ TargetInfo *getTargetInfo(const char *targetName, const ProjectInfo *info);
 
 void build(const char *targetName, ProjectInfo *info);
 void run(const char *targetName, ProjectInfo *info);
-void newProject(bool exists);
+void newProject(bool exists, bool noGit);
 void createProject(const CreateProjectInfo *info);
 
 void listTargets(const ProjectInfo *info);
