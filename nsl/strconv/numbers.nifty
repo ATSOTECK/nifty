@@ -1,0 +1,166 @@
+package nsl namespace strconv;
+
+use ascii;
+use errors;
+
+#[inline]
+fn parse_int_internal_<typename T: #integer>(str, s: string, base: int, is_negative: bool): T! {
+    mut value: T = 0;
+    idx := 0;
+    for const c in s {
+        if c == '_' {
+            idx++;
+            continue;
+        }
+
+        v := try ascii::parse_int_generic<T>(c);
+        if v > base {
+            break;
+        }
+
+        value *= base;
+        value += v;
+        idx++;
+    }
+    s = s[idx:];
+
+    if s.len() != 0 {
+        return errors::wrap(ConversionError::IntegerSyntaxError, "'{}'' is not a valid integer value", str);
+    }
+
+    if is_negative {
+        value *= -1;
+    }
+
+    return value;
+}
+
+fn parse_int_prefixed<typename T: #integer>(str: string): T! {
+    if str == "" {
+        return ConversionError::EmptyStringError;
+    }
+
+    s := str;
+
+    is_negative := false;
+    if s.len() > 1 {
+        when s[0] {
+            '-': is_negative = true; s = s[1:];
+            '+': is_negative = false; s = s[1:];
+        }
+    }
+
+    mut base: T = 10;
+    if s.len() > 2 && s[0] == '0' {
+        when ascii::to_lower(s[1]) {
+            'b': base = 2; s = s[2:];
+            'o', 'q': base = 8; s = s[2:];
+            'd': base = 10; s = s[2:];
+            'z': base = 12; s = s[2:];
+            'x': base = 16; s = s[2:];
+        }
+    }
+
+    return parse_int_internal_<T>(str, s, base, is_negative);
+}
+
+#[require { base >= 1 && base <= 16 }]
+fn parse_int_base<typename T: #integer>(str: string, base: int): T! {
+    if str == "" {
+        return ConversionError::EmptyStringError;
+    }
+
+    s := str;
+
+    is_negative := false;
+    if s.len() > 1 {
+        when s[0] {
+            '-': is_negative = true; s = s[1:];
+            '+': is_negative = false; s = s[1:];
+        }
+    }
+
+    return parse_int_internal_<T>(str, s, base, is_negative);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_int_generic<typedef T: #integer>(str: string, base: int): T! {
+    when base {
+        0: return parse_int_prefixed<T>(str);
+        else: return parse_int_base<T>(str, base);
+    }
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_int(str: string, base: int): int! {
+    return parse_int_generic<int>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_s8(str: string, base: int): s8! {
+    return parse_int_generic<s8>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_u8(str: string, base: int): u8! {
+    return parse_int_generic<u8>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_s16(str: string, base: int): s16! {
+    return parse_int_generic<s16>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_u16(str: string, base: int): u16! {
+    return parse_int_generic<u16>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_s32(str: string, base: int): s32! {
+    return parse_int_generic<s32>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_u32(str: string, base: int): u32! {
+    return parse_int_generic<u32>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_s64(str: string, base: int): s64! {
+    return parse_int_generic<s64>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_u64(str: string, base: int): u64! {
+    return parse_int_generic<u64>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_s128(str: string, base: int): s128! {
+    return parse_int_generic<s128>(str, base);
+}
+
+#[require { base >= 0 && base <= 16 }]
+fn parse_u128(str: string, base: int): u128! {
+    return parse_int_generic<u128>(str, base);
+}
+
+fn atoi(str: string): int! {
+    return parse_int_base<int>(str, 10);
+}
+
+using testing;
+
+test "atoi" {
+    const tests: []Basic_Test<string, int>{
+        {"10", 10, error::None},
+    };
+
+    for const t in tests {
+        n ::= try atoi(t.input) => [const err] {
+            try expect_eq(t.err, err);
+        }
+        try expect_eq(t.expected, n);
+    }
+}

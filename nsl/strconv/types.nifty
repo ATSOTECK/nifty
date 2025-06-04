@@ -1,0 +1,7 @@
+package nsl namespace strconv
+
+typedef ConversionError error {
+    EmptyStringError,
+    IntegerSyntaxError,
+    BoolSyntaxError,
+}

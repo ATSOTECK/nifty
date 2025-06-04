@@ -1150,14 +1150,14 @@ when x {
     else: fmt::println("big")
 }
 
-// By default cases do not fall through. To fall through use '=>'.
+// By default cases do not fall through. To fall through use '#fallthrough'.
 
 x := 2
 when x {
-    1: fmt::println("one") =>
-    2: fmt::println("two") =>
-    3: fmt::println("three")
-    else: fmt::println("???")
+    1: fmt::println("one"); #fallthrough
+    2: fmt::println("two"); #fallthrough
+    3: fmt::println("three");
+    else: fmt::println("???");
 }
 
 // The above when statement will trigger 2 and 3.
@@ -1181,16 +1181,18 @@ when (str) {
     else: fmt::println("???")
 }
 
-// Each case in a when statement has its own scope. Curly braces can be used but are not required.
+// Each case in a when statement has its own scope. Curly braces are required.
 
 str := "one"
 when str {
-    "one":
+    "one": {
         x := 1
         fmt::println(x)
-    "two":
+    }
+    "two": {
         x := 2
         fmt::println(x)
+    }
     else: fmt::println("???")
 }
 
@@ -2433,6 +2435,10 @@ typedef Vec3<typename T: #decimal> struct { /- ... -/ }
 // Or if you only want to allow only all integer types only you can use the #integer built-in macro.
 typedef Vec3<typename T: #integer> struct { /- ... -/ }
 
+// Or if you only want to allow only all boolean types only you can use the #boolean built-in macro.
+// Limited to bool, b8, b16, b32, b64
+typedef Vec3<typename T: #integer> struct { /- ... -/ }
+
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
 // enough to merit three dedicated keywords.
 
@@ -2976,7 +2982,7 @@ fn openFile(filename string) ^File! { // The syntax ^File! is equivalent to Resu
 
 fn someFunc() error {
     // The syntax [err] is called payload capturing.
-    file := openFile("bla") else [const err] {
+    file := openFile("bla") => [const err] {
         return errors::wrap(err, "someFunc") // The error message will now be "someFunc: Failed to open file 'bla'"
     }
 
@@ -3035,7 +3041,7 @@ lastError := errors::errorForName(lastError)
 
 //
 fn someFunc(): int! { /- ... -/ }
-idx := someFunc() else [err] { 
+idx := someFunc() => [const err] { 
     panic(err)
 }
 
@@ -3296,6 +3302,7 @@ someVar := OTHER_CONST_MACRO // Invalid
 #number              // used by generics, see the section on generics for details
 #decimal             // used by generics, see the section on generics for details
 #integer             // used by generics, see the section on generics for details
+#boolean             // used by generics, see the section on generics for details
 
 #no_bounds_check     // does not check bounds in the given block or statement
 #check_bounds        // will always check bounds in the given block or statement

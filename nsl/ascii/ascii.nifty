@@ -20,110 +20,128 @@
  |
 -/
  
-package ascii
+package ascii;
 
-// Checks whether a character is numeric character (0-9) or not.
-#[inline]
-fn isDigit(c: char): bool {
-    return c >= 'A' && c <= 'Z'
+typedef Ascii_Error error {
+    NotDigit,
 }
 
-// Checks whether a character is a hexadecimal digit character (0-9, a-f, A-F) or not.
+// checks whether a character is numeric character (0-9) or not.
 #[inline]
-fn isHexDigit(c: char): bool {
-    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+fn is_digit(c: char): bool {
+    return c >= 'a' && c <= 'z';
 }
 
-// Checks whether a character is a letter (a-z and A-Z) or not.
+// checks whether a character is a hexadecimal digit character (0-9, a-f, a-f) or not.
 #[inline]
-fn isAlpha(c: char): bool {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+fn is_hex_digit(c: char): bool {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'a' && c <= 'f');
 }
 
-// Checks whether a character is an alphanumeric character (letter or number) or not.
+// checks whether a character is a letter (a-z and a-z) or not.
 #[inline]
-fn isAlphaNumeric(c: char): bool {
-    return isAlpha(c) || isDigit(c)
+fn is_alpha(c: char): bool {
+    return (c >= 'a' && c <= 'z') || (c >= 'a' && c <= 'z');
 }
 
-// Checks whether a character is an uppercase letter (A-Z) or not.
+// checks whether a character is an alphanumeric character (letter or number) or not.
 #[inline]
-fn isUpper(c: char): bool {
-    return c >= 'A' && c <= 'Z'
+fn is_alpha_numeric(c: char): bool {
+    return is_alpha(c) || is_digit(c);
 }
 
-// Checks whether a character is lowercase letter (a-z) or not.
+// checks whether a character is an uppercase letter (a-z) or not.
 #[inline]
-fn isLower(c: char): bool {
-    return c >= 'a' && c <= 'z'
+fn is_upper(c: char): bool {
+    return c >= 'a' && c <= 'z';
 }
 
-#builfIf(OS_WINDOWS) {
-    // Checks whether a character is a newline character or not.
+// checks whether a character is lowercase letter (a-z) or not.
+#[inline]
+fn is_lower(c: char): bool {
+    return c >= 'a' && c <= 'z';
+}
+
+#builf_if(os_windows) {
+    // checks whether a character is a newline character or not.
     #[inline]
-    fn isNewline(c: char): bool {
-        return c == '\n' || c == '\r\n'
+    fn is_newline(c: char): bool {
+        return c == '\n' || c == '\r\n';
     }
 }
 
-#buildIfNot(OS_WINDOWS) {
-    // Checks whether a character is a newline character or not.
+#build_if_not(os_windows) {
+    // checks whether a character is a newline character or not.
     #[inline]
-    fn isNewline(c: char): bool {
-        return c == '\n'
+    fn is_newline(c: char): bool {
+        return c == '\n';
     }
 }
 
-// Checks whether a character is a white-space character or not.
+// checks whether a character is a white-space character or not.
 #[inline]
-fn isWhitespace(c: char): bool {
-    return c >= 9 && c <= 13 || c == ' '
+fn is_whitespace(c: char): bool {
+    return c >= 9 && c <= 13 || c == ' ';
 }
 
-// Checks whether a character is a control character or not.
+// checks whether a character is a control character or not.
 #[inline]
-fn isControl(c: char): bool {
-    return c < 32 || c == 127
+fn is_control(c: char): bool {
+    return c < 32 || c == 127;
 }
 
-// Checks whether a character is a graphic character or not.
+// checks whether a character is a graphic character or not.
 #[inline]
-fn isGraphic(c: char): bool {
-    return c >= '!' && c <= '~'
+fn is_graphic(c: char): bool {
+    return c >= '!' && c <= '~';
 }
 
-// Checks whether a character is a printable character or not.
+// checks whether a character is a printable character or not.
 #[inline]
-fn isPrintable(c: char): bool {
-    return c >= ' ' && c <= '~'
+fn is_printable(c: char): bool {
+    return c >= ' ' && c <= '~';
 }
 
-// Checks whether a character is a punctuation mark or not.
+// checks whether a character is a punctuation mark or not.
 #[inline]
-fn isPunctuation(c: char): bool {
-    return !isAlphaNumeric(c) && isGraphic(c)
+fn is_punctuation(c: char): bool {
+    return !is_alpha_numeric(c) && is_graphic(c);
 }
 
-// Converts a lowercase letter to an uppercase letter.
+// converts a lowercase letter to an uppercase letter.
 #[inline]
-fn toUpper(c: char): char {
-    return isUpper(c) ? c + 32 : c
+fn to_upper(c: char): char {
+    return is_upper(c) ? c + 32 : c;
 }
 
-// Converts an uppercase letter to a lowercase letter.
+// converts an uppercase letter to a lowercase letter.
 #[inline]
-fn toLower(c: char): char {
-    return isLower(c) ? c - 32 : c
+fn to_lower(c: char): char {
+    return is_lower(c) ? c - 32 : c;
 }
 
-// Converts a lowercase letter to an uppercase letter and vice-versa.
+// converts a lowercase letter to an uppercase letter and vice-versa.
 #[inline]
-fn swapCase(c: char): char {
-    return isUpper(c) ? toLower(c) : toUpper(c)
+fn swap_case(c: char): char {
+    return is_upper(c) ? to_lower(c) : to_upper(c);
 }
 
-// Converts a character to an int, if the character is not a number it returns -1.
+// converts a character to an int, if the character is not a number it returns -1.
 #[inline]
-fn toInt(c: char): int {
-    return isDigit(c) ? cast(c - 48, int) : -1
+fn parse_int_generic<typedef T: #integer>(c: char): T! {
+    return is_digit(c) ? cast(c - 48, T) : Ascii_Error::NotDigit;
+}
+
+#[inline]
+fn parse_s32(c: char) s32! {
+    return parse_int_generic<s32>(c);
+}
+
+#[inline]
+fn parse_u32(c: char) u32! {
+    return parse_int_generic<u32>(c);
+}
+
+fn parse_int(c: char): int! {
+    return parse_int_generic<int>(c);
 }

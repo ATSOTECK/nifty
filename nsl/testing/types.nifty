@@ -1,10 +1,33 @@
 package nsl namespace testing
 
-typedef TestingErrors error {
-    NotEqual,
+typedef _Test_Status enum {
+    Passed,
+    Failed,
+    Skipped,
+    Unknown,
 }
 
-typedef BasicTest<typename T, typename U> struct {
+typedef _Test struct {
+    name: string,
+    path: string,
+    status: TestStatus_
+}
+
+typedef _Tester struct {
+    tests: []_Test,
+    passed: bool,
+    passedCount: int,
+    failedCount: int,
+    skippedCount: int,
+}
+
+typedef Testing_Errors error {
+    NotEqual,
+    NotNull,
+    Null,
+}
+
+typedef Basic_Test<typename T, typename U> struct {
     input: T,
     expected: U,
     err: error,

@@ -1,0 +1,96 @@
+package nsl namespace strconv;
+
+use errors;
+
+fn parse_bool_generic<typename T: #boolean>(str: string): T! {
+    if str == "" {
+        return ConversionError::EmptyStringError;
+    }
+
+    when str: {
+        "1", "t", "T", "TRUE", "true", "True": return true;
+        "0", "f", "F", "FALSE", "false", "False": return false;
+        else: return errors::wrap(error::BoolSyntaxError, "'{}' is not a valid bool value", str);
+    }
+}
+
+fn parse_bool(str: string): bool {
+    return parse_bool_generic<bool>(str);
+}
+
+fn parse_b8(str: string): b8 {
+    return parse_bool_generic<b8>(str);
+}
+
+fn parse_b16(str: string): b16 {
+    return parse_bool_generic<b16>(str);
+}
+
+fn parse_b32(str: string): b32 {
+    return parse_bool_generic<b32>(str);
+}
+
+fn parse_b64(str: string): b64 {
+    return parse_bool_generic<b64>(str);
+}
+
+fn format_bool_generic<typename T: #boolean>(b: T): string {
+    if b {
+        return "true";
+    }
+
+    return "false";
+}
+
+fn format_bool(b: bool): string {
+    return format_bool_generic<bool>(b);
+}
+
+fn format_b8(b: b8): string {
+    return format_bool_generic<b8>(b);
+}
+
+fn format_b16(b: b16): string {
+    return format_bool_generic<b16>(b);
+}
+
+fn format_b32(b: b32): string {
+    return format_bool_generic<b32>(b);
+}
+
+fn format_b64(b: b64): string {
+    return format_bool_generic<b64>(b);
+}
+
+using testing;
+
+test "parse bool" {
+    const tests: []Basic_Test<string, bool>{
+        {"", false, error::BoolSyntaxError},
+        {"yeet", false, error::BoolSyntaxError},
+        {"t", true, error::None},
+        {"T", true, error::None},
+        {"true", true, error::None},
+        {"TRUE", true, error::None},
+        {"True", true, error::None},
+        {"1", true, error::None}
+        {"f", false, error::None},
+        {"F", false, error::None},
+        {"false", false, error::None},
+        {"FALSE", false, error::None},
+        {"False", false, error::None},
+        {"0", false, error::None},
+    };
+
+    for const t in tests {
+        b ::= parse_bool(t.input) => [const err] {
+            try expect_eq(t.err, err);
+        }
+        try expect_eq(t.expected, b);
+    }
+}
+
+test "format bool" {
+    try expect_eq("true", format_bool(true));
+    try expect_eq("false", format_bool(false));
+}
