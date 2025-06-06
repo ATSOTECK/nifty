@@ -1,0 +1,33 @@
+package nsl namespace types;
+
+#[inline]
+fn is_unsigned(type: typeid): bool {
+    when type {
+        char, u8, u16, u32, u64, u128, uint, uintptr: return true;
+        else: return false;
+    }
+}
+
+#[inline]
+fn is_signed(type: typeid): bool {
+    when type {
+        s8, s16, s32, s64, s128, int, f16, f32, f64, float, double: return true;
+        else: return false;
+    }
+}
+
+#[inline]
+fn is_signed_int(type: typeid): bool {
+    when type {
+        s8, s16, s32, s64, s128, int: return true;
+        else: return false;
+    }
+}
+
+#[inline]
+fn is_bool(type: typeid): bool {
+    when type {
+        b8, b16, b32, b64, bool: return true;
+        else: return false;
+    }
+}

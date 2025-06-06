@@ -1196,6 +1196,27 @@ when str {
     else: fmt::println("???")
 }
 
+// Values can be set to the result of when.
+
+str ::= "one"
+x := when str {
+    "one": yields 1;
+    "two": yields 2;
+    else: yields 0; // Must have an 'else' unless when is checking an enum and it is complete. 
+}
+
+typedef Some_enum enum {
+    Value1,
+    Value2,
+}
+
+thing ::= Some_Enum::Value1;
+x := when thing {
+    Some_Enum::Value1: yields 1;
+    Some_Enum::Value2: yields 2;
+    // No else needed since it's complete.
+}
+
 // When statements don't always need to have an else: but it is a good idea to have them.
 // else: works a bit differently if using when on an enum. See the enums section for an explanation.
 
@@ -2435,9 +2456,15 @@ typedef Vec3<typename T: #decimal> struct { /- ... -/ }
 // Or if you only want to allow only all integer types only you can use the #integer built-in macro.
 typedef Vec3<typename T: #integer> struct { /- ... -/ }
 
+// Or if you only want to allow only all signed types only you can use the #signed built-in macro.
+typedef Vec3<typename T: #signed> struct { /- ... -/ }
+
+// Or if you only want to allow only all unsigned integer types only you can use the #unsigned built-in macro.
+typedef Vec3<typename T: #unsigned> struct { /- ... -/ }
+
 // Or if you only want to allow only all boolean types only you can use the #boolean built-in macro.
 // Limited to bool, b8, b16, b32, b64
-typedef Vec3<typename T: #integer> struct { /- ... -/ }
+typedef Vec3<typename T: #boolean> struct { /- ... -/ }
 
 // I thought about having a number, decimal, and integer keywords but I don't think this would come up
 // enough to merit three dedicated keywords.
@@ -3328,6 +3355,9 @@ fn someFunc() {
 #OS_OPEN_BSD
 #OS_NONE
 
+#arch // replaced by the system architecture
+
+// The following don't expand to anything, they are either defined or not.
 #ARCH_ARM64
 #ARCH_AMD64
 #ARCH_X86_64
@@ -3412,6 +3442,7 @@ package nsl namespace libc
 
 // To tell nifty what is being used you must define everything with extern and the library name.
 // Let nifty know what is in the libc namespace.
+#[calling_convention(c)]
 extern "libc.lib" {
     typedef size_t as uint
     // typedef size_t undefined

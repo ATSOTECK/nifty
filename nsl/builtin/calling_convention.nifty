@@ -1,0 +1,13 @@
+package nsl namespace builtin;
+
+// This is mostly for documentation. Calling conventions are handled by the compiler.
+typedef Calling_Conventions enum {
+    none,
+    c,
+    x86_64_win,
+
+    winapi = when #arch {
+        "x86_64": yields x86_64_win;
+        else: panic("unknown arch: '{}'", #arch);
+    },
+}

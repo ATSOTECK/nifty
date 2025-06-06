@@ -44,6 +44,7 @@ fmt::println("Putting {:green}{}{:reset} message.", filename)
 // To do formatting use a colon after the opening brace.
 x ::= 1.234567
 fmt::println("{:.3}", x)
+fmt::println("{x:.3}")
 
 using map
 
@@ -70,3 +71,42 @@ md set(key: T): bool {}
 md erase(key: T): bool {}
 
 endimpl
+
+use net::http;
+use os;
+using fmt;
+use { green, reset } in fmt::colors;
+
+fn put_message(filename: string): error {
+    println("Putting {green}{filename}{reset} message.");
+    data ::= try os::read_file("{filename}.json");
+    resp ::= try http::put("localhost:4001/prerecorded_messages", { "Content-Type": "application/json" }, data);
+    println(resp);
+}
+
+fn put_message(filename: string): error {
+    println("Putting {green}{filename}{reset} message.");
+    data ::= try os::read_file("{filename}.json");
+    req := try http::new_request(http::Method::Put, "localhost:4001/prerecorded_messages");
+    req.header.set("Content-Type", "application/json");
+    req.payload = data;
+    
+    resp ::= try http::send(req);
+    
+    println(resp);
+}
+
+fn put_message(filename: string): error {
+    println("Putting {green}{filename}{reset} message.");
+    data ::= try os::read_file("{filename}.json");
+    resp ::= try http::request(http::Method::Put, "localhost:4001/prerecorded_messages", { "Content-Type": "application/json" }, data);
+    println(resp);
+}
+
+fn main() {
+    err ::= put_message("sub-req");
+    if err != 0 {
+        panic(err);
+    }
+}
+

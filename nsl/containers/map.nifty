@@ -1,0 +1,5 @@
+package nsl namespace map
+
+typedef Map<typename T, typename U> struct {
+    //
+}

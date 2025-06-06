@@ -3,5 +3,6 @@ package nsl namespace strconv
 typedef ConversionError error {
     EmptyStringError,
     IntegerSyntaxError,
+    UnsignedSyntaxError,
     BoolSyntaxError,
 }
