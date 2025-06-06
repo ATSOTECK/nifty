@@ -2,10 +2,10 @@
 Nifty is a new, work in progress, programming language. Everything is subject to change.
 
 ```rs
-using <fmt>
+using fmt
 
 fn main() {
-    println("Hello world!")
+    println("Hullo!")
 }
 ```
 
