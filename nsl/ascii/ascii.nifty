@@ -133,15 +133,16 @@ fn parse_int_generic<typedef T: #integer>(c: char): T! {
 }
 
 #[inline]
-fn parse_s32(c: char) s32! {
+fn parse_s32(c: char): s32! {
     return parse_int_generic<s32>(c);
 }
 
 #[inline]
-fn parse_u32(c: char) u32! {
+fn parse_u32(c: char): u32! {
     return parse_int_generic<u32>(c);
 }
 
+#[inline]
 fn parse_int(c: char): int! {
     return parse_int_generic<int>(c);
 }

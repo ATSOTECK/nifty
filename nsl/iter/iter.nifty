@@ -1,6 +1,6 @@
-package iter
+package nsl namespace iter;
 
-type Iterable<T> behavior {
-    len(): int
-    at(int): T
+typedef Iterable<typename T> behavior {
+    len(): int;
+    at(int): T;
 }

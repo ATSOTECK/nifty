@@ -1,11 +1,19 @@
-package nsl namespace testing
+package nsl namespace testing;
 
-using errors
+using errors;
 
 fn expect_eq<typename T>(expected, actual: T): bool! {
     if expected == actual {
-        return true
+        return true;
     }
 
-    return errors::wrap(error::NotEqual, "'{}'', does not equal expected value '{}'", actual, expected)
+    return errors::wrap(error::NotEqual, "'{}'', does not equal expected value '{}'", actual, expected);
+}
+
+fn expect_len<typename T>(len: u64, arr: []T): bool! {
+    if arr.len == len {
+        return true;
+    }
+
+    return errors::wrap(error::NotEqual, "array length '{}' does not match expected length '{}'", arr.len, len);
 }

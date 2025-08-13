@@ -1,0 +1,37 @@
+package nsl namespace flags;
+
+// typedef Flag_Setter as fn<typename T>(^T, string, []string) bool!;
+typedef Flag_Setter as fn(data: ^unknown_type, value_str: string, attributes: []string) bool!;
+typedef Flag_Validator as fn(name: string, value: unknown_type, attributes: []string): error;
+
+typedef Flags_Result<typename T> struct {
+    data: T?;
+    overflow: []string;
+    errors: []error;
+}
+
+// Will continue parsing even if there is an error. Will save errors into an array.
+fn parse_args_lax<typename T>(
+    args: []string, 
+    validator: Flag_Validator = null
+    setter: Flag_Setter = null
+): Flags_Result<T> {
+    //
+}
+
+// Will exit on the first error.
+fn parse_args<typename T>(
+    args: []string, 
+    validator: Flag_Validator = null
+    setter: Flag_Setter = null
+): T! {
+    //
+}
+
+fn parse_args_or_exit<typename T>(
+    args: []string, 
+    validator: Flag_Validator = null
+    setter: Flag_Setter = null
+): T {
+    //
+}

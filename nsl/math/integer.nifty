@@ -2,22 +2,22 @@ package nsl namespace math;
 
 fn is_unsigned_negative<typename T: #unsigned>(n: T): bool {
     when size_of(T) {
-        8: i := s8(n); return i < 0;
-        16: i := s16(n); return i < 0;
-        32: i := s32(n); return i < 0;
-        64: i := s64(n); return i < 0;
-        128: i := s128(n); return i < 0;
+        8: i := cast(n, s8); return i < 0;
+        16: i := cast(n, s16); return i < 0;
+        32: i := cast(n, s32); return i < 0;
+        64: i := cast(n, s64); return i < 0;
+        128: i := cast(n, s128); return i < 0;
         else: panic("unknown unsigned integer size: {}", size_of(T));
     }
 }
 
 fn unsigned_abs<typename T: #unsigned>(n: T): bool {
     when size_of(T) {
-        8: i := return u8(abs(s8(n)));
-        16: i := return u16(abs(s16(n)));
-        32: i := return u32(abs(s32(n)));
-        64: i := return u64(abs(s64(n)));
-        128: i := return u128(abs(s128(n)));
+        8: return u8(abs(s8(n)));
+        16: return u16(abs(s16(n)));
+        32: return u32(abs(s32(n)));
+        64: return u64(abs(s64(n)));
+        128: return u128(abs(s128(n)));
         else: panic("unknown unsigned integer size: {}", size_of(T));
     }
 }

@@ -59,7 +59,9 @@ ProjectInfo loadProject();
 void build(const std::string &target_name, ProjectInfo &info);
 void run(const std::string &target_name, ProjectInfo &info);
 void new_project(bool exists, bool noGit);
+void create_basic_project(const std::string &name, bool noGit);
 
 void list_targets(const ProjectInfo &info);
+void list_tasks(const ProjectInfo &info);
 
 #endif //PROJECT_HPP

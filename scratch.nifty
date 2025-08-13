@@ -110,3 +110,141 @@ fn main() {
     }
 }
 
+
+// Parsing args
+
+use flags
+use errors
+use fmt
+use strconv
+
+typedef Options struct {
+    filename : string; #[flag="f", required, usage="File to load."]
+    count    : int;    #[usage="Usage info here", default=2]
+    overwrite: bool;   #[usage="Overwrite the file", default=true]
+}
+
+fn type_setter<typename T>(data: ^T, value: string, attributes: []string): bool! {
+    when typeid_of(T) {
+        Some_Type: {
+            data->bla = strconv::to_lower(value);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+fn type_setter(data: ^unknown_type, value: string, attributes: []string): bool! {
+    when type_of(data) {
+        Some_Type: {
+            data->bla = strconv::to_lower(value);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+fn validator(name: string, value: unknown_type, attributes: []string) error {
+    if name == "count" {
+        c ::= cast(value, int)
+        if c <= 0 || c > 5 {
+            return errors::wrap(error::FlagError, "count must be > 0 and <= 5");
+            // return fmt::errorf(error::FlagError, "count must be > 0 and <= 5");
+        }
+    }
+
+    return error::None;
+}
+
+fn main(args: []string): int {
+    opts ::= flags::parse_args_strict<Options>(args, validator, type_setter) => [const err] {
+        panic(err);
+    };
+
+    // or
+
+    res ::= flags::parse_args<Options>(args, validator, type_setter);
+    if res.errors.length() > 0 {
+        for const err in res.errors {
+            fmt::println(err);
+        }
+
+        return 1;
+    }
+
+    opts ::= res.data ?? Options{};
+
+    for i := 0; i < opts.count; ++i {
+        // do something
+    }
+
+    return 0;
+}
+
+
+arr := []int{1, 2, 3}
+
+len ::= #len(arr)
+cap ::= #cap(arr)
+#append(arr, 12) // [1, 2, 3, 12]
+#prepend(arr, 42) // [42, 1, 2, 3, 12]
+#clear(arr)
+
+arr1 := []int{1, 2, 3}
+arr2 := []int{4, 5, 6}
+
+#append(arr1, arr2)
+fmt::printf(arr1) // [1, 2, 3, 4, 5, 6]
+
+// More advanced array functions are in the arrays namespace.
+
+arrays::map(arr, fn (x: int) {
+    //
+});
+
+//
+
+typedef Foo behavior {
+    ^Bar(): string // Reciever obj must be a pointer.
+}
+
+fn add_small_ints<typename T: #integer>(a, b: T): T {
+    #if(size_of(T) > 16) {
+        #error("too big");
+    }
+
+    return a + b;
+}
+
+
+// With #[constexpr] all args must be determined at compile time.
+#[constexpr]
+fn Vec(T: typeid, N: int): typeid {
+    vec_type := struct {
+        data: [N]T;
+    }
+
+    impl vec_type;
+
+    md abs[v: Self](): Self {
+        tmp := Self{data: undefined}
+        for const n, i in v.data {
+            tmp.data[i] = n;
+        }
+
+        return tmp;
+    }
+
+    md init(data: [N]T) {
+        return Self{data: data};
+    }
+
+    endimpl;
+
+    return vec_type;
+}
+
+constexpr x = Vec(s32, 3).init([]s32{1, -2, 3});
+constexpr y = x.abs();
