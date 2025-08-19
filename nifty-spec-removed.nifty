@@ -5,6 +5,7 @@
 // [ORM]
 // [TYPE METHODS]
 // [OPERATOR OVERLOADING]
+// [NAME_OF]
 
 // [MAP] ------------------------------------------------------------------------------------------
 
@@ -255,3 +256,15 @@ md sub(other: Vec2): Vec2 {
 }
 
 endimpl
+
+// [NAME_OF] --------------------------------------------------------------------------------------
+
+// To get the name of a enumeration use the name_of operator.
+
+num := Numbers.PI
+name := name_of(num, Numbers)
+fmt::println("num is {}", name) // Prints 'num is PI'
+
+// If the value can't be found it will return an empty string.
+num = 3.4
+name = name_of(num, Numbers) // 'name' is an empty string.

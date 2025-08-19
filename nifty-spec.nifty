@@ -250,6 +250,8 @@ uint // same as u32 defaults to 0
 float // same as f32 defaults to 0.f
 double // same as f64 defaults to 0.d
 
+unit // number between 0 and 1 inclusive. Same size as f32
+
 uintptr // defaults to 0
 
 // defaults to false
@@ -364,6 +366,10 @@ if (b == true) { /- ... -/ } // Valid
 p: ^int = null
 if (p) { /- ... -/ } // Invalid 
 if (p != null) { /- ... -/ } // Valid
+
+opt? := 7
+if (opt) { /- ... -/ } //Valid
+if (opt != null) { /- ... -/ } //Valid
 
 // Nifty supports hex, octal, and binary numbers
 x := 0xff // or 0xFF
@@ -2359,17 +2365,6 @@ typedef Animals enum: string {
     Dog = "dog",
 }
 
-// TODO: Should name_of be removed?
-// To get the name of a enumeration use the name_of operator.
-
-num := Numbers.PI
-name := name_of(num, Numbers)
-fmt::println("num is {}", name) // Prints 'num is PI'
-
-// If the value can't be found it will return an empty string.
-num = 3.4
-name = name_of(num, Numbers) // 'name' is an empty string.
-
 // using can be used on enums.
 
 typedef Numbers enum: f64 {
@@ -2953,6 +2948,11 @@ if person => [const p] {
     p->doAThing();
     free(person)
 }
+
+n := new(int)
+n^ = 12
+n = free(n) // Free n and set it to null. Maybe emit a warning if the user only frees and
+            // doesn't set the pointer to null.
 
 // To create a custom allocator you must use constimpl and use the mem::Allocator behavior.
 
@@ -3970,7 +3970,6 @@ type_of
 typeid_of
 typeinfo_of
 size_of
-name_of
 align_of
 new
 free

@@ -1,6 +1,4 @@
-2 + 10 * 5
-
-// namespace four;
+namespace four;
 
 // namespace two
 

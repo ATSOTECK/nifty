@@ -24,9 +24,10 @@ fn openFile(filename string) Result<File, FileError> { .. } // For specific erro
 
 fn someFunc() error {
     file := try openFile()
-    file := openFile("bla") => [const err] {
+    file := openFile("bla") => [err] {
         if err == error.FileNotFound {
             return errors::wrap(err, "someFunc") // error message would be "someFunc: Failed to open file bla"
+            return err.wrap("someFunc") // error message would be "someFunc: Failed to open file bla"
         }
 
         yields File{}
